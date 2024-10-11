@@ -25,6 +25,12 @@ export default class Affiliate {
     @Column()
     level: number;  
 
+    @Column({ default: '0' })
+    personal_income: string;
+
+    @Column({ default: '0' })
+    group_income: string;
+
     @Column({type: 'text', default: '0'})
     commission: string; 
 

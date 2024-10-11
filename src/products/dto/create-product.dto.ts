@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsNumberString, IsString, Max, MaxLength, Min, MinLength } from "class-validator";
+import { IsNotEmpty, IsNotEmptyObject, IsNumber, IsNumberString, IsObject, IsString, Matches, Max, MaxLength, Min, MinLength } from "class-validator";
 
 export class CreateProductDto {
     @ApiProperty({
@@ -7,6 +7,7 @@ export class CreateProductDto {
         example: 'Iphone 16',
     })
     @IsString()
+    @IsNotEmpty()
     @MaxLength(50)
     name: string;
 
@@ -15,6 +16,7 @@ export class CreateProductDto {
         example: 'This is a phone',
     })
     @IsString()
+    @IsNotEmpty()
     @MaxLength(500)
     description: string;
 
@@ -23,7 +25,11 @@ export class CreateProductDto {
         example: '1000000',
     })
     @IsNumberString()
+    @IsNotEmpty()
     @MaxLength(15)
+    @Matches(/^[0-9]+$/, {
+        message: 'price must be a non-negative number string',
+    })
     price: string;
 
     @ApiProperty({
@@ -31,6 +37,8 @@ export class CreateProductDto {
         example: 100,
     })
     @IsNumber()
+    @IsNotEmpty()
+    @Min(0)
     @Max(100000)
     stock: number;
 
@@ -39,6 +47,8 @@ export class CreateProductDto {
         example: 1,
     })
     @IsNumber()
+    @IsNotEmpty()
+    @Min(1)
     category_id: number;
 
     @ApiProperty({
@@ -46,18 +56,22 @@ export class CreateProductDto {
         example: 'phone',
     })      
     @IsString()
+    @IsNotEmpty()
     @MaxLength(500)
     type: string;
 
     @ApiProperty({
         description: 'attributes',
         example: {color: 'red', size: 'large'},
-    }) 
+    })
+    @IsObject()
+    @IsNotEmptyObject()
     attributes: object;
 
     @ApiProperty({
         description: 'last_update',
         example: '2021-08-24 00:00:00',
     })
+    @IsNotEmpty()
     last_update: Date;
 }

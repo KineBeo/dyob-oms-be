@@ -24,12 +24,6 @@ export default class User {
     rank: Rank;
 
     @Column({ default: '0' })
-    personal_income: string;
-
-    @Column({ default: '0' })
-    group_income: string;
-
-    @Column({ default: '0' })
     total_purchase: string;
 
     @Column({type: 'text', default: '', nullable: false})
