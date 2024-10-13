@@ -1,11 +1,10 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import User from './entities/user.entity';
-import { MESSAGES } from '@nestjs/core/constants';
 @Injectable()
 export class UsersService {
   constructor(
@@ -13,7 +12,6 @@ export class UsersService {
     private userRepository: Repository<User>
   ) { }
 
-  // checked
   async create(createUserDto: CreateUserDto): Promise<User> {
     const { email, phone_number, password_hash, ...rest } = createUserDto;
 
@@ -44,16 +42,17 @@ export class UsersService {
     }));
   }
 
-  async findOne(id: number): Promise<User> {
+  async findOne(id: number): Promise<Omit<User, 'password_hash'>> {
     try {
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
         throw new ConflictException('User not found');
       }
-      return user;
+      const { password_hash, updateCreatedAt, updateUpdatedAt, ...userWithoutPassword } = user;
+      return { ...userWithoutPassword, updateCreatedAt, updateUpdatedAt };
     }
     catch (error) {
-      throw new ConflictException('User not found');
+      throw new BadRequestException('Something went wrong');
     }
   }
 
@@ -61,7 +60,7 @@ export class UsersService {
     const user = await this.userRepository.findOne(
       { where: { id } }
     );
-    const {password_hash, ...rest} = updateUserDto;
+    const { password_hash, ...rest } = updateUserDto;
     if (password_hash) {
       user.password_hash = await bcrypt.hash(password_hash, 10);
     }
@@ -86,11 +85,34 @@ export class UsersService {
     }
   }
 
-  async findByEmail(email: string): Promise<User> {
-    return this.userRepository.findOne({ where: { email } });
+  async findByEmail(email: string): Promise<Omit<User, 'password_hash'> | undefined> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { email }
+      });
+      if (!user) {
+        throw new ConflictException('User not found');
+      }
+      const { password_hash, updateCreatedAt, updateUpdatedAt, ...userWithoutPassword } = user;
+      return { ...userWithoutPassword, updateCreatedAt, updateUpdatedAt };
+    }
+    catch (error) {
+      throw new BadRequestException('Something went wrong');
+    }
   }
 
-  async findByPhoneNumber(phone_number: string): Promise<User | undefined> {
-    return this.userRepository.findOne({ where: { phone_number } });
+  async findByPhoneNumber(phone_number: string): Promise<Omit<User, 'password_hash'> | undefined> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { phone_number }
+      });
+      if (!user) {
+        throw new ConflictException('User not found');
+      }
+      const { password_hash, updateCreatedAt, updateUpdatedAt, ...userWithoutPassword } = user;
+      return { ...userWithoutPassword, updateCreatedAt, updateUpdatedAt };
+    } catch (error) {
+      throw new BadRequestException('Something went wrong');
+    }
   }
 }
