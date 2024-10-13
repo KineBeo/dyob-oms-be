@@ -2,6 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEmail, IsEnum, IsNotEmpty, IsNumberString, IsPhoneNumber, IsString, Length, Matches, MaxLength, MinLength } from "class-validator";
 import { Rank } from "src/enum/rank";
+import { BeforeInsert, BeforeUpdate, Column } from "typeorm";
 export class CreateUserDto {
 
     // checked
@@ -99,34 +100,5 @@ export class CreateUserDto {
     })
     bank_account_number: string;
 
-    // not checked
-    @ApiProperty({
-        description: 'created_at',
-        default: () => {
-            const now = new Date();
-            const ictTime = new Date(now.getTime() + (7 * 3600000));
-            return ictTime.toISOString().replace('Z', '+07:00');
-        },
-    })
-    @IsNotEmpty()
-    @Type(() => Date)
-    created_at: Date = new Date(
-        new Date().getTime() + (7 * 3600000) + (new Date().getTimezoneOffset() * 60000)
-    );
-
-    @ApiProperty({
-        description: 'updated_at',
-        default: () => {
-            const now = new Date();
-            const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const ictTime = new Date(utcTime + (7 * 3600000));
-            return ictTime.toISOString().replace('Z', '+07:00');
-        },
-    })
-    @IsNotEmpty()
-    @Type(() => Date)
-    updated_at: Date = new Date(
-        new Date().getTime() + (7 * 3600000) + (new Date().getTimezoneOffset() * 60000)
-    );
 }
 
