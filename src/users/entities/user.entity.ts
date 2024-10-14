@@ -1,7 +1,7 @@
 import Affiliate from "src/affiliate/entities/affiliate.entity";
 import { Rank } from "src/enum/rank";
 import Order from "src/orders/entities/order.entity";
-import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export default class User {
@@ -14,7 +14,7 @@ export default class User {
     @Column({ unique: true, nullable: false })
     phone_number: string;
 
-    @Column({ unique: true, default: ''})
+    @Column({ unique: true})
     email: string;
 
     @Column()
@@ -22,12 +22,6 @@ export default class User {
 
     @Column({type: 'enum',  default: Rank.KHL, enum: Rank})
     rank: Rank;
-
-    @Column({ default: '0' })
-    personal_income: string;
-
-    @Column({ default: '0' })
-    group_income: string;
 
     @Column({ default: '0' })
     total_purchase: string;
@@ -38,11 +32,22 @@ export default class User {
     @Column({type: 'text', default: '', nullable: false})
     bank_account_number: string;
 
-    @Column({ default: () => 'CURRENT_TIMESTAMP' })
-    created_at: Date;
+    @Column({ type: 'timestamp' })
+    public createdAt: Date;
 
-    @Column('timestamp')
-    updated_at: Date;
+    @Column({ type: 'timestamp' })
+    public updatedAt: Date;
+
+    @BeforeInsert()
+    updateCreatedAt() {
+        this.createdAt = new Date(new Date().getTime());
+        this.updatedAt = new Date(new Date().getTime());
+    }
+
+    @BeforeUpdate()
+    updateUpdatedAt() {
+        this.updatedAt = new Date(new Date().getTime());
+    }
 
     @OneToMany(() => Order, order => order.user)
     orders: Order[];
