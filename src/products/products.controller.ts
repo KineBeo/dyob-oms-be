@@ -75,7 +75,7 @@ export class ProductsController {
     description: 'Return the product category.',
     type: ProductCategory,
   })
-  findOneCategory(@Param('id') id: string) {
+  findOneCategory(@Param('id') id: number) {
     return `This action returns a #${id} product category`;
   }
 
@@ -86,8 +86,8 @@ export class ProductsController {
     description: 'Return the parent category.',
     type: ProductCategory,
   })
-  findParentCategory(@Param('id') id: string) {
-    return `This action returns parent category of #${id} product category`;
+  findParentCategory(@Param('id') id: number) {
+    return this.productsService.findParentCategory(+id);
   }
 
   @Get('category/sub/:id')
@@ -97,14 +97,14 @@ export class ProductsController {
     description: 'Return all sub-categories.',
     type: ProductCategory,
   })
-  findSubCategories(@Param('id') id: string) {
-    return `This action returns all sub-categories of #${id} product category`;
+  findSubCategories(@Param('id') id: number) {
+    return this.findSubCategories(+id);
   }
 
   @Patch('category/:id')
   @ApiOperation({ summary: 'Update a product category by id' })
   updateCategory(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateProductCategoryDto: CreateProductCategoryDto,
   ) {
     return this.productsService.updateCategory(+id, updateProductCategoryDto);
@@ -112,7 +112,7 @@ export class ProductsController {
 
   @Delete('category/:id')
   @ApiOperation({ summary: 'Delete a product category by id' })
-  removeCategory(@Param('id') id: string) {
+  removeCategory(@Param('id') id: number) {
     return this.productsService.removeCategory(+id);
   }
 }

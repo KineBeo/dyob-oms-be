@@ -89,6 +89,30 @@ export class ProductsService {
     return category;
   }
 
+  async findParentCategory(id: number) {
+    const category = await this.productCategoryRepository.findOne({
+      where: { id },
+      relations: ['parent'],
+    });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    return category.parent;
+  }
+
+  async findChildrenCategory(id: number) {
+    const category = await this.productCategoryRepository.findOne({
+      where: { id },
+      relations: ['children'],
+    });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    return category.children;
+  }
+
   async updateCategory(
     id: number,
     updateProductCategoryDto: UpdateProductCategoryDto,
