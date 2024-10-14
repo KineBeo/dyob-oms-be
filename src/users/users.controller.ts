@@ -26,19 +26,19 @@ export class UsersController {
 
   @Get('id/:id')
   @ApiOperation({ summary: 'Find a user by id' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.usersService.findOne(+id);
   }
 
   @Patch('id/:id')
   @ApiOperation({ summary: 'Update a user by id' })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(+id, updateUserDto);
   }
 
   @Delete('id/:id')
   @ApiOperation({ summary: 'Delete a user by id' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.usersService.remove(+id);
   }
 
