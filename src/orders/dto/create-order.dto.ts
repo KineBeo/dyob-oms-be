@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsNotEmpty, IsNumber, IsNumberString, Matches, MaxLength, Min, MinLength } from "class-validator";
+import { IsEnum, IsNotEmpty, IsNumber, IsNumberString, IsString, Matches, MaxLength, Min, MinLength } from "class-validator";
 import { OrderStatus } from "src/enum/order-status";
 
 export class CreateOrderDto {
@@ -28,11 +28,21 @@ export class CreateOrderDto {
     @IsNumberString()
     @IsNotEmpty()
     @MinLength(1)
-    @MaxLength(100)
+    @MaxLength(20)
     @Matches(/^[0-9]+$/, {
         message: 'total_amount must be a non-negative number string',
     })
     total_amount: string;
+
+    @ApiProperty({
+        description: 'address',
+        example: '123 ABC street',
+    })
+    @IsString()
+    @IsNotEmpty()
+    @MinLength(6)
+    @MaxLength(100)
+    address: string;
 
     @ApiProperty({
         description: 'status',
@@ -43,9 +53,4 @@ export class CreateOrderDto {
     @MaxLength(50)
     status: OrderStatus;
 
-    @ApiProperty({
-        description: 'created_at',
-        example: '2021-08-24 00:00:00',
-    })
-    created_at: Date;
 }
