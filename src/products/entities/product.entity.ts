@@ -1,4 +1,5 @@
 import {
+  BeforeUpdate,
   Column,
   Entity,
   JoinColumn,
@@ -26,6 +27,9 @@ export default class Product {
   @Column({ type: 'integer', default: 0, nullable: false })
   stock: number;
 
+  @Column({ nullable: false })
+  category_id: number;
+
   @ManyToOne(() => ProductCategory, (category) => category.products)
   @JoinColumn({ name: 'category_id' })
   category: ProductCategory;
@@ -38,6 +42,11 @@ export default class Product {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   last_update: Date;
+
+  @BeforeUpdate()
+  updateTimestamp() {
+    this.last_update = new Date(new Date().getTime());
+  }
 
   @OneToMany(
     () => OrderProductItem,

@@ -1,3 +1,8 @@
+
+import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import ProductCategory from './entities/product_category.entity';
 import {
   ConflictException,
   Injectable,
@@ -5,9 +10,7 @@ import {
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import ProductCategory from './entities/product_category.entity';
 import { CreateProductCategoryDto } from './dto/create-product_category.dto';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Product from './entities/product.entity';
 import { UpdateProductCategoryDto } from './dto/update-product_category.dto';
@@ -22,24 +25,56 @@ export class ProductsService {
     private productCategoryRepository: Repository<ProductCategory>,
   ) {}
 
-  create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+  async create(createProductDto: CreateProductDto): Promise<Product> {
+    const category = this.productCategoryRepository.findOne({
+      where: { id: createProductDto.category_id },
+    });
+    if (!category) {
+      throw new NotFoundException(
+        `Category #${createProductDto.category_id} not found`,
+      );
+    }
+
+    const product = this.productRepository.create(createProductDto);
+    return await this.productRepository.save(product);
+
+  async findAll(): Promise<Product[]> {
+    return await this.productRepository.find();
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findOne(id: number): Promise<Product> {
+    const product = await this.productRepository.findOne({ where: { id } });
+    if (!product) {
+      throw new NotFoundException(`Product #${id} not found`);
+    }
+    return product;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
-  }
+  async update(id: number, updateProductDto: UpdateProductDto) {
+    const { category_id, ...rest } = updateProductDto;
+    const category = await this.productCategoryRepository.findOne({
+      where: { id: category_id },
+    });
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+    if (!category) {
+      throw new NotFoundException(`Category #${category_id} not found`);
+    }
+
+    const product = await this.productRepository.findOne({ where: { id } });
+    if (!product) {
+      throw new NotFoundException(`Product #${id} not found`);
+    }
+
+    Object.assign(product, rest);
+    return this.productRepository.save(product);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} product`;
+    if (!this.productRepository.findOne({ where: { id } })) {
+      throw new NotFoundException(`Product #${id} not found`);
+    }
+
+    return this.productRepository.delete(id);
   }
 
   /*-------------Category----------------*/
