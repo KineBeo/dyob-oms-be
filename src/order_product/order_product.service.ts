@@ -24,12 +24,12 @@ export class OrderProductService {
 
       const order = await this.ordersService.findOne(order_id);
       if (!order) {
-        throw new NotFoundException(`Order with ID ${order_id} not found`);
+        throw new NotFoundException(`Order with ID ${order_id} not found from create order product service`);
       }
 
       const product = await this.productsService.findOne(product_id);
       if (!product) {
-        throw new NotFoundException(`Product with ID ${product_id} not found`);
+        throw new NotFoundException(`Product with ID ${product_id} not found from create order product service`);
       }
 
       const newOrderProduct = this.orderProductRepository.create({
@@ -44,13 +44,13 @@ export class OrderProductService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong from create order product');
+      throw new BadRequestException('Something went wrong from create order product service');
     }
   }
 
   async createMany(items: CreateOrderProductDto[]): Promise<OrderProduct[]> {
     try {
-      console.log('Received items:', items);  
+      console.log('Received items:', items);
       const createdItems: OrderProduct[] = [];
 
       for (const item of items) {
@@ -58,12 +58,12 @@ export class OrderProductService {
 
         const order = await this.ordersService.findOne(order_id);
         if (!order) {
-          throw new NotFoundException(`Order with ID ${order_id} not found`);
+          throw new NotFoundException(`Order with ID ${order_id} not found from create many order product service`);
         }
 
         const product = await this.productsService.findOne(product_id);
         if (!product) {
-          throw new NotFoundException(`Product with ID ${product_id} not found`);
+          throw new NotFoundException(`Product with ID ${product_id} not found from create many order product service`);
         }
 
         const newOrderProduct = this.orderProductRepository.create({
@@ -86,25 +86,33 @@ export class OrderProductService {
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<OrderProduct[]> {
     try {
-
+      return await this.orderProductRepository.find({
+        relations: ['order', 'product']
+      });
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from find all order product service');
     }
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<OrderProduct> {
     try {
+      const orderProduct = await this.orderProductRepository.findOne({
+        where: { id },
+        relations: ['order', 'product']
+      });
 
+      if (!orderProduct) {
+        throw new NotFoundException('Order product not found from find one order product service');
+      }
+
+      return orderProduct;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from find one order product service');
     }
   }
 
@@ -115,18 +123,20 @@ export class OrderProductService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from update order product service');
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number): Promise<{message: string}> {
     try {
-
+      const orderProduct = await this.findOne(id);
+      await this.orderProductRepository.remove(orderProduct);
+      return { message: `Order product item with ID ${id} has been successfully deleted`};
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from remove order product service');
     }
   }
 }

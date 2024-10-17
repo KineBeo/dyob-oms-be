@@ -35,19 +35,19 @@ export class OrdersService {
     const affiliate = await this.affiliateService.findOne(affiliate_id);
     if (!affiliate) {
       throw new NotFoundException(
-        `Affiliate with ID ${affiliate_id} not found`,
+        `Affiliate with ID ${affiliate_id} not found from create order service`,
       );
     }
     try {
       // Check if user exists
       const user = await this.userService.findOne(userId);
       if (!user) {
-        throw new NotFoundException(`User with ID ${userId} not found`);
+        throw new NotFoundException(`User with ID ${userId} not found from create order service`);
       }
 
       const cartItems = await this.cartService.getCart(userId);
       if (!cartItems || cartItems.length === 0) {
-        throw new Error('Cart is empty');
+        throw new Error('Cart is empty from create order service');
       }
 
       const total_amount = cartItems
@@ -80,7 +80,7 @@ export class OrdersService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException(`Failed to create order: ${error.message}`);
+      throw new BadRequestException(`Failed to create order: ${error.message} from create order service`);
     }
   }
 
@@ -89,7 +89,7 @@ export class OrdersService {
       const orders = await this.orderRepository.find();
       return orders;
     } catch (error) {
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from find all orders service');
     }
   }
 
@@ -97,14 +97,14 @@ export class OrdersService {
     try {
       const order = await this.orderRepository.findOne({ where: { id } });
       if (!order) {
-        throw new NotFoundException('Order not found');
+        throw new NotFoundException('Order not found from find one order service');
       }
       return order;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from find one order service');
     }
   }
 
@@ -115,7 +115,7 @@ export class OrdersService {
       });
       if (orders.length === 0) {
         throw new NotFoundException(
-          `Order of user with ID ${userId} not found`,
+          `Order of user with ID ${userId} not found from find all orders by user id service`,
         );
       }
       return orders;
@@ -123,7 +123,7 @@ export class OrdersService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from find all orders by user id service');
     }
   }
 
@@ -131,14 +131,14 @@ export class OrdersService {
     try {
       const order = await this.orderRepository.findOne({ where: { id } });
       if (!order) {
-        throw new NotFoundException('Order not found');
+        throw new NotFoundException('Order not found from update order service');
       }
       return this.orderRepository.save({ ...order, ...updateOrderDto });
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from update order service');
     }
   }
 
@@ -146,7 +146,7 @@ export class OrdersService {
     try {
       const order = await this.orderRepository.findOne({ where: { id } });
       if (!order) {
-        throw new NotFoundException('Order not found');
+        throw new NotFoundException('Order not found from remove order service');
       }
       return this.orderRepository.remove(order);
     } catch (error) {

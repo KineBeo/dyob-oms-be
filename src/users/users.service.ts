@@ -46,7 +46,7 @@ export class UsersService {
     try {
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
-        throw new NotFoundException('User not found');
+        throw new NotFoundException('User not found from find one user by id service');
       }
       const { password_hash, updateCreatedAt, updateUpdatedAt, ...userWithoutPassword } = user;
       return { ...userWithoutPassword, updateCreatedAt, updateUpdatedAt };
@@ -55,7 +55,7 @@ export class UsersService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong from find one user');
+      throw new BadRequestException('Something went wrong from find one user by id service');
     }
   }
 
@@ -84,7 +84,7 @@ export class UsersService {
     }
     catch (error) {
       console.log(error);
-      throw new ConflictException(`User with ${id} not found`);
+      throw new ConflictException(`User with ${id} not found from remove user by id service`);
     }
   }
 
@@ -94,13 +94,13 @@ export class UsersService {
         where: { email }
       });
       if (!user) {
-        throw new ConflictException('User not found');
+        throw new ConflictException('User not found from find by email service');
       }
       const { password_hash, updateCreatedAt, updateUpdatedAt, ...userWithoutPassword } = user;
       return { ...userWithoutPassword, updateCreatedAt, updateUpdatedAt };
     }
     catch (error) {
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from find by email service');
     }
   }
 
@@ -110,12 +110,12 @@ export class UsersService {
         where: { phone_number }
       });
       if (!user) {
-        throw new ConflictException('User not found');
+        throw new ConflictException('User not found from find by phone number service');
       }
       const { password_hash, updateCreatedAt, updateUpdatedAt, ...userWithoutPassword } = user;
       return { ...userWithoutPassword, updateCreatedAt, updateUpdatedAt };
     } catch (error) {
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from find by phone number service');
     }
   }
 }

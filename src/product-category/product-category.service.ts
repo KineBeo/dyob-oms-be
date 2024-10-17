@@ -17,14 +17,14 @@ export class ProductCategoryService {
       const { name, parent_id, ...rest } = createProductCategoryDto;
       const existingProductCategory = await this.productCategoryRepository.findOne({ where: { name } });
       if (existingProductCategory) {
-        throw new ConflictException('Product category already exists with that name');
+        throw new ConflictException('Product category already exists with that name from create product category service');
       }
 
       let parent: ProductCategory | null = null;
       if (parent_id) {
         parent = await this.productCategoryRepository.findOne({ where: { id: parent_id } });
         if (!parent) {
-          throw new NotFoundException('Parent category does not exist');
+          throw new NotFoundException('Parent category does not exist from create product category service');
         }
       }
 
@@ -39,7 +39,7 @@ export class ProductCategoryService {
       if (error instanceof ConflictException || error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from create product category service');
     }
   }
 
@@ -49,7 +49,7 @@ export class ProductCategoryService {
         relations: ['parent', 'children', 'products']
       });
     } catch (error) {
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from find all product categories service');
     }
   }
 
@@ -61,7 +61,7 @@ export class ProductCategoryService {
       });
 
       if (!category) {
-        throw new NotFoundException('Category not found');
+        throw new NotFoundException('Category not found from find one product category service');
       }
 
       return category;
@@ -69,7 +69,7 @@ export class ProductCategoryService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from find one product category service');
     }
   }
 
@@ -80,14 +80,14 @@ export class ProductCategoryService {
       });
 
       if (!category) {
-        throw new NotFoundException('Category not found');
+        throw new NotFoundException('Category not found from update product category service');
       }
 
       const { name, parent_id, ...rest } = updateProductCategoryDto;
       if (name && name !== category.name) {
         const existingProductCategory = await this.productCategoryRepository.findOne({ where: { name } });
         if (existingProductCategory) {
-          throw new ConflictException('Product category already exists with that name');
+          throw new ConflictException('Product category already exists with that name from update product category service');
         }
         category.name = name;
       }
@@ -98,7 +98,7 @@ export class ProductCategoryService {
         } else {
           const parent = await this.productCategoryRepository.findOne({ where: { id: parent_id } });
           if (!parent) {
-            throw new NotFoundException('Parent category does not exist');
+            throw new NotFoundException('Parent category does not exist from update product category service');
           }
           category.parent = parent;
         }
@@ -110,7 +110,7 @@ export class ProductCategoryService {
       if (error instanceof NotFoundException || error instanceof ConflictException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from update product category service');
     }
   }
 
@@ -122,11 +122,11 @@ export class ProductCategoryService {
       });
 
       if (!category) {
-        throw new NotFoundException('Category not found');
+        throw new NotFoundException('Category not found from remove product category service');
       }
 
       if (category.children.length > 0 || category.products.length > 0) {
-        throw new ConflictException('Cannot delete category with children or products');
+        throw new ConflictException('Cannot delete category with children or products from remove product category service');
       }
 
       await this.productCategoryRepository.remove(category);
@@ -135,7 +135,7 @@ export class ProductCategoryService {
       if (error instanceof NotFoundException || error instanceof ConflictException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from remove product category service');
     }
   }
 }

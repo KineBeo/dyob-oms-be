@@ -24,7 +24,7 @@ export class CartService {
             await this.redis.hset(cartKey, rest.product_id.toString(), JSON.stringify(rest));
             return cart;
         } catch (error) {
-            throw new BadRequestException('Failed to add item to cart from addToCart');
+            throw new BadRequestException('Failed to add item to cart from addToCart service');
         }
     }
 
@@ -33,21 +33,21 @@ export class CartService {
             const cartKey = this.getCartKey(userId);
             const cartItems = await this.redis.hgetall(cartKey);
             if (!cartItems || Object.keys(cartItems).length === 0) {
-                throw new NotFoundException('Cannot find cart items');
+                throw new NotFoundException('Cannot find cart items from getCart');
             }
             return Object.values(cartItems).map((item) => JSON.parse(item));
         } catch (error) {
             if (error instanceof NotFoundException) {
                 throw error;
             }
-            throw new BadRequestException('Something went wrong from getCart');
+            throw new BadRequestException('Something went wrong from getCart service');
         }
     }
 
     async getAllCarts(): Promise<{ userId: number, cartItems: Cart[] }[]> {
         const cartKeys = await this.redis.keys('cart:*');
         if (!cartKeys || cartKeys.length === 0) {
-            throw new NotFoundException('Cannot find any cart items');
+            throw new NotFoundException('Cannot find any cart items from getAllCarts');
         }
 
         const allCarts: { userId: number, cartItems: Cart[] }[] = [];
@@ -67,15 +67,15 @@ export class CartService {
             const cartKey = this.getCartKey(userId);
             const cartItems = await this.redis.hgetall(cartKey);
             if (!cartItems || Object.keys(cartItems).length === 0) {
-                throw new NotFoundException('Cannot find cart items');
+                throw new NotFoundException('Cannot find cart items from clearCart');
             }
             await this.redis.del(cartKey);
-            return { message: 'Cart cleared successfully' };
+            return { message: 'Cart cleared successfully from clearCart' };
         } catch (error) {
             if (error instanceof NotFoundException) {
                 throw error;
             }
-            throw new BadRequestException('Something went wrong from clearCart');
+            throw new BadRequestException('Something went wrong from clearCart service');
         }
     }
 
@@ -85,22 +85,22 @@ export class CartService {
             const cartItems = await this.redis.hgetall(cartKey);
 
             if (!cartItems || Object.keys(cartItems).length === 0) {
-                throw new NotFoundException('Cannot find cart items');
+                throw new NotFoundException('Cannot find cart items from removeFromCart');
             }
 
             const productIdString = productId.toString();
             if (!(productIdString in cartItems)) {
-                throw new NotFoundException(`Product with id ${productId} not found in cart`);
+                throw new NotFoundException(`Product with id ${productId} not found in cart from removeFromCart`);
             }
 
             await this.redis.hdel(cartKey, productIdString);
 
-            return { message: 'Item removed from cart successfully' };
+            return { message: 'Item removed from cart successfully from removeFromCart' };
         } catch (error) {
             if (error instanceof NotFoundException || error instanceof BadRequestException) {
                 throw error;
             }
-            throw new BadRequestException('Something went wrong from removeFromCart');
+            throw new BadRequestException('Something went wrong from removeFromCart service');
         }
     }
 
@@ -114,15 +114,15 @@ export class CartService {
                 parsedItem.quantity = quantity;
                 await this.redis.hset(cartKey, product_id.toString(), JSON.stringify(parsedItem));
             } else {
-                throw new NotFoundException('Item of user not found in cart from updateCartItemQuantity');
+                throw new NotFoundException('Item of user not found in cart from updateCartItemQuantity service');
             }
 
-            return { message: 'Cart item quantity updated successfully' };
+            return { message: 'Cart item quantity updated successfully'};
         } catch (error) {
             if (error instanceof NotFoundException) {
                 throw error;
             }
-            throw new BadRequestException('Something went wrong from updateCartItemQuantity');
+            throw new BadRequestException('Something went wrong from updateCartItemQuantity service');
         }
     }
 }

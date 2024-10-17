@@ -23,7 +23,7 @@ export class ProductsService {
         { where: [{ name }, { price }] }
       );
       if (existingProduct) {
-        throw new ConflictException('Product already exists with that name or price');
+        throw new ConflictException('Product already exists with that name or price from create product service');
       }
 
       let category: ProductCategory | null = null;
@@ -33,7 +33,7 @@ export class ProductsService {
           relations: ['parent']
         });
         if (!category) {
-          throw new NotFoundException(`Category with id ${category_id} not found`);
+          throw new NotFoundException(`Category with id ${category_id} not found from create product service`);
         }
       }
       const newProduct = this.productRepository.create({
@@ -55,7 +55,7 @@ export class ProductsService {
       if (error instanceof ConflictException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from create product service');
     }
   }
 
@@ -64,7 +64,7 @@ export class ProductsService {
       const products = await this.productRepository.find();
       return products;
     } catch (error) {
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from find all products service');
     }
   }
 
@@ -72,7 +72,7 @@ export class ProductsService {
     try {
       const product = await this.productRepository.findOne({ where: { id } });
       if (!product) {
-        throw new NotFoundException('Product not found');
+        throw new NotFoundException('Product not found from find one product service');
       }
       
       return product;
@@ -80,7 +80,7 @@ export class ProductsService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from find one product service');
     }
   }
 
@@ -88,13 +88,13 @@ export class ProductsService {
     try {
       const product = await this.productRepository.findOne({ where: { id } });
       if (!product) {
-        throw new NotFoundException('Product not found');
+        throw new NotFoundException('Product not found from update product service');
       }
       const { name, price, ...rest } = updateProductDto;
       Object.assign(product, rest);
       return await this.productRepository.save(product);
     } catch (error) {
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from update product service');
     }
   }
 
@@ -102,16 +102,16 @@ export class ProductsService {
     try {
       const res = await this.productRepository.delete(id);
       if (res.affected === 0) {
-        throw new NotFoundException('Product not found');
+        throw new NotFoundException('Product not found from delete product service');
       } else {
-        return { messsage: `Product with id ${id} has been successfully deleted`};
+        return { messsage: `Product with id ${id} has been successfully deleted from delete product service` };
       }
 
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from delete product service');
     }
   }
 }
