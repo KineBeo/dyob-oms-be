@@ -1,17 +1,17 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import Order from "./order.entity";
+import Order from "src/orders/entities/order.entity";
 import Product from "src/products/entities/product.entity";
 
 @Entity()
-export default class OrderProductItem {
+export default class OrderProduct {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Order, order => order.orderProductItems)
+    @ManyToOne(() => Order, order => order.orderProduct)
     @JoinColumn({ name: 'order_id' })
     order: Order;
 
-    @ManyToOne(() => Product, product => product.orderProductItems)
+    @ManyToOne(() => Product, product => product.orderProduct)
     @JoinColumn({ name: 'product_id' })
     product: Product;
 

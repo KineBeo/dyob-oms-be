@@ -2,8 +2,10 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { AffiliateService } from './affiliate.service';
 import { CreateAffiliateDto } from './dto/create-affiliate.dto';
 import { UpdateAffiliateDto } from './dto/update-affiliate.dto';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('affiliate')
+@ApiTags('affiliate')
 export class AffiliateController {
   constructor(private readonly affiliateService: AffiliateService) {}
 

@@ -1,7 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import ProductCategory from "./product_category.entity";
-import OrderProductItem from "src/orders/entities/order_product_item.entity";
-
+import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import ProductCategory from "src/product-category/entities/product-category.entity";
+import OrderProduct from "src/order_product/entities/order_product.entity";
 @Entity()
 export default class Product {
     @PrimaryGeneratedColumn()
@@ -29,9 +28,23 @@ export default class Product {
     @Column({ type: 'jsonb', nullable: true })
     attributes: object;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    last_update: Date;
+    @Column({ type: 'timestamp' })
+    public createdAt: Date;
 
-    @OneToMany(() => OrderProductItem, orderProductItem => orderProductItem.product)
-    orderProductItems: OrderProductItem[];
+    @Column({ type: 'timestamp' })
+    public updatedAt: Date;
+
+    @BeforeInsert()
+    updateCreatedAt() {
+        this.createdAt = new Date(new Date().getTime());
+        this.updatedAt = new Date(new Date().getTime());
+    }
+
+    @BeforeUpdate()
+    updateUpdatedAt() {
+        this.updatedAt = new Date(new Date().getTime());
+    }
+
+    @OneToMany(() => OrderProduct, orderProduct => orderProduct.product)
+    orderProduct: OrderProduct[];
 }

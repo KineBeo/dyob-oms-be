@@ -27,9 +27,7 @@ export class CreateProductDto {
     @IsNumberString()
     @IsNotEmpty()
     @MaxLength(15)
-    @Matches(/^[0-9]+$/, {
-        message: 'price must be a non-negative number string',
-    })
+    @Matches(/^[1-9]\d*$/, { message: 'Price must be a string representing a positive number without leading zeros' })
     price: string;
 
     @ApiProperty({
@@ -49,6 +47,7 @@ export class CreateProductDto {
     @IsNumber()
     @IsNotEmpty()
     @Min(1)
+    @Max(200)
     category_id: number;
 
     @ApiProperty({
@@ -67,11 +66,4 @@ export class CreateProductDto {
     @IsObject()
     @IsNotEmptyObject()
     attributes: object;
-
-    @ApiProperty({
-        description: 'last_update',
-        example: '2021-08-24 00:00:00',
-    })
-    @IsNotEmpty()
-    last_update: Date;
 }

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -46,12 +46,15 @@ export class UsersService {
     try {
       const user = await this.userRepository.findOne({ where: { id } });
       if (!user) {
-        throw new ConflictException('User not found');
+        throw new NotFoundException('User not found');
       }
       const { password_hash, updateCreatedAt, updateUpdatedAt, ...userWithoutPassword } = user;
       return { ...userWithoutPassword, updateCreatedAt, updateUpdatedAt };
     }
     catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new BadRequestException('Something went wrong');
     }
   }

@@ -1,13 +1,13 @@
 
 import Affiliate from "src/affiliate/entities/affiliate.entity";
 import User from "src/users/entities/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import OrderProductItem from "./order_product_item.entity";
+import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { OrderStatus } from "src/enum/order-status";
+import OrderProduct from "src/order_product/entities/order_product.entity";
 
 @Entity()
 export default class Order {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('increment')
     id: number;
 
     @ManyToOne(() => User, user => user.orders)
@@ -27,9 +27,14 @@ export default class Order {
     @Column({type: 'enum', default: OrderStatus.NOT_START_YET, enum: OrderStatus})
     status: string;
 
-    @Column('timestamp')
-    created_at: Date;
+    @Column({type: 'timestamp' })
+    createdAt: Date;
 
-    @OneToMany(() => OrderProductItem, orderProductItem => orderProductItem.order)
-    orderProductItems: OrderProductItem[];
+    @BeforeInsert()
+    updateCreatedAt() {
+        this.createdAt = new Date(new Date().getTime());
+    }
+
+    @OneToMany(() => OrderProduct, orderProduct => orderProduct.order)
+    orderProduct: OrderProduct[];
 }
