@@ -18,7 +18,7 @@ export class CreateProductDto {
     @IsString()
     @IsNotEmpty()
     @MaxLength(500)
-    description: string;
+    description?: string;
 
     @ApiProperty({
         description: 'price',
@@ -57,7 +57,7 @@ export class CreateProductDto {
     @IsString()
     @IsNotEmpty()
     @MaxLength(500)
-    type: string;
+    type?: string;
 
     @ApiProperty({
         description: 'attributes',
@@ -65,5 +65,5 @@ export class CreateProductDto {
     })
     @IsObject()
     @IsNotEmptyObject()
-    attributes: object;
+    attributes?: object;
 }

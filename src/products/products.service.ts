@@ -4,30 +4,52 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import Product from './entities/product.entity';
 import { Repository } from 'typeorm';
+import { ProductCategoryService } from 'src/product-category/product-category.service';
+import ProductCategory from 'src/product-category/entities/product-category.entity';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
-    private productRepository: Repository<Product>
+    private productRepository: Repository<Product>,
+    @InjectRepository(ProductCategory)
+    private productCategoryRepository: Repository<ProductCategory>
   ) { }
 
   async create(createProductDto: CreateProductDto): Promise<Product> {
     try {
-      const { name, price, ...rest } = createProductDto;
+      const { name, price, category_id, ...rest } = createProductDto;
       const existingProduct = await this.productRepository.findOne(
         { where: [{ name }, { price }] }
       );
-      if ((existingProduct)) {
+      if (existingProduct) {
         throw new ConflictException('Product already exists with that name or price');
       }
 
+      let category: ProductCategory | null = null;
+      if (category_id) {
+        category = await this.productCategoryRepository.findOne({
+          where: { id: category_id },
+          relations: ['parent']
+        });
+        if (!category) {
+          throw new NotFoundException(`Category with id ${category_id} not found`);
+        }
+      }
       const newProduct = this.productRepository.create({
         ...rest,
         name,
-        price
+        price, 
+        category, 
+        attributes: rest.attributes || {}, 
+        stock: rest.stock || 0
       });
-      return await this.productRepository.save(newProduct);
+
+      const savedProduct = await this.productRepository.save(newProduct);
+      return await this.productRepository.findOne({
+        where: { id: savedProduct.id },
+        relations: ['category']
+      });
 
     } catch (error) {
       if (error instanceof ConflictException) {

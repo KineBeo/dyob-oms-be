@@ -44,19 +44,16 @@ export class OrdersService {
       if (!user) {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
-      console.log('line 1')
 
       const cartItems = await this.cartService.getCart(userId);
       if (!cartItems || cartItems.length === 0) {
         throw new Error('Cart is empty');
       }
 
-      console.log('line 2')
       const total_amount = cartItems
         .reduce((sum, item) => sum + Number(item.price) * item.quantity, 0)
         .toString();
 
-      console.log('line 3')
       const affiliate =
         await this.affiliateService.findAffiliateByUserId(userId);
 
@@ -69,17 +66,13 @@ export class OrdersService {
       });
       const savedOrder = await this.orderRepository.save(order);
 
-      console.log('line 4')
       const orderItems = cartItems.map((item) => ({
         order_id: savedOrder.id,
         product_id: item.product_id,
         quantity: item.quantity,
         price: item.price,
       }));
-      console.log('line 5')
       await this.orderProductService.createMany(orderItems);
-
-      console.log('line 6')
       // Clear the cart after successful order creation
       await this.cartService.clearCart(userId);
       return this.findOne(savedOrder.id);

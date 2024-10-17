@@ -55,7 +55,7 @@ export class UsersService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong');
+      throw new BadRequestException('Something went wrong from find one user');
     }
   }
 
