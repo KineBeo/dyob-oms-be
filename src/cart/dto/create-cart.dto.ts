@@ -18,7 +18,7 @@ export class CreateCartDto {
     @IsNumber()
     @IsNotEmpty()
     @Min(1)
-    productId: number;
+    product_id: number;
 
     @ApiProperty({
         description: 'quantity',

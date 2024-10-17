@@ -10,6 +10,8 @@ import { DatabaseModule } from './database/database.module';
 import { RedisService, RedisModule } from '@liaoliaots/nestjs-redis';
 import { CartService } from './cart/cart.service';
 import { CartModule } from './cart/cart.module';
+import { ProductCategoryModule } from './product-category/product-category.module';
+import { OrderProductModule } from './order_product/order_product.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -33,6 +35,8 @@ import { CartModule } from './cart/cart.module';
     ProductsModule,
     AffiliateModule,
     CartModule,
+    ProductCategoryModule,
+    OrderProductModule,
   ],
   controllers: [AppController],
   providers: [AppService, CartService],

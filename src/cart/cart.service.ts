@@ -21,10 +21,10 @@ export class CartService {
         const cartKey = this.getCartKey(user_id);
 
         try {
-            await this.redis.hset(cartKey, rest.productId.toString(), JSON.stringify(rest));
+            await this.redis.hset(cartKey, rest.product_id.toString(), JSON.stringify(rest));
             return cart;
         } catch (error) {
-            throw new BadRequestException('Failed to add item to cart');
+            throw new BadRequestException('Failed to add item to cart from addToCart');
         }
     }
 
@@ -40,7 +40,7 @@ export class CartService {
             if (error instanceof NotFoundException) {
                 throw error;
             }
-            throw new BadRequestException('Something went wrong');
+            throw new BadRequestException('Something went wrong from getCart');
         }
     }
 
@@ -75,7 +75,7 @@ export class CartService {
             if (error instanceof NotFoundException) {
                 throw error;
             }
-            throw new BadRequestException('Something went wrong');
+            throw new BadRequestException('Something went wrong from clearCart');
         }
     }
 
@@ -100,21 +100,21 @@ export class CartService {
             if (error instanceof NotFoundException || error instanceof BadRequestException) {
                 throw error;
             }
-            throw new BadRequestException('Something went wrong');
+            throw new BadRequestException('Something went wrong from removeFromCart');
         }
     }
 
     async updateCartItemQuantity(userId: number, updateCartDto: UpdateCartDto): Promise<{message: string}> {
         try {
-            const { productId, quantity } = updateCartDto;
+            const { product_id, quantity } = updateCartDto;
             const cartKey = this.getCartKey(userId);
-            const item = await this.redis.hget(cartKey, productId.toString());
+            const item = await this.redis.hget(cartKey, product_id.toString());
             if (item) {
                 const parsedItem: Cart = JSON.parse(item);
                 parsedItem.quantity = quantity;
-                await this.redis.hset(cartKey, productId.toString(), JSON.stringify(parsedItem));
+                await this.redis.hset(cartKey, product_id.toString(), JSON.stringify(parsedItem));
             } else {
-                throw new NotFoundException('Item of user not found in cart');
+                throw new NotFoundException('Item of user not found in cart from updateCartItemQuantity');
             }
 
             return { message: 'Cart item quantity updated successfully' };
@@ -122,7 +122,7 @@ export class CartService {
             if (error instanceof NotFoundException) {
                 throw error;
             }
-            throw new BadRequestException('Something went wrong');
+            throw new BadRequestException('Something went wrong from updateCartItemQuantity');
         }
     }
 }

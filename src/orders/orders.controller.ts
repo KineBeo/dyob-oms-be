@@ -28,6 +28,12 @@ export class OrdersController {
     return this.ordersService.findOne(+id);
   }
 
+  @Get('/user/:user_id')
+  @ApiOperation({ summary: 'Find all orders by user id' })
+  findAllByUserId(@Param('user_id') user_id: number) {
+    return this.ordersService.findAllByUserId(+user_id);
+  }
+
   @Patch('/id/:id')
   @ApiOperation({ summary: 'Update an order by id' })
   update(@Param('id') id: number, @Body() updateOrderDto: UpdateOrderDto) {

@@ -2,8 +2,8 @@
 import Affiliate from "src/affiliate/entities/affiliate.entity";
 import User from "src/users/entities/user.entity";
 import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import OrderProductItem from "./order_product_item.entity";
 import { OrderStatus } from "src/enum/order-status";
+import OrderProduct from "src/order_product/entities/order_product.entity";
 
 @Entity()
 export default class Order {
@@ -35,6 +35,6 @@ export default class Order {
         this.createdAt = new Date(new Date().getTime());
     }
 
-    @OneToMany(() => OrderProductItem, orderProductItem => orderProductItem.order)
-    orderProductItems: OrderProductItem[];
+    @OneToMany(() => OrderProduct, orderProduct => orderProduct.order)
+    orderProduct: OrderProduct[];
 }

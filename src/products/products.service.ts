@@ -1,26 +1,95 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import Product from './entities/product.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ProductsService {
-  create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+  constructor(
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>
+  ) { }
+
+  async create(createProductDto: CreateProductDto): Promise<Product> {
+    try {
+      const { name, price, ...rest } = createProductDto;
+      const existingProduct = await this.productRepository.findOne(
+        { where: [{ name }, { price }] }
+      );
+      if ((existingProduct)) {
+        throw new ConflictException('Product already exists with that name or price');
+      }
+
+      const newProduct = this.productRepository.create({
+        ...rest,
+        name,
+        price
+      });
+      return await this.productRepository.save(newProduct);
+
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new BadRequestException('Something went wrong');
+    }
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll(): Promise<Product[]> {
+    try {
+      const products = await this.productRepository.find();
+      return products;
+    } catch (error) {
+      throw new BadRequestException('Something went wrong');
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: number): Promise<Product> {
+    try {
+      const product = await this.productRepository.findOne({ where: { id } });
+      if (!product) {
+        throw new NotFoundException('Product not found');
+      }
+      
+      return product;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Something went wrong');
+    }
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: number, updateProductDto: UpdateProductDto) {
+    try {
+      const product = await this.productRepository.findOne({ where: { id } });
+      if (!product) {
+        throw new NotFoundException('Product not found');
+      }
+      const { name, price, ...rest } = updateProductDto;
+      Object.assign(product, rest);
+      return await this.productRepository.save(product);
+    } catch (error) {
+      throw new BadRequestException('Something went wrong');
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: number): Promise<{messsage: string}> {
+    try {
+      const res = await this.productRepository.delete(id);
+      if (res.affected === 0) {
+        throw new NotFoundException('Product not found');
+      } else {
+        return { messsage: `Product with id ${id} has been successfully deleted`};
+      }
+
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Something went wrong');
+    }
   }
 }

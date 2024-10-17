@@ -1,8 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
 import { IsEmail, IsEnum, IsNotEmpty, IsNumberString, IsPhoneNumber, IsString, Length, Matches, MaxLength, MinLength } from "class-validator";
 import { Rank } from "src/enum/rank";
-import { BeforeInsert, BeforeUpdate, Column } from "typeorm";
 export class CreateUserDto {
 
     // checked

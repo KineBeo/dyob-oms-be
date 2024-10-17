@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsNotEmpty, IsNumber, IsNumberString, IsString, Matches, MaxLength, Min, MinLength } from "class-validator";
+import { IsEnum, IsNotEmpty, IsNumber, IsNumberString, IsString, Matches, Max, MaxLength, Min, MinLength } from "class-validator";
 import { OrderStatus } from "src/enum/order-status";
 
 export class CreateOrderDto {
@@ -10,6 +10,7 @@ export class CreateOrderDto {
     @IsNumber()
     @IsNotEmpty()
     @Min(0)
+    @Max(100000)
     user_id: number;
 
     @ApiProperty({
@@ -19,11 +20,12 @@ export class CreateOrderDto {
     @IsNumber()
     @IsNotEmpty()
     @Min(0)
+    @Max(100000)
     affiliate_id: number;
 
     @ApiProperty({
         description: 'total_amount',
-        example: '1000000',
+        example: '0',
     })
     @IsNumberString()
     @IsNotEmpty()
@@ -52,5 +54,4 @@ export class CreateOrderDto {
     @IsNotEmpty()
     @MaxLength(50)
     status: OrderStatus;
-
 }

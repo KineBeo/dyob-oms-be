@@ -10,17 +10,19 @@ export class AffiliateService {
   constructor(
     @InjectRepository(Affiliate)
     private affiliateRepository: Repository<Affiliate>
-  ) {}
-  create(createAffiliateDto: CreateAffiliateDto) {
-    return 'This action adds a new affiliate';
+  ) { }
+  create(createAffiliateDto: CreateAffiliateDto): Promise<Affiliate> {
+    const affiliate = this.affiliateRepository.create(createAffiliateDto);
+    return this.affiliateRepository.save(affiliate);
   }
 
   findAll() {
     return `This action returns all affiliate`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} affiliate`;
+  findOne(id: number): Promise<Affiliate> {
+    return this.affiliateRepository.findOne({where: {id}});
+
   }
 
   update(id: number, updateAffiliateDto: UpdateAffiliateDto) {
@@ -32,6 +34,16 @@ export class AffiliateService {
   }
 
   async findAffiliateByUserId(userId: number): Promise<Affiliate | undefined> {
-    return this.affiliateRepository.findOne({ where: { user: { id: userId } } });
+    try {
+      const affiliate = await this.affiliateRepository.findOne({
+        where: { user: { id: userId } },
+        relations: ['user']
+      });
+      return affiliate || null;
+    } catch (error) {
+      console.error(`Error finding affiliate for user ${userId}:`, error);
+      return null;
+    }
+
   }
 }
