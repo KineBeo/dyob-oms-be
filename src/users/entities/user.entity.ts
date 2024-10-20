@@ -1,5 +1,5 @@
 import Affiliate from "src/affiliate/entities/affiliate.entity";
-import { Rank } from "src/enum/rank";
+import { UserRole } from "src/enum/rank";
 import Order from "src/orders/entities/order.entity";
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
@@ -20,11 +20,8 @@ export default class User {
     @Column()
     password_hash: string;
 
-    @Column({type: 'enum',  default: Rank.KHL, enum: Rank})
-    rank: Rank;
-
-    @Column({ default: '0' })
-    total_purchase: string;
+    @Column({type: 'enum',  default: UserRole.GUEST, enum: UserRole})
+    role: UserRole;
 
     @Column({type: 'text', default: '', nullable: false})
     bank_name: string;

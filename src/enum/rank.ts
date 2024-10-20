@@ -1,7 +1,5 @@
-export enum Rank {
-    KHL = "KHL",
-    NVTN = "NVTN",
-    NVKD = "NVKD",
-    TPKD = "TPKD",
-    GDKD = "GDKD",
+export enum UserRole {
+    GUEST = "GUEST",
+    POTENTIAL_STAFF = "POTENTIAL_STAFF",
+    SALES_STAFF = "SALES_STAFF"
 }

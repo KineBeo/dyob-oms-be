@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEmail, IsEnum, IsNotEmpty, IsNumberString, IsPhoneNumber, IsString, Length, Matches, MaxLength, MinLength } from "class-validator";
-import { Rank } from "src/enum/rank";
+import { UserRole } from "src/enum/rank";
 export class CreateUserDto {
 
     // checked
@@ -49,29 +49,29 @@ export class CreateUserDto {
     })
     password_hash: string;
 
-    // checked
-    @ApiProperty({
-        description: 'rank',
-        default: Rank.KHL,
-    })
-    @IsEnum(Rank)
-    @MaxLength(5)
-    @IsNotEmpty()
-    rank: Rank;
+    // // checked
+    // @ApiProperty({
+    //     description: 'rank',
+    //     default: UserRole.KHL,
+    // })
+    // @IsEnum(UserRole)
+    // @MaxLength(5)
+    // @IsNotEmpty()
+    // rank: UserRole;
 
     // checked
-    @ApiProperty({
-        description: 'total_purchase',
-        example: '1000000',
-    })
-    @IsNumberString()
-    @IsNotEmpty()
-    @MinLength(1)
-    @MaxLength(15)
-    @Matches(/^[0-9]+$/, {
-        message: 'total_purchase must be a non-negative number string',
-    })
-    total_purchase: string;
+    // @ApiProperty({
+    //     description: 'total_purchase',
+    //     example: '1000000',
+    // })
+    // @IsNumberString()
+    // @IsNotEmpty()
+    // @MinLength(1)
+    // @MaxLength(15)
+    // @Matches(/^[0-9]+$/, {
+    //     message: 'total_purchase must be a non-negative number string',
+    // })
+    // total_purchase: string;
 
     // checked
     @ApiProperty({

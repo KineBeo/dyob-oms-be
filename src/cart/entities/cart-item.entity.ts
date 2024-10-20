@@ -1,5 +1,5 @@
 import Affiliate from "src/affiliate/entities/affiliate.entity";
-import { Rank } from "src/enum/rank";
+import { UserRole } from "src/enum/rank";
 import Order from "src/orders/entities/order.entity";
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 

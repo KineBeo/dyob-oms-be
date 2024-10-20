@@ -26,18 +26,21 @@ export class OrdersService {
     private userService: UsersService,
     @Inject(forwardRef(() => OrderProductService))
     private orderProductService: OrderProductService,
-  ) {}
+  ) { }
 
   async create(userId: number, createOrderDto: CreateOrderDto): Promise<Order> {
     const { affiliate_id } = createOrderDto;
 
-    // Check if affiliate exists
-    const affiliate = await this.affiliateService.findOne(affiliate_id);
-    if (!affiliate) {
-      throw new NotFoundException(
-        `Affiliate with ID ${affiliate_id} not found from create order service`,
-      );
+    if (affiliate_id) {
+      // Check if affiliate exists
+      const affiliate = await this.affiliateService.findOne(affiliate_id);
+      if (!affiliate) {
+        throw new NotFoundException(
+          `Affiliate with ID ${affiliate_id} not found from create order service`,
+        );
+      }
     }
+
     try {
       // Check if user exists
       const user = await this.userService.findOne(userId);
