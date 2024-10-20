@@ -45,12 +45,12 @@ export class CreateOrderDto {
     @MaxLength(100)
     address: string;
 
-    @ApiProperty({
-        description: 'status',
-        default: OrderStatus.NOT_START_YET
-    })
-    @IsEnum(OrderStatus)
-    @IsNotEmpty()
-    @MaxLength(50)
-    status: OrderStatus;
+    // @ApiProperty({
+    //     description: 'status',
+    //     default: OrderStatus.NOT_START_YET
+    // })
+    // @IsEnum(OrderStatus)
+    // @IsNotEmpty()
+    // @MaxLength(50)
+    // status: OrderStatus;
 }

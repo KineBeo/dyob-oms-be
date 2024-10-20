@@ -114,4 +114,20 @@ export class ProductsService {
       throw new BadRequestException('Something went wrong from delete product service');
     }
   }
+
+  async getProductPrice(product_id: number): Promise<string> {
+    try {
+      const product = await this.productRepository.findOne({ where: { id: product_id } });
+      if (!product) {
+        throw new NotFoundException('Product not found from get product price service');
+      }
+
+      return product.price;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Something went wrong from get product price service');
+    }
+  }
 }

@@ -30,14 +30,14 @@ export class CreateCartDto {
     @Max(100)
     quantity: number;
 
-    @ApiProperty({
-        description: 'price',
-        example: 100,
-    })
-    @IsNumberString()
-    @IsNotEmpty()
-    @MinLength(1)
-    @MaxLength(30)
-    @Matches(/^[1-9]\d*$/, { message: 'Price must be a string representing a positive number without leading zeros' })
-    price: string;
+    // @ApiProperty({
+    //     description: 'price',
+    //     example: 100,
+    // })
+    // @IsNumberString()
+    // @IsNotEmpty()
+    // @MinLength(1)
+    // @MaxLength(30)
+    // @Matches(/^[1-9]\d*$/, { message: 'Price must be a string representing a positive number without leading zeros' })
+    // price: string;
 }
