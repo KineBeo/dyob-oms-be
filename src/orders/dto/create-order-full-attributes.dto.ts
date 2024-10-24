@@ -1,8 +1,9 @@
-import { Optional } from "@nestjs/common";
-import { ApiProperty } from "@nestjs/swagger";
-import { IsEnum, IsNotEmpty, IsNumber, IsNumberString, IsString, Matches, Max, MaxLength, Min, MinLength } from "class-validator";
+import { IsEnum, IsNotEmpty, IsNumber, IsString, IsDate, IsArray, IsNumberString, Matches, Max, MaxLength, Min, MinLength } from 'class-validator';
+import { OrderStatus } from "../../enum/order-status";
+import { Optional } from '@nestjs/common';
+import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateOrderDto {
+export class CreateOrderFullAttributesDto {
     @ApiProperty({
         description: 'user_id',
         example: 1,
@@ -44,12 +45,12 @@ export class CreateOrderDto {
     @MaxLength(100)
     address: string;
 
-    // @ApiProperty({
-    //     description: 'status',
-    //     default: OrderStatus.NOT_START_YET
-    // })
-    // @IsEnum(OrderStatus)
-    // @IsNotEmpty()
-    // @MaxLength(50)
-    // status: OrderStatus;
+    @ApiProperty({
+        description: 'status',
+        default: OrderStatus.NOT_START_YET
+    })
+    @IsEnum(OrderStatus)
+    @IsNotEmpty()
+    @MaxLength(50)
+    status: OrderStatus;
 }

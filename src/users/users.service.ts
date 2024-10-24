@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import User from './entities/user.entity';
+import { CreateUserFullAttributesDto } from './dto/create-user-full-attributes.dto';
 @Injectable()
 export class UsersService {
   constructor(
@@ -117,5 +118,27 @@ export class UsersService {
     } catch (error) {
       throw new BadRequestException('Something went wrong from find by phone number service');
     }
+  }
+
+  // TODO: service for seed users
+  async createUserSeed(createUserWithFullAttributesDto: CreateUserFullAttributesDto): Promise<User> {
+    const { email, phone_number, password_hash, ...rest } = createUserWithFullAttributesDto;
+
+    const existingUser = await this.userRepository.findOne(
+      { where: [{ email }, { phone_number }] }
+    );
+    if (existingUser) {
+      throw new ConflictException('User already exists with that email or phone number');
+    }
+
+    const hashedPassword = await bcrypt.hash(password_hash, 10);
+    const newUser = this.userRepository.create({
+      ...rest,
+      email,
+      phone_number,
+      password_hash: hashedPassword
+    });
+
+    return this.userRepository.save(newUser);
   }
 }

@@ -1,6 +1,6 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import ProductCategory from "src/product-category/entities/product-category.entity";
-import OrderProduct from "src/order_product/entities/order_product.entity";
+import ProductCategory from "../../product-category/entities/product-category.entity";
+import OrderProduct from "../../order_product/entities/order_product.entity";
 @Entity()
 export default class Product {
     @PrimaryGeneratedColumn()

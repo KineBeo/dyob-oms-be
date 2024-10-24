@@ -1,9 +1,9 @@
 
-import Affiliate from "src/affiliate/entities/affiliate.entity";
-import User from "src/users/entities/user.entity";
+import Affiliate from '../../affiliate/entities/affiliate.entity';
+import User from '../../users/entities/user.entity';
 import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { OrderStatus } from "src/enum/order-status";
-import OrderProduct from "src/order_product/entities/order_product.entity";
+import { OrderStatus } from '../../enum/order-status';
+import OrderProduct from "../../order_product/entities/order_product.entity";
 
 @Entity()
 export default class Order {

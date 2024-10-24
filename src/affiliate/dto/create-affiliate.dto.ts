@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   MaxLength,
   Min,
@@ -9,6 +10,14 @@ import {
 } from 'class-validator';
 
 export class CreateAffiliateDto {
+  @ApiProperty({
+    description: 'referral_code',
+    example: '123456',
+  })
+  @IsNotEmpty()
+  @IsString()
+  referral_code: string;
+
   @ApiProperty({
     description: 'user_id',
     example: 1,
@@ -18,11 +27,10 @@ export class CreateAffiliateDto {
   user_id: number;
 
   @ApiProperty({
-    description: 'referral_code',
-    example: '123456',
+    description: 'parent_affiliate_id',
+    example: '1',
   })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(200)
-  referral_code: string;
+  @IsOptional()
+  @IsNumber()
+  parent_affiliate_id?: number;
 }

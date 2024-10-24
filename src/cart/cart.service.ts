@@ -8,7 +8,7 @@ import { Redis } from 'ioredis';
 import { CreateCartDto } from './dto/create-cart.dto';
 import Cart from './entities/cart-item.entity';
 import { UpdateCartDto } from './dto/update-cart.dto';
-import { ProductsService } from 'src/products/products.service';
+import { ProductsService } from '../products/products.service';
 
 @Injectable()
 export class CartService {

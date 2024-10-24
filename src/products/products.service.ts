@@ -4,8 +4,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import Product from './entities/product.entity';
 import { Repository } from 'typeorm';
-import { ProductCategoryService } from 'src/product-category/product-category.service';
-import ProductCategory from 'src/product-category/entities/product-category.entity';
+import ProductCategory from '../product-category/entities/product-category.entity';
 
 @Injectable()
 export class ProductsService {

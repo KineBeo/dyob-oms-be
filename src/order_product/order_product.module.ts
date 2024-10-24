@@ -3,8 +3,8 @@ import { OrderProductService } from './order_product.service';
 import { OrderProductController } from './order_product.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import OrderProduct from './entities/order_product.entity';
-import { OrdersModule } from 'src/orders/orders.module';
-import { ProductsModule } from 'src/products/products.module';
+import { OrdersModule } from '../orders/orders.module';
+import { ProductsModule } from '../products/products.module';
 
 @Module({
   imports: [

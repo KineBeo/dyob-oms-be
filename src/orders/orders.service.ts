@@ -10,11 +10,12 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import Order from './entities/order.entity';
 import { Repository } from 'typeorm';
-import { CartService } from 'src/cart/cart.service';
-import { AffiliateService } from 'src/affiliate/affiliate.service';
-import { OrderStatus } from 'src/enum/order-status';
-import { UsersService } from 'src/users/users.service';
-import { OrderProductService } from 'src/order_product/order_product.service';
+import { CartService } from '../cart/cart.service';
+import { AffiliateService } from '../affiliate/affiliate.service'
+import { OrderStatus } from '../enum/order-status';
+import { UsersService } from '../users/users.service';
+import { OrderProductService } from '../order_product/order_product.service';
+import { CreateOrderFullAttributesDto } from './dto/create-order-full-attributes.dto';
 
 @Injectable()
 export class OrdersService {
@@ -26,26 +27,18 @@ export class OrdersService {
     private userService: UsersService,
     @Inject(forwardRef(() => OrderProductService))
     private orderProductService: OrderProductService,
-  ) { }
+  ) {}
 
   async create(userId: number, createOrderDto: CreateOrderDto): Promise<Order> {
     const { affiliate_id } = createOrderDto;
-
-    if (affiliate_id) {
-      // Check if affiliate exists
-      const affiliate = await this.affiliateService.findOne(affiliate_id);
-      if (!affiliate) {
-        throw new NotFoundException(
-          `Affiliate with ID ${affiliate_id} not found from create order service`,
-        );
-      }
-    }
 
     try {
       // Check if user exists
       const user = await this.userService.findOne(userId);
       if (!user) {
-        throw new NotFoundException(`User with ID ${userId} not found from create order service`);
+        throw new NotFoundException(
+          `User with ID ${userId} not found from create order service`,
+        );
       }
 
       const cartItems = await this.cartService.getCart(userId);
@@ -69,6 +62,32 @@ export class OrdersService {
       });
       const savedOrder = await this.orderRepository.save(order);
 
+      if (affiliate_id) {
+        // Check if affiliate exists
+        const affiliate = await this.affiliateService.findOne(affiliate_id);
+        if (!affiliate) {
+          throw new NotFoundException(
+            `Affiliate with ID ${affiliate_id} not found from create order service`,
+          );
+        }
+
+        affiliate.direct_sales = (
+          parseFloat(affiliate.direct_sales) + parseFloat(total_amount)
+        ).toString();
+
+        // TODO: Calculate commission
+        const commission =
+          await this.affiliateService.calculateDirectCommission(savedOrder.id);
+        affiliate.commission = (
+          parseFloat(affiliate.commission) + commission
+        ).toString();
+
+         // Update parent chain group sales
+         await this.updateParentChainGroupSales(affiliate_id, parseFloat(total_amount));
+
+         // Check for rank updates
+         await this.affiliateService.checkAndUpdateRank(affiliate_id);
+      }
       const orderItems = cartItems.map((item) => ({
         order_id: savedOrder.id,
         product_id: item.product_id,
@@ -83,16 +102,48 @@ export class OrdersService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException(`Failed to create order: ${error.message} from create order service`);
+      throw new BadRequestException(
+        `Failed to create order: ${error.message} from create order service`,
+      );
     }
   }
+
+   /**
+   * Updates group sales for entire parent chain
+   * Ensures accurate tracking of group performance metrics
+   */
+   private async updateParentChainGroupSales(
+    affiliateId: number,
+    amount: number
+  ): Promise<void> {
+    try {
+      let currentAffiliate = await this.affiliateService.findOne(affiliateId);
+      
+      while (currentAffiliate.parent) {
+        currentAffiliate = await this.affiliateService.findOne(currentAffiliate.parent.id);
+        currentAffiliate.group_sales = (
+          parseFloat(currentAffiliate.group_sales) + 
+          amount
+        ).toString();
+        await this.affiliateService.update(
+          currentAffiliate.id,
+          { group_sales: currentAffiliate.group_sales }
+        );
+      }
+    } catch (error) {
+      throw new BadRequestException('Failed to update parent chain group sales');
+    }
+  }
+
 
   async findAll(): Promise<Order[]> {
     try {
       const orders = await this.orderRepository.find();
       return orders;
     } catch (error) {
-      throw new BadRequestException('Something went wrong from find all orders service');
+      throw new BadRequestException(
+        'Something went wrong from find all orders service',
+      );
     }
   }
 
@@ -100,14 +151,18 @@ export class OrdersService {
     try {
       const order = await this.orderRepository.findOne({ where: { id } });
       if (!order) {
-        throw new NotFoundException('Order not found from find one order service');
+        throw new NotFoundException(
+          'Order not found from find one order service',
+        );
       }
       return order;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong from find one order service');
+      throw new BadRequestException(
+        'Something went wrong from find one order service',
+      );
     }
   }
 
@@ -126,7 +181,9 @@ export class OrdersService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong from find all orders by user id service');
+      throw new BadRequestException(
+        'Something went wrong from find all orders by user id service',
+      );
     }
   }
 
@@ -134,14 +191,18 @@ export class OrdersService {
     try {
       const order = await this.orderRepository.findOne({ where: { id } });
       if (!order) {
-        throw new NotFoundException('Order not found from update order service');
+        throw new NotFoundException(
+          'Order not found from update order service',
+        );
       }
       return this.orderRepository.save({ ...order, ...updateOrderDto });
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong from update order service');
+      throw new BadRequestException(
+        'Something went wrong from update order service',
+      );
     }
   }
 
@@ -149,7 +210,9 @@ export class OrdersService {
     try {
       const order = await this.orderRepository.findOne({ where: { id } });
       if (!order) {
-        throw new NotFoundException('Order not found from remove order service');
+        throw new NotFoundException(
+          'Order not found from remove order service',
+        );
       }
       return this.orderRepository.remove(order);
     } catch (error) {
@@ -157,6 +220,19 @@ export class OrdersService {
         throw error;
       }
       throw new BadRequestException('Something went wrong');
+    }
+  }
+
+  // TODO: service for seed orders
+  async createOrderSeed(userId: number, createOrderWithFullAttributesDto: CreateOrderFullAttributesDto): Promise<Order> {
+    try {
+      const order = this.orderRepository.create({
+        user: { id: userId },
+        ...createOrderWithFullAttributesDto,
+      });
+      return this.orderRepository.save(order);
+    } catch (error) {
+      throw new BadRequestException('Failed to create order seed');
     }
   }
 }
