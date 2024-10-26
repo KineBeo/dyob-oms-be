@@ -105,6 +105,21 @@ export class UsersService {
     }
   }
 
+  async findByEmailWithPassword(email: string): Promise<User | undefined> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { email }
+      });
+      if (!user) {
+        throw new ConflictException('User not found from find by email with password service');
+      }
+      return user;
+    }
+    catch (error) {
+      throw new BadRequestException('Something went wrong from find by email with password service');
+    }
+  }
+
   async findByPhoneNumber(phone_number: string): Promise<Omit<User, 'password_hash'> | undefined> {
     try {
       const user = await this.userRepository.findOne({

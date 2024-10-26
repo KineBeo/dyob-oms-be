@@ -22,19 +22,19 @@ export class OrdersController {
     return this.ordersService.findAll();
   }
 
-  @Get('/id/:id')
+  @Get('/id/getOrder/:id')
   @ApiOperation({ summary: 'Find an order by id' })
   findOne(@Param('id') id: number) {
     return this.ordersService.findOne(+id);
   }
 
-  @Get('/user/:user_id')
+  @Get('/user/getAll/:user_id')
   @ApiOperation({ summary: 'Find all orders by user id' })
   findAllByUserId(@Param('user_id') user_id: number) {
     return this.ordersService.findAllByUserId(+user_id);
   }
 
-  @Patch('/id/:id')
+  @Patch('/id/updateOrder/:id')
   @ApiOperation({ summary: 'Update an order by id' })
   update(@Param('id') id: number, @Body() updateOrderDto: UpdateOrderDto) {
     return this.ordersService.update(+id, updateOrderDto);

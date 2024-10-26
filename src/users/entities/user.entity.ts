@@ -1,5 +1,5 @@
-import Affiliate from '../../affiliate/entities/affiliate.entity';
-import { UserRole } from '../../enum/rank';
+import { UserStatus } from '../../user-status/entities/user-status.entity';
+import AffiliateProfile from '../../affiliate/entities/affiliate.entity';
 import Order from '../../orders/entities/order.entity';
 import {
   BeforeInsert,
@@ -13,29 +13,26 @@ import {
 
 @Entity()
 export default class User {
+
+  // ! checked
   @PrimaryGeneratedColumn('increment')
   id: number;
 
+  // ! checked
   @Column({ nullable: false })
   fullname: string;
-
+  
+  // ! checked
   @Column({ unique: true, nullable: false })
   phone_number: string;
 
+  // ! checked
   @Column({ unique: true })
   email: string;
 
+  // ! checked
   @Column()
   password_hash: string;
-
-  @Column({ type: 'enum', default: UserRole.GUEST, enum: UserRole })
-  role: UserRole;
-
-  @Column({ type: 'text', default: '', nullable: false })
-  bank_name: string;
-
-  @Column({ type: 'text', default: '', nullable: false })
-  bank_account_number: string;
 
   @Column({ type: 'timestamp' })
   public createdAt: Date;
@@ -53,10 +50,14 @@ export default class User {
   updateUpdatedAt() {
     this.updatedAt = new Date(new Date().getTime());
   }
-
+  // ! checked
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
 
-  @OneToOne(() => Affiliate, (affiliate) => affiliate.user)
-  affiliate: Affiliate;
+  @OneToOne(() => AffiliateProfile, (affiliateProfile) => affiliateProfile.user)
+  affiliateProfile: AffiliateProfile;
+
+  @OneToOne(() => UserStatus, status => status.user)
+  status: UserStatus;
+  // ! checked
 }

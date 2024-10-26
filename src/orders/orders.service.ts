@@ -62,32 +62,32 @@ export class OrdersService {
       });
       const savedOrder = await this.orderRepository.save(order);
 
-      if (affiliate_id) {
-        // Check if affiliate exists
-        const affiliate = await this.affiliateService.findOne(affiliate_id);
-        if (!affiliate) {
-          throw new NotFoundException(
-            `Affiliate with ID ${affiliate_id} not found from create order service`,
-          );
-        }
+      // if (affiliate_id) {
+      //   // Check if affiliate exists
+      //   const affiliate = await this.affiliateService.findOne(affiliate_id);
+      //   if (!affiliate) {
+      //     throw new NotFoundException(
+      //       `Affiliate with ID ${affiliate_id} not found from create order service`,
+      //     );
+      //   }
 
-        affiliate.direct_sales = (
-          parseFloat(affiliate.direct_sales) + parseFloat(total_amount)
-        ).toString();
+      //   affiliate.direct_sales = (
+      //     parseFloat(affiliate.direct_sales) + parseFloat(total_amount)
+      //   ).toString();
 
-        // TODO: Calculate commission
-        const commission =
-          await this.affiliateService.calculateDirectCommission(savedOrder.id);
-        affiliate.commission = (
-          parseFloat(affiliate.commission) + commission
-        ).toString();
+      //   // TODO: Calculate commission
+      //   const commission =
+      //     await this.affiliateService.calculateDirectCommission(savedOrder.id);
+      //   affiliate.commission = (
+      //     parseFloat(affiliate.commission) + commission
+      //   ).toString();
 
-         // Update parent chain group sales
-         await this.updateParentChainGroupSales(affiliate_id, parseFloat(total_amount));
+      //    // Update parent chain group sales
+      //    await this.updateParentChainGroupSales(affiliate_id, parseFloat(total_amount));
 
-         // Check for rank updates
-         await this.affiliateService.checkAndUpdateRank(affiliate_id);
-      }
+      //    // Check for rank updates
+      //    await this.affiliateService.checkAndUpdateRank(affiliate_id);
+      // }
       const orderItems = cartItems.map((item) => ({
         order_id: savedOrder.id,
         product_id: item.product_id,
@@ -107,34 +107,6 @@ export class OrdersService {
       );
     }
   }
-
-   /**
-   * Updates group sales for entire parent chain
-   * Ensures accurate tracking of group performance metrics
-   */
-   private async updateParentChainGroupSales(
-    affiliateId: number,
-    amount: number
-  ): Promise<void> {
-    try {
-      let currentAffiliate = await this.affiliateService.findOne(affiliateId);
-      
-      while (currentAffiliate.parent) {
-        currentAffiliate = await this.affiliateService.findOne(currentAffiliate.parent.id);
-        currentAffiliate.group_sales = (
-          parseFloat(currentAffiliate.group_sales) + 
-          amount
-        ).toString();
-        await this.affiliateService.update(
-          currentAffiliate.id,
-          { group_sales: currentAffiliate.group_sales }
-        );
-      }
-    } catch (error) {
-      throw new BadRequestException('Failed to update parent chain group sales');
-    }
-  }
-
 
   async findAll(): Promise<Order[]> {
     try {
@@ -187,23 +159,46 @@ export class OrdersService {
     }
   }
 
-  async update(id: number, updateOrderDto: UpdateOrderDto): Promise<Order> {
-    try {
-      const order = await this.orderRepository.findOne({ where: { id } });
-      if (!order) {
-        throw new NotFoundException(
-          'Order not found from update order service',
-        );
-      }
-      return this.orderRepository.save({ ...order, ...updateOrderDto });
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new BadRequestException(
-        'Something went wrong from update order service',
-      );
-    }
+  async update(id: number, updateOrderDto: UpdateOrderDto) {
+    // try {
+    //   const order = await this.orderRepository.findOne({ where: { id }, relations: ['user'] });
+    //   if (!order) {
+    //     throw new NotFoundException(
+    //       'Order not found from update order service',
+    //     );
+    //   }
+    //    // Check if order status is being updated to COMPLETED
+    //    if (updateOrderDto.status === OrderStatus.COMPLETED && 
+    //     order.status !== OrderStatus.COMPLETED) {
+      
+    //   // Get the affiliate for this user
+    //   const affiliate = await this.affiliateService.findAffiliateByUserId(order.user.id);
+    //   console.log('call affiliateService.findAffiliateByUserId(order.user.id)', affiliate);
+    //   if (affiliate) {
+    //     // Update total_purchase for the affiliate
+    //     const newTotalPurchase = (
+    //       parseFloat(affiliate.total_purchase) + 
+    //       parseFloat(order.total_amount)
+    //     ).toString();
+        
+    //     await this.affiliateService.update(affiliate.id, {
+    //       total_purchase: newTotalPurchase
+    //     });
+
+    //     // Check for possible rank updates after purchase
+    //     await this.affiliateService.checkAndUpdateRank(affiliate.id);
+    //   }
+    // }
+
+    // // Update the order with new data
+    // return this.orderRepository.save({ ...order, ...updateOrderDto });
+    // } catch (error) {
+    //   if (error instanceof NotFoundException) {
+    //     throw error;
+    //   }
+    //   throw error;
+    // }
+    return 'this is update order'
   }
 
   async remove(id: number): Promise<Order> {

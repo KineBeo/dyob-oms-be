@@ -1,5 +1,5 @@
 
-import Affiliate from '../../affiliate/entities/affiliate.entity';
+import AffiliateProfile from '../../affiliate/entities/affiliate.entity';
 import User from '../../users/entities/user.entity';
 import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { OrderStatus } from '../../enum/order-status';
@@ -14,9 +14,9 @@ export default class Order {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @ManyToOne(() => Affiliate, affiliate => affiliate.orders)
+    @ManyToOne(() => AffiliateProfile, affiliate => affiliate.orders)
     @JoinColumn({ name: 'affiliate_id' })
-    affiliate: Affiliate;
+    affiliate: AffiliateProfile;
 
     @Column()
     total_amount: string;

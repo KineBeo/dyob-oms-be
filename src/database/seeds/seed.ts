@@ -7,7 +7,7 @@ import { UsersService } from '../../users/users.service';
 import { AffiliateService } from '../../affiliate/affiliate.service';
 import { OrdersService } from '../../orders/orders.service';
 import User from 'src/users/entities/user.entity';
-import Affiliate from '../../affiliate/entities/affiliate.entity';
+import AffiliateProfile from '../../affiliate/entities/affiliate.entity';
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
   const usersService = app.get(UsersService);
@@ -61,7 +61,7 @@ async function seedAffiliates(
   for (let i = 0; i < 3; i++) {
     const affiliate = await affiliateService.createAffiliateSeed({
       user_id: users[i].id,
-      rank: UserRole.SALES_DIRECTOR,
+      rank: UserRole.GDKD,
       commission: faker.number.int({ min: 1000000, max: 5000000 }).toString(),
       direct_sales: faker.number
         .int({ min: 150000000, max: 300000000 })
@@ -79,7 +79,7 @@ async function seedAffiliates(
     const affiliate = await affiliateService.createAffiliateSeed({
       user_id: users[i].id,
       parent_affiliate_id: affiliates[Math.floor((i - 3) / 2)].id,
-      rank: UserRole.SALES_MANAGER,
+      rank: UserRole.TPKD,
       commission: faker.number.int({ min: 500000, max: 2000000 }).toString(),
       direct_sales: faker.number
         .int({ min: 50000000, max: 100000000 })
@@ -97,7 +97,7 @@ async function seedAffiliates(
     const affiliate = await affiliateService.createAffiliateSeed({
       user_id: users[i].id,
       parent_affiliate_id: affiliates[Math.floor((i - 8) / 3) + 3].id,
-      rank: UserRole.SALES_STAFF,
+      rank: UserRole.NVKD,
       commission: faker.number.int({ min: 100000, max: 1000000 }).toString(),
       direct_sales: faker.number
         .int({ min: 3000000, max: 30000000 })
@@ -114,7 +114,7 @@ async function seedAffiliates(
 async function seedOrders(
   ordersService: OrdersService,
   users: User[],
-  affiliates: Affiliate[],
+  affiliates: AffiliateProfile[],
 ) {
   const orders = [];
   const statuses = Object.values(OrderStatus);

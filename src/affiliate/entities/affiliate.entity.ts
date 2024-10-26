@@ -5,46 +5,45 @@ import User from "../../users/entities/user.entity";
 import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export default class Affiliate {
+export default class AffiliateProfile {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ unique: true })
-    referral_code: string;
-
-    // checked
-    @OneToOne(() => User, user => user.affiliate)
+    // ! checked
+    @OneToOne(() => User, user => user.affiliateProfile)
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column({
-        type: 'enum',
-        enum: UserRole,
-        default: UserRole.GUEST
-    })
-    rank: UserRole;
+    // ! checked 
+    @Column({ unique: true })
+    referral_code: string;
 
+    // ! checked
     @Column({ default: '0' })
-    total_purchase: string; // total amount purchased by affiliate
+    direct_sales: string; // Sales made directly through affiliate's referral link (DSCN)
 
+    // ! checked
     @Column({ default: '0' })
-    direct_sales: string; // Sales made directly through affiliate's referral link
+    group_sales: string; // Total sales of all direct referrals (DSN)
 
-    @Column({ default: '0' })
-    group_sales: string; // Total sales of all direct referrals
-
+    // ! checked
     @Column({ type: 'text', default: '0' })
-    commission: string; // Total commission earned by affiliate
+    direct_commission: string; // Total commission earned by affiliate (Hoa hồng trực tiếp)
 
-    @Column({ default: '0' }) 
-    personal_income: string; // Personal income from direct sales
+    /** 
+     * TODO: Đủ loại thưởng ở đây* 
+     * 
+     *  */ 
 
+    // ! checked
     @Column({ default: 0 })
-    direct_referrals_count: number;
+    direct_referrals_count: number; // Number of direct referrals 
 
+    // ! checked
     @Column({ type: 'timestamp', nullable: true })
     last_rank_check: Date;
 
+    // ! checked
     @Column({ type: 'timestamp', nullable: true })
     rank_achievement_date: Date; // When current rank was achieved
 
@@ -60,10 +59,10 @@ export default class Affiliate {
     @OneToMany(() => Order, order => order.affiliate)
     orders: Order[];
 
-    @ManyToOne(() => Affiliate, { nullable: true })
+    @ManyToOne(() => AffiliateProfile, { nullable: true })
     @JoinColumn({ name: 'parent_affiliate_id' })
-    parent: Affiliate;
+    parent: AffiliateProfile;
 
-    @OneToMany(() => Affiliate, affiliate => affiliate.parent)
-    children: Affiliate[];
+    @OneToMany(() => AffiliateProfile, affiliate => affiliate.parent)
+    children: AffiliateProfile[];
 }

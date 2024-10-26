@@ -12,6 +12,8 @@ import { CartService } from './cart/cart.service';
 import { CartModule } from './cart/cart.module';
 import { ProductCategoryModule } from './product-category/product-category.module';
 import { OrderProductModule } from './order_product/order_product.module';
+import { UserStatusModule } from './user-status/user-status.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -37,6 +39,8 @@ import { OrderProductModule } from './order_product/order_product.module';
     CartModule,
     ProductCategoryModule,
     OrderProductModule,
+    UserStatusModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService, CartService],

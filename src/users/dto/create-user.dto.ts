@@ -48,41 +48,5 @@ export class CreateUserDto {
         message: 'Password too weak. It must contain a combination of uppercase letters, lowercase letters, numbers, and symbols.',
     })
     password_hash: string;
-
-    // checked
-    @ApiProperty({
-        description: 'rank',
-        default: UserRole.GUEST,
-    })
-    @IsEnum(UserRole)
-    @MaxLength(5)
-    @IsNotEmpty()
-    role: UserRole;
-
-    // checked
-    @ApiProperty({
-        description: 'bank_name',
-        example: 'Vietcombank',
-    })
-    @IsString()
-    @IsNotEmpty()
-    @MinLength(6)
-    @MaxLength(50)
-    bank_name: string;
-
-    // checked
-    @ApiProperty({
-        description: 'bank_account_number',
-        example: '123456789',
-    })
-    @IsNumberString()
-    @IsNotEmpty()
-    @MaxLength(15)
-    @MinLength(9)
-    @Matches(/^[0-9]+$/, {
-        message: 'bank_account_number must be a non-negative number string',
-    })
-    bank_account_number: string;
-
 }
 

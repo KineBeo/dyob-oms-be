@@ -1,7 +1,7 @@
 export enum UserRole {
     GUEST = "GUEST",
-    POTENTIAL_STAFF = "POTENTIAL_STAFF",
-    SALES_STAFF = "SALES_STAFF",
-    SALES_MANAGER = "SALES_MANAGER",
-    SALES_DIRECTOR = "SALES_DIRECTOR",
+    NVTN = 1,
+    NVKD = 2,
+    TPKD = 3,
+    GDKD = 4,
 }
