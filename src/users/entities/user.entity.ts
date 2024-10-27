@@ -1,5 +1,5 @@
 import { UserStatus } from '../../user-status/entities/user-status.entity';
-import AffiliateProfile from '../../affiliate/entities/affiliate.entity';
+import AffiliateProfile from '../../affiliate-profile/entities/affiliate-profile.entity';
 import Order from '../../orders/entities/order.entity';
 import {
   BeforeInsert,

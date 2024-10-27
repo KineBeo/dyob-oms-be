@@ -7,11 +7,16 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
+import { AffiliateProfileService } from '../affiliate-profile/affiliate-profile.service';
+import { UserStatusService } from '../user-status/user-status.service';
+import { UserRole } from 'src/enum/rank';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
+    private affiliateProfileService: AffiliateProfileService,
+    private userStatusService: UserStatusService,
     private jwtService: JwtService,
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
@@ -20,6 +25,14 @@ export class AuthService {
   async register(createUserDto: CreateUserDto) {
     try {
       const user = await this.usersService.create(createUserDto);
+      await this.affiliateProfileService.create({ user_id: user.id });
+      await this.userStatusService.create({ 
+        user_id: user.id,
+        isAffiliate: false,
+        total_purchase: "0",
+        total_orders: 0,
+        user_rank: UserRole.NVTN,
+      });
 
       return {
         user: {

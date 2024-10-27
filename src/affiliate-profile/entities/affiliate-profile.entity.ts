@@ -1,5 +1,3 @@
-
-import { UserRole } from '../../enum/rank';
 import Order from '../../orders/entities/order.entity';
 import User from "../../users/entities/user.entity";
 import { BeforeInsert, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";

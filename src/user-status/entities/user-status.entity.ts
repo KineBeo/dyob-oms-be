@@ -23,6 +23,9 @@ export class UserStatus {
       default: UserRole.NVTN
     })
     user_rank: UserRole;
+
+    @Column()
+    isAffiliate: boolean; 
   
     @Column({ type: 'timestamp', nullable: true })
     last_rank_update: Date;

@@ -11,7 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import Order from './entities/order.entity';
 import { Repository } from 'typeorm';
 import { CartService } from '../cart/cart.service';
-import { AffiliateService } from '../affiliate/affiliate.service'
+import { AffiliateProfileService } from '../affiliate-profile/affiliate-profile.service'
 import { OrderStatus } from '../enum/order-status';
 import { UsersService } from '../users/users.service';
 import { OrderProductService } from '../order_product/order_product.service';
@@ -23,7 +23,7 @@ export class OrdersService {
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
     private cartService: CartService,
-    private affiliateService: AffiliateService,
+    private affiliateService: AffiliateProfileService,
     private userService: UsersService,
     @Inject(forwardRef(() => OrderProductService))
     private orderProductService: OrderProductService,

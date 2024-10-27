@@ -1,13 +1,13 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
-import { AffiliateService } from './affiliate.service';
-import { CreateAffiliateDto } from './dto/create-affiliate.dto';
+import { AffiliateProfileService } from './affiliate-profile.service';
+import { CreateAffiliateProfileDto } from './dto/create-affiliate-profile.dto';
 import { UpdateAffiliateDto } from './dto/update-affiliate.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller('affiliate')
 @ApiTags('affiliate')
-export class AffiliateController {
-  constructor(private readonly affiliateService: AffiliateService) {}
+export class AffiliateProfileController {
+  constructor(private readonly affiliateService: AffiliateProfileService) {}
 
   // @Post()
   // @ApiOperation({ summary: 'Create affiliate' })  
@@ -41,7 +41,7 @@ export class AffiliateController {
   @Post()
   @ApiOperation({ summary: 'Create a new affiliate' })
   @ApiResponse({ status: 201, description: 'Affiliate successfully created' })
-  create(@Body() createAffiliateDto: CreateAffiliateDto) {
+  create(@Body() createAffiliateDto: CreateAffiliateProfileDto) {
     return this.affiliateService.create(createAffiliateDto);
   }
 

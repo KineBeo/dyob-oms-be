@@ -3,7 +3,7 @@ import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import Order from './entities/order.entity';
-import { AffiliateModule } from '../affiliate/affiliate.module';
+import { AffiliateProfileModule } from '../affiliate-profile/affiliate-profile.module';
 import { CartModule } from '../cart/cart.module';
 import { UsersModule } from '../users/users.module';
 import { OrderProductModule } from '../order_product/order_product.module';
@@ -11,7 +11,7 @@ import { OrderProductModule } from '../order_product/order_product.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order]),
-    forwardRef(() => AffiliateModule),
+    forwardRef(() => AffiliateProfileModule),
     CartModule,
     UsersModule,
     forwardRef(() => OrderProductModule), // Use forwardRef here

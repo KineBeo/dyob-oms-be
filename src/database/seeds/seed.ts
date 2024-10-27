@@ -4,14 +4,14 @@ import { AppModule } from '../../app.module';
 import { UserRole } from '../../enum/rank';
 import { OrderStatus } from '../../enum/order-status';
 import { UsersService } from '../../users/users.service';
-import { AffiliateService } from '../../affiliate/affiliate.service';
+import { AffiliateProfileService } from '../../affiliate-profile/affiliate-profile.service';
 import { OrdersService } from '../../orders/orders.service';
 import User from 'src/users/entities/user.entity';
-import AffiliateProfile from '../../affiliate/entities/affiliate.entity';
+import AffiliateProfile from '../../affiliate-profile/entities/affiliate-profile.entity';
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
   const usersService = app.get(UsersService);
-  const affiliateService = app.get(AffiliateService);
+  const affiliateService = app.get(AffiliateProfileService);
   const ordersService = app.get(OrdersService);
 
   try {
@@ -52,7 +52,7 @@ async function seedUsers(usersService: UsersService, count: number) {
 }
 
 async function seedAffiliates(
-  affiliateService: AffiliateService,
+  affiliateService: AffiliateProfileService,
   users: any[],
 ) {
   const affiliates = [];
