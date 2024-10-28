@@ -47,9 +47,10 @@ export class AffiliateProfileService {
         throw new ConflictException(`Affiliate for user ${user_id} already exists`);
       }
 
+      const DEFAULT_CODE = 'DEFAULT_';
       const newAffiliateProfile = this.affiliateProfileRepository.create({
         user: { id: user_id },
-        referral_code: '',
+        referral_code: `${DEFAULT_CODE}${user_id}`,
         direct_sales: '0',
         group_sales: '0',
         direct_commission: '0',

@@ -1,9 +1,9 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshToken } from './entities/refresh-token.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
@@ -20,19 +20,34 @@ export class AuthService {
     private jwtService: JwtService,
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
+    private dataSource: DataSource,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
     try {
+      // Create the user first
       const user = await this.usersService.create(createUserDto);
-      await this.affiliateProfileService.create({ user_id: user.id });
-      await this.userStatusService.create({ 
-        user_id: user.id,
-        isAffiliate: false,
-        total_purchase: "0",
-        total_orders: 0,
-        user_rank: UserRole.NVTN,
-      });
+
+      // Create associated profiles within the same transaction
+      await Promise.all([
+        this.affiliateProfileService.create({ 
+          user_id: user.id 
+        }),
+        this.userStatusService.create({ 
+          user_id: user.id,
+          isAffiliate: false,
+          total_purchase: "0",
+          total_orders: 0,
+          user_rank: UserRole.NVTN,
+        })
+      ]);
+
+      // Commit the transaction
+      await queryRunner.commitTransaction();
 
       return {
         user: {
@@ -40,14 +55,24 @@ export class AuthService {
           email: user.email,
           fullname: user.fullname,
           phone_number: user.phone_number,
-        },
+        }
       };
+
     } catch (error) {
+      // Rollback the transaction on error
+      await queryRunner.rollbackTransaction();
+
       if (error instanceof ConflictException) {
         throw error;
       }
 
-      throw error;
+      throw new BadRequestException(
+        'Registration failed: ' + error
+      );
+
+    } finally {
+      // Release the query runner
+      await queryRunner.release();
     }
   }
 

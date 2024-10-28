@@ -6,6 +6,7 @@ import {
   BeforeUpdate,
   Column,
   Entity,
+  Index,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -14,43 +15,40 @@ import {
 @Entity()
 export default class User {
 
-  // ! checked
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  // ! checked
   @Column({ nullable: false })
   fullname: string;
   
-  // ! checked
-  @Column({ unique: true, nullable: false })
+  @Index('phone_number_idx')
+  @Column({ nullable: false })
   phone_number: string;
 
-  // ! checked
+  @Index('email_idx', { unique: true })
   @Column({ unique: true })
   email: string;
 
-  // ! checked
   @Column()
   password_hash: string;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   public createdAt: Date;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   public updatedAt: Date;
 
   @BeforeInsert()
   updateCreatedAt() {
-    this.createdAt = new Date(new Date().getTime());
-    this.updatedAt = new Date(new Date().getTime());
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
   }
 
   @BeforeUpdate()
   updateUpdatedAt() {
-    this.updatedAt = new Date(new Date().getTime());
+    this.updatedAt = new Date();
   }
-  // ! checked
+
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
 
@@ -59,5 +57,4 @@ export default class User {
 
   @OneToOne(() => UserStatus, status => status.user)
   status: UserStatus;
-  // ! checked
 }

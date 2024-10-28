@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Request, ForbiddenException, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import User from './entities/user.entity';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('users')
 @ApiTags('users')
@@ -17,6 +18,11 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  /**
+   * ! Only admin should be able to access this endpoint
+   * TODO: Add admin guard here
+   * @returns 
+   */
   @Get()
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'Return all users.', type: User })
@@ -24,24 +30,56 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  /**
+   * 
+   * @param id: id of the user to be found (user only can access their own information)
+   * @param req: request from the current user
+   * @returns 
+   */
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth') 
   @Get('id/:id')
   @ApiOperation({ summary: 'Find a user by id' })
-  findOne(@Param('id') id: number) {
-    return this.usersService.findOne(+id);
+  findOne(@Param('id') id: number, @Request() req) {
+    if (Number(req.user.sub) !== Number(id)) {
+      throw new ForbiddenException('You can only access your own information');
+    }
+    return this.usersService.findOne(id);
   }
 
+  /**
+   * 
+   * @param id 
+   * @param updateUserDto 
+   * @param req 
+   * @returns 
+   */
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth') 
   @Patch('id/:id')
   @ApiOperation({ summary: 'Update a user by id' })
-  update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
+  update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto, @Request() req) {
+    if (Number(req.user.sub) !== Number(id)) {
+      throw new ForbiddenException('You can only access your own information');
+    }
     return this.usersService.update(+id, updateUserDto);
   }
-
+  /**
+   * TODO: Only admin should be able to access this endpoint
+   * @param id 
+   * @returns 
+   */
   @Delete('id/:id')
   @ApiOperation({ summary: 'Delete a user by id' })
   remove(@Param('id') id: number) {
     return this.usersService.remove(+id);
   }
 
+  /**
+   * TODO: Only admin should be able to access this endpoint
+   * @param email 
+   * @returns 
+   */
   @Get('email')
   @ApiOperation({ summary: 'Find a user by email' })
   @ApiQuery({ name: 'email', required: true, type: String })
@@ -51,6 +89,11 @@ export class UsersController {
     return this.usersService.findByEmail(email);
   }
 
+  /**
+   * TODO: Only admin should be able to access this endpoint
+   * @param phone_number 
+   * @returns 
+   */
   @Get('phone')  
   // add guard here
   @ApiOperation({ summary: 'Find a user by phone number' })

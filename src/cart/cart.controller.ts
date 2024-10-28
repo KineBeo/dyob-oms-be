@@ -1,17 +1,23 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Put, Req, Request, UseGuards } from '@nestjs/common';
 import { CartService } from './cart.service';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateCartDto } from './dto/create-cart.dto';
 import { UpdateCartDto } from './dto/update-cart.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('cart')
 @ApiTags('cart')
 export class CartController {
   constructor(private readonly cartService: CartService) { }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth') 
   @Post()
   @ApiOperation({ summary: 'Add to cart' })
-  addToCart(@Body() createCartDto: CreateCartDto) {
+  addToCart(@Body() createCartDto: CreateCartDto, @Request() req) {
+    if (Number(req.user.sub) !== Number(createCartDto.user_id)) {
+      throw new ForbiddenException('You can only add to your own cart');
+    }
     return this.cartService.addToCart(createCartDto);
   }
 

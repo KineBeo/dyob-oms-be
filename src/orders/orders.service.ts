@@ -59,6 +59,8 @@ export class OrdersService {
         total_amount,
         address: createOrderDto.address,
         status: OrderStatus.NOT_START_YET,
+        createdAt: new Date(),
+        updateAt: new Date(),
       });
       const savedOrder = await this.orderRepository.save(order);
 
