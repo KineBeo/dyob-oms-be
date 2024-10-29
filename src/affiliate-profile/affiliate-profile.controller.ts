@@ -76,12 +76,12 @@ export class AffiliateProfileController {
     return this.affiliateService.remove(id);
   }
 
-  // @Get('user/:userId')
-  // @ApiOperation({ summary: 'Get affiliate by user ID' })
-  // @ApiResponse({ status: 200, description: 'Return affiliate by user ID' })
-  // findByUserId(@Param('userId', ParseIntPipe) userId: number) {
-  //   return this.affiliateService.findAffiliateByUserId(userId);
-  // }
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Get affiliate by user ID' })
+  @ApiResponse({ status: 200, description: 'Return affiliate by user ID' })
+  findByUserId(@Param('userId') userId: number) {
+    return this.affiliateService.findAffiliateByUserId(userId);
+  }
 
   // @Get('referral/:code')
   // @ApiOperation({ summary: 'Get affiliate by referral code' })

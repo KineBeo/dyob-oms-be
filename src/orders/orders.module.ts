@@ -7,6 +7,7 @@ import { AffiliateProfileModule } from '../affiliate-profile/affiliate-profile.m
 import { CartModule } from '../cart/cart.module';
 import { UsersModule } from '../users/users.module';
 import { OrderProductModule } from '../order_product/order_product.module';
+import { GoogleSheetModule } from 'src/google-sheet/google-sheet.module';
 
 @Module({
   imports: [
@@ -15,9 +16,10 @@ import { OrderProductModule } from '../order_product/order_product.module';
     CartModule,
     UsersModule,
     forwardRef(() => OrderProductModule), // Use forwardRef here
+    GoogleSheetModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],
   exports: [OrdersService],
 })
-export class OrdersModule { }
+export class OrdersModule {}

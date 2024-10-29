@@ -11,11 +11,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import Order from './entities/order.entity';
 import { Repository } from 'typeorm';
 import { CartService } from '../cart/cart.service';
-import { AffiliateProfileService } from '../affiliate-profile/affiliate-profile.service'
+import { AffiliateProfileService } from '../affiliate-profile/affiliate-profile.service';
 import { OrderStatus } from '../enum/order-status';
 import { UsersService } from '../users/users.service';
 import { OrderProductService } from '../order_product/order_product.service';
 import { CreateOrderFullAttributesDto } from './dto/create-order-full-attributes.dto';
+import { GoogleSheetService } from '../google-sheet/google-sheet.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class OrdersService {
@@ -27,10 +29,26 @@ export class OrdersService {
     private userService: UsersService,
     @Inject(forwardRef(() => OrderProductService))
     private orderProductService: OrderProductService,
-  ) {}
+    private googleSheetsService: GoogleSheetService,
+    private eventEmitter: EventEmitter2,
+  ) {
+    // Listen for status changes from Google Sheets
+    this.eventEmitter.on(
+      'order.status.changed',
+      async (payload: { orderId: number; newStatus: OrderStatus }) => {
+        console.log(
+          'Received status change event:',
+          payload.orderId,
+          payload.newStatus,
+        );
+        await this.handleStatusChange(payload.orderId, payload.newStatus);
+      },
+    );
+  }
 
   async create(userId: number, createOrderDto: CreateOrderDto): Promise<Order> {
     const { affiliate_id } = createOrderDto;
+    console.log(affiliate_id);
 
     try {
       // Check if user exists
@@ -51,7 +69,7 @@ export class OrdersService {
         .toString();
 
       const affiliate =
-        await this.affiliateService.findAffiliateByUserId(userId);
+        await this.affiliateService.findAffiliateByUserId(affiliate_id);
 
       const order = this.orderRepository.create({
         user: { id: userId },
@@ -64,6 +82,8 @@ export class OrdersService {
       });
       const savedOrder = await this.orderRepository.save(order);
 
+      // ! Sync order to Google Sheet
+      await this.googleSheetsService.syncOrderToSheet(savedOrder);
       // if (affiliate_id) {
       //   // Check if affiliate exists
       //   const affiliate = await this.affiliateService.findOne(affiliate_id);
@@ -110,6 +130,100 @@ export class OrdersService {
     }
   }
 
+  private async handleStatusChange(orderId: number, newStatus: OrderStatus) {
+    try {
+      console.log('Handling status change for order', orderId);
+      const order = await this.findOne(orderId);
+
+      if (!order) {
+        throw new NotFoundException(`Order with ID ${orderId} not found`);
+      }
+
+      if (order.status !== newStatus) {
+        console.log(
+          'Updating order status. Current affiliate:',
+          order.affiliate?.id || 'none',
+        );
+
+        await this.update(orderId, {
+          user_id: order.user.id,
+          address: order.address,
+          status: newStatus,
+          affiliate_id: order.affiliate?.id || null,
+        });
+      } else {
+        console.log(`Order ${orderId} already has status ${newStatus}`);
+      }
+    } catch (error) {
+      console.error(
+        `Failed to handle status change for order ${orderId}:`,
+        error,
+      );
+      throw error; // Re-throw the error for proper error handling upstream
+    }
+  }
+
+  async update(id: number, updateOrderDto: UpdateOrderDto) {
+    try {
+      const order = await this.findOne(id);
+      console.log(
+        'Updating order:',
+        id,
+        'Current affiliate ID:',
+        order.affiliate?.id || 'none',
+      );
+
+      // Validate user exists
+      const user = await this.userService.findOne(updateOrderDto.user_id);
+      if (!user) {
+        throw new NotFoundException(
+          `User with ID ${updateOrderDto.user_id} not found`,
+        );
+      }
+
+      // Handle affiliate update
+      let affiliateEntity = null;
+      if (
+        updateOrderDto.affiliate_id !== undefined &&
+        updateOrderDto.affiliate_id !== null
+      ) {
+        const affiliate = await this.affiliateService.findAffiliateByUserId(
+          updateOrderDto.affiliate_id,
+        );
+        if (!affiliate) {
+          throw new NotFoundException(
+            `Affiliate with ID ${updateOrderDto.affiliate_id} not found`,
+          );
+        }
+        affiliateEntity = { id: affiliate.id };
+      } else if (order.affiliate) {
+        // Preserve existing affiliate if none specified in update
+        affiliateEntity = { id: order.affiliate.id };
+      }
+
+      // Update order
+      const updatedOrder = Object.assign(order, {
+        user: { id: updateOrderDto.user_id },
+        affiliate: affiliateEntity,
+        address: updateOrderDto.address || order.address,
+        status: updateOrderDto.status || order.status,
+        updateAt: new Date(),
+      });
+
+      const savedOrder = await this.orderRepository.save(updatedOrder);
+
+      // Sync updates to Google Sheet
+      await this.googleSheetsService.syncOrderToSheet(savedOrder);
+
+      return savedOrder;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to update order: ${error.message}`);
+    }
+  }
+
   async findAll(): Promise<Order[]> {
     try {
       const orders = await this.orderRepository.find();
@@ -123,7 +237,10 @@ export class OrdersService {
 
   async findOne(id: number): Promise<Order> {
     try {
-      const order = await this.orderRepository.findOne({ where: { id } });
+      const order = await this.orderRepository.findOne({
+        where: { id },
+        relations: ['user', 'affiliate'],
+      });
       if (!order) {
         throw new NotFoundException(
           'Order not found from find one order service',
@@ -161,48 +278,6 @@ export class OrdersService {
     }
   }
 
-  async update(id: number, updateOrderDto: UpdateOrderDto) {
-    // try {
-    //   const order = await this.orderRepository.findOne({ where: { id }, relations: ['user'] });
-    //   if (!order) {
-    //     throw new NotFoundException(
-    //       'Order not found from update order service',
-    //     );
-    //   }
-    //    // Check if order status is being updated to COMPLETED
-    //    if (updateOrderDto.status === OrderStatus.COMPLETED && 
-    //     order.status !== OrderStatus.COMPLETED) {
-      
-    //   // Get the affiliate for this user
-    //   const affiliate = await this.affiliateService.findAffiliateByUserId(order.user.id);
-    //   console.log('call affiliateService.findAffiliateByUserId(order.user.id)', affiliate);
-    //   if (affiliate) {
-    //     // Update total_purchase for the affiliate
-    //     const newTotalPurchase = (
-    //       parseFloat(affiliate.total_purchase) + 
-    //       parseFloat(order.total_amount)
-    //     ).toString();
-        
-    //     await this.affiliateService.update(affiliate.id, {
-    //       total_purchase: newTotalPurchase
-    //     });
-
-    //     // Check for possible rank updates after purchase
-    //     await this.affiliateService.checkAndUpdateRank(affiliate.id);
-    //   }
-    // }
-
-    // // Update the order with new data
-    // return this.orderRepository.save({ ...order, ...updateOrderDto });
-    // } catch (error) {
-    //   if (error instanceof NotFoundException) {
-    //     throw error;
-    //   }
-    //   throw error;
-    // }
-    return 'this is update order'
-  }
-
   async remove(id: number): Promise<Order> {
     try {
       const order = await this.orderRepository.findOne({ where: { id } });
@@ -221,7 +296,10 @@ export class OrdersService {
   }
 
   // TODO: service for seed orders
-  async createOrderSeed(userId: number, createOrderWithFullAttributesDto: CreateOrderFullAttributesDto): Promise<Order> {
+  async createOrderSeed(
+    userId: number,
+    createOrderWithFullAttributesDto: CreateOrderFullAttributesDto,
+  ): Promise<Order> {
     try {
       const order = this.orderRepository.create({
         user: { id: userId },

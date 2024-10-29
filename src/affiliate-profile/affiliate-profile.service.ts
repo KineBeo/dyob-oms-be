@@ -88,6 +88,9 @@ export class AffiliateProfileService {
 
   async findAffiliateByUserId(userId: number): Promise<AffiliateProfile> {
     try {
+      if (userId === null || userId === undefined) {
+        return null;
+      }
       const affiliate = await this.affiliateProfileRepository.findOne({
         where: { user: { id: userId } },
         relations: ['user', 'orders'],

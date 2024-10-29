@@ -1,6 +1,5 @@
-import { Optional } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsNotEmpty, Min, Max, IsNumberString, MinLength, MaxLength, Matches, IsString, IsEnum } from 'class-validator';
+import { IsNumber, IsNotEmpty, Min, Max, IsNumberString, MinLength, MaxLength, Matches, IsString, IsEnum, IsOptional } from 'class-validator';
 import { OrderStatus } from '../../enum/order-status';
 export class UpdateOrderDto {
     @ApiProperty({
@@ -18,7 +17,7 @@ export class UpdateOrderDto {
         example: 1,
         required: false,
     })
-    @Optional()
+    @IsOptional()
     affiliate_id?: number;
 
     @ApiProperty({

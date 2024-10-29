@@ -14,23 +14,27 @@ import { ProductCategoryModule } from './product-category/product-category.modul
 import { OrderProductModule } from './order_product/order_product.module';
 import { UserStatusModule } from './user-status/user-status.module';
 import { AuthModule } from './auth/auth.module';
+import { GoogleSheetService } from './google-sheet/google-sheet.service';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { GoogleSheetModule } from './google-sheet/google-sheet.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal: true,
-    envFilePath: '.env',
-  }),
-  RedisModule.forRootAsync({
-    useFactory: (configService: ConfigService) => ({
-      config: {
-        host: configService.get('REDIS_HOST'),
-        port: configService.get('REDIS_PORT'),
-        password: configService.get('REDIS_PASSWORD'),
-
-      },
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
     }),
-    inject: [ConfigService],
-  }),
+    RedisModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        config: {
+          host: configService.get('REDIS_HOST'),
+          port: configService.get('REDIS_PORT'),
+          password: configService.get('REDIS_PASSWORD'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
+    EventEmitterModule.forRoot(),
     DatabaseModule,
     UsersModule,
     OrdersModule,
@@ -41,12 +45,13 @@ import { AuthModule } from './auth/auth.module';
     OrderProductModule,
     UserStatusModule,
     AuthModule,
+    GoogleSheetModule,
   ],
   controllers: [AppController],
-  providers: [AppService, CartService],
+  providers: [AppService, CartService, GoogleSheetService],
 })
 export class AppModule implements OnModuleInit {
-  constructor(private readonly redisService: RedisService) { }
+  constructor(private readonly redisService: RedisService) {}
 
   async onModuleInit() {
     try {
