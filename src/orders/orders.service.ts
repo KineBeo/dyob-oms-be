@@ -36,11 +36,11 @@ export class OrdersService {
     this.eventEmitter.on(
       'order.status.changed',
       async (payload: { orderId: number; newStatus: OrderStatus }) => {
-        console.log(
-          'Received status change event:',
-          payload.orderId,
-          payload.newStatus,
-        );
+        // console.log(
+        //   'Received status change event:',
+        //   payload.orderId,
+        //   payload.newStatus,
+        // );
         await this.handleStatusChange(payload.orderId, payload.newStatus);
       },
     );
@@ -48,7 +48,6 @@ export class OrdersService {
 
   async create(userId: number, createOrderDto: CreateOrderDto): Promise<Order> {
     const { affiliate_id } = createOrderDto;
-    console.log(affiliate_id);
 
     try {
       // Check if user exists
@@ -84,32 +83,7 @@ export class OrdersService {
 
       // ! Sync order to Google Sheet
       await this.googleSheetsService.syncOrderToSheet(savedOrder);
-      // if (affiliate_id) {
-      //   // Check if affiliate exists
-      //   const affiliate = await this.affiliateService.findOne(affiliate_id);
-      //   if (!affiliate) {
-      //     throw new NotFoundException(
-      //       `Affiliate with ID ${affiliate_id} not found from create order service`,
-      //     );
-      //   }
-
-      //   affiliate.direct_sales = (
-      //     parseFloat(affiliate.direct_sales) + parseFloat(total_amount)
-      //   ).toString();
-
-      //   // TODO: Calculate commission
-      //   const commission =
-      //     await this.affiliateService.calculateDirectCommission(savedOrder.id);
-      //   affiliate.commission = (
-      //     parseFloat(affiliate.commission) + commission
-      //   ).toString();
-
-      //    // Update parent chain group sales
-      //    await this.updateParentChainGroupSales(affiliate_id, parseFloat(total_amount));
-
-      //    // Check for rank updates
-      //    await this.affiliateService.checkAndUpdateRank(affiliate_id);
-      // }
+  
       const orderItems = cartItems.map((item) => ({
         order_id: savedOrder.id,
         product_id: item.product_id,
@@ -132,7 +106,7 @@ export class OrdersService {
 
   private async handleStatusChange(orderId: number, newStatus: OrderStatus) {
     try {
-      console.log('Handling status change for order', orderId);
+      // console.log('Handling status change for order', orderId);
       const order = await this.findOne(orderId);
 
       if (!order) {
@@ -140,10 +114,10 @@ export class OrdersService {
       }
 
       if (order.status !== newStatus) {
-        console.log(
-          'Updating order status. Current affiliate:',
-          order.affiliate?.id || 'none',
-        );
+        // console.log(
+        //   'Updating order status. Current affiliate:',
+        //   order.affiliate?.id || 'none',
+        // );
 
         await this.update(orderId, {
           user_id: order.user.id,
@@ -151,9 +125,10 @@ export class OrdersService {
           status: newStatus,
           affiliate_id: order.affiliate?.id || null,
         });
-      } else {
-        console.log(`Order ${orderId} already has status ${newStatus}`);
-      }
+      } 
+      // else {
+      //   console.log(`Order ${orderId} already has status ${newStatus}`);
+      // }
     } catch (error) {
       console.error(
         `Failed to handle status change for order ${orderId}:`,
@@ -166,12 +141,12 @@ export class OrdersService {
   async update(id: number, updateOrderDto: UpdateOrderDto) {
     try {
       const order = await this.findOne(id);
-      console.log(
-        'Updating order:',
-        id,
-        'Current affiliate ID:',
-        order.affiliate?.id || 'none',
-      );
+      // console.log(
+      //   'Updating order:',
+      //   id,
+      //   'Current affiliate ID:',
+      //   order.affiliate?.id || 'none',
+      // );
 
       // Validate user exists
       const user = await this.userService.findOne(updateOrderDto.user_id);
