@@ -13,6 +13,7 @@ export class GoogleSheetService implements OnModuleInit {
   private spreadsheetId: string;
   private readonly sheetName = 'Orders';
   private readonly STATUS_COLUMN = 'F'; // Column for status
+  private lastKnownStatuses: Map<string, OrderStatus> = new Map();
 
   constructor(
     private configService: ConfigService,
@@ -32,8 +33,9 @@ export class GoogleSheetService implements OnModuleInit {
     try {
       // Ensure the sheet exists first
       await this.createSheetIfNotExists();
-      await this.setupSheetWatcher();
       await this.initializeSheet();
+      await this.initializeStatusTracking();
+      await this.setupSheetWatcher();
     } catch (error) {
       console.error('Failed to initialize Google Sheet service:', error);
     }
@@ -130,11 +132,34 @@ export class GoogleSheetService implements OnModuleInit {
     }
   }
 
+  private async initializeStatusTracking() {
+    try {
+      const response = await this.sheets.spreadsheets.values.get({
+        spreadsheetId: this.spreadsheetId,
+        range: `${this.sheetName}!A:F`,
+      });
+
+      const rows = response.data.values || [];
+      if (rows.length <= 1) return; // Only headers or empty
+
+      // Start from index 1 to skip headers
+      for (let i = 1; i < rows.length; i++) {
+        const [orderId, , , , , status] = rows[i];
+        if (orderId && status) {
+          this.lastKnownStatuses.set(orderId.toString(), status as OrderStatus);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize status tracking:', error);
+    }
+  }
+
+
   private async setupSheetWatcher() {
     // Poll for changes every 30 seconds
     setInterval(async () => {
       await this.checkForStatusUpdates();
-    }, 30000);
+    }, 5000);
   }
 
   async syncOrderToSheet(order: Order) {
@@ -191,16 +216,28 @@ export class GoogleSheetService implements OnModuleInit {
       });
 
       const rows = response.data.values;
-      if (!rows || rows.length <= 1) return; // No data or only headers
+      if (!rows || rows.length <= 1) return;
 
       for (let i = 1; i < rows.length; i++) {
-        const [orderId, , , , , status] = rows[i];
+        const [orderId, , , , , currentStatus] = rows[i];
         
-        if (orderId && status && Object.values(OrderStatus).includes(status as OrderStatus)) {
-          this.eventEmitter.emit('order.status.changed', {
-            orderId: Number(orderId),
-            newStatus: status as OrderStatus
-          });
+        if (orderId && currentStatus) {
+          const lastStatus = this.lastKnownStatuses.get(orderId.toString());
+          
+          // Only emit if status has changed
+          if (lastStatus !== currentStatus && 
+              Object.values(OrderStatus).includes(currentStatus as OrderStatus)) {
+            console.log(`Status changed for order ${orderId}: ${lastStatus} -> ${currentStatus}`);
+            
+            this.eventEmitter.emit('order.status.changed', {
+              orderId: Number(orderId),
+              newStatus: currentStatus as OrderStatus,
+              previousStatus: lastStatus
+            });
+            
+            // Update the tracked status
+            this.lastKnownStatuses.set(orderId.toString(), currentStatus as OrderStatus);
+          }
         }
       }
     } catch (error) {

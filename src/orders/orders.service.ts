@@ -36,16 +36,16 @@ export class OrdersService {
     this.eventEmitter.on(
       'order.status.changed',
       async (payload: { orderId: number; newStatus: OrderStatus }) => {
-        // console.log(
-        //   'Received status change event:',
-        //   payload.orderId,
-        //   payload.newStatus,
-        // );
+        console.log(
+          'Received status change event:',
+          payload.orderId,
+          payload.newStatus,
+        );
         await this.handleStatusChange(payload.orderId, payload.newStatus);
       },
     );
   }
-
+ 
   async create(userId: number, createOrderDto: CreateOrderDto): Promise<Order> {
     const { affiliate_id } = createOrderDto;
 
@@ -106,7 +106,7 @@ export class OrdersService {
 
   private async handleStatusChange(orderId: number, newStatus: OrderStatus) {
     try {
-      // console.log('Handling status change for order', orderId);
+      console.log('Handling status change for order', orderId);
       const order = await this.findOne(orderId);
 
       if (!order) {
@@ -118,6 +118,9 @@ export class OrdersService {
         //   'Updating order status. Current affiliate:',
         //   order.affiliate?.id || 'none',
         // );
+        console.log(`Updating order ${orderId} status from ${order.status} to ${newStatus}`);
+
+        const previousStatus = order.status;
 
         await this.update(orderId, {
           user_id: order.user.id,
@@ -125,10 +128,27 @@ export class OrdersService {
           status: newStatus,
           affiliate_id: order.affiliate?.id || null,
         });
-      } 
-      // else {
-      //   console.log(`Order ${orderId} already has status ${newStatus}`);
-      // }
+
+        // ! if the new status is COMPLETED, emit event to update user's total purchase
+        if (newStatus === OrderStatus.COMPLETED && previousStatus !== OrderStatus.COMPLETED) {
+          console.log(`Order ${orderId} marked as completed. Emitting order.completed event`);
+          this.eventEmitter.emit('order.completed', {
+            userId: order.user.id,
+            orderAmount: order.total_amount,
+          });
+        }
+
+        // ! If the previous status was COMPLETED but new status isn't, we need to subtract
+        if (previousStatus === OrderStatus.COMPLETED && newStatus !== OrderStatus.COMPLETED) {
+          console.log(`Order ${orderId} unmarked as completed. Emitting order.uncompleted event`);
+          this.eventEmitter.emit('order.uncompleted', {
+            userId: order.user.id,
+            orderAmount: order.total_amount,
+          });
+        }
+      } else {
+        console.log(`Order ${orderId} status unchanged: ${newStatus}`);
+      }
     } catch (error) {
       console.error(
         `Failed to handle status change for order ${orderId}:`,
@@ -141,12 +161,12 @@ export class OrdersService {
   async update(id: number, updateOrderDto: UpdateOrderDto) {
     try {
       const order = await this.findOne(id);
-      // console.log(
-      //   'Updating order:',
-      //   id,
-      //   'Current affiliate ID:',
-      //   order.affiliate?.id || 'none',
-      // );
+      console.log(
+        'Updating order:',
+        id,
+        'Current affiliate ID:',
+        order.affiliate?.id || 'none',
+      );
 
       // Validate user exists
       const user = await this.userService.findOne(updateOrderDto.user_id);
@@ -221,6 +241,12 @@ export class OrdersService {
           'Order not found from find one order service',
         );
       }
+
+      // Remove password_hash from user object before returning
+      if (order.user) {
+        delete order.user.password_hash;
+      }
+
       return order;
     } catch (error) {
       if (error instanceof NotFoundException) {
