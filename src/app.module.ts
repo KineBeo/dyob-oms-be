@@ -19,6 +19,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GoogleSheetModule } from './google-sheet/google-sheet.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { StrapiModule } from './strapi/strapi.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     ProductCategoryModule,
     OrderProductModule,
     UserStatusModule,
+    StrapiModule,
     AuthModule,
     GoogleSheetModule,
   ],
