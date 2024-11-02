@@ -1,4 +1,4 @@
-import { UserRole } from "src/enum/rank";
+import { UserRank } from "src/enum/rank";
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateAffiliateFullAttributesDto {
@@ -10,9 +10,9 @@ export class CreateAffiliateFullAttributesDto {
     @IsNotEmpty()
     user_id: number;
 
-    @IsEnum(UserRole)
+    @IsEnum(UserRank)
     @IsOptional()
-    rank?: UserRole;
+    rank?: UserRank;
 
     @IsString()
     @IsOptional()

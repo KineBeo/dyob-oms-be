@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsBoolean, IsEnum, IsNumber, IsString, Min } from "class-validator";
-import { UserRole } from "../../enum/rank";
+import { UserRank } from "../../enum/rank";
 
 export class CreateUserStatusDto {
     @ApiProperty({
@@ -34,9 +34,9 @@ export class CreateUserStatusDto {
     
       @ApiProperty({
         description: 'User rank',
-        enum: UserRole,
-        example: UserRole.NVTN
+        enum: UserRank,
+        example: UserRank.NVTN
       })
-      @IsEnum(UserRole)
-      user_rank: UserRole;
+      @IsEnum(UserRank)
+      user_rank: UserRank;
 }

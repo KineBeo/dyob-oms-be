@@ -6,11 +6,13 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
+import { Public } from './decorator/public.decorator';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('register')
   @ApiOperation({ summary: 'Register new user' })
   @ApiResponse({ 
@@ -22,6 +24,7 @@ export class AuthController {
     return this.authService.register(createUserDto);
   }
 
+  @Public()
   @Post('login')
   @ApiOperation({ summary: 'Login user' })
   @ApiResponse({ 
@@ -44,8 +47,8 @@ export class AuthController {
     return this.authService.refreshAccessToken(refreshTokenDto.refreshToken);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Post('logout')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth') // Reference the bearer auth defined in main.ts
   @ApiOperation({ summary: 'Logout user' })
   @ApiResponse({ 

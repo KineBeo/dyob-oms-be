@@ -1,4 +1,4 @@
-import { UserRole } from "../../enum/rank";
+import { UserRank } from "../../enum/rank";
 import User from "../../users/entities/user.entity";
 import { PrimaryGeneratedColumn, OneToOne, JoinColumn, Column, CreateDateColumn, UpdateDateColumn, Entity } from "typeorm";
 
@@ -19,10 +19,10 @@ export class UserStatus {
   
     @Column({
       type: 'enum',
-      enum: UserRole,
-      default: UserRole.NVTN
+      enum: UserRank,
+      default: UserRank.NVTN
     })
-    user_rank: UserRole;
+    user_rank: UserRank;
 
     @Column()
     isAffiliate: boolean; 

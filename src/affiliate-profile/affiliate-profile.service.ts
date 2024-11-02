@@ -13,7 +13,7 @@ import { MoreThan, Repository } from 'typeorm';
 import AffiliateProfile from './entities/affiliate-profile.entity';
 import { UsersService } from '../users/users.service';
 import { OrdersService } from '../orders/orders.service';
-import { UserRole } from '../enum/rank';
+import { UserRank } from '../enum/rank';
 import { CreateAffiliateFullAttributesDto } from './dto/create-affiliate-full-attributes.dto';
 @Injectable()
 export class AffiliateProfileService {
@@ -144,7 +144,7 @@ export class AffiliateProfileService {
         user: { id: user_id },
         parent: parentAffiliate,
         referral_code: this.generateReferralCode(),
-        rank: UserRole.GUEST,
+        rank: UserRank.GUEST,
         direct_referrals_count: 0,
         ...createAffiliateWithFullAttributes,
       });

@@ -11,7 +11,6 @@ import {
   Matches,
   IsEnum,
 } from 'class-validator';
-import { UserRole } from '../../enum/rank';
 import { CreateUserDto } from './create-user.dto';
 
 export class UpdateUserDto implements Partial<CreateUserDto> {

@@ -4,15 +4,26 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import User from './entities/user.entity';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminGuard } from '../auth/guards/admin.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
+import { Role } from '../enum/role';
 
 @Controller('users')
 @ApiTags('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  /**
+   * ! Only admin should be able to access this endpoint
+   * @param createUserDto 
+   * @returns 
+   */
   @Post()
-  @ApiOperation({ summary: 'Create a user' })
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'ADMIN: Create a user' })
   @ApiResponse({ status: 201, description: 'The user has been successfully created.', type: User })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
@@ -24,7 +35,10 @@ export class UsersController {
    * @returns 
    */
   @Get()
-  @ApiOperation({ summary: 'Get all users' })
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'ADMIN: Get all users' })
   @ApiResponse({ status: 200, description: 'Return all users.', type: User })
   findAll() {
     return this.usersService.findAll();
@@ -65,12 +79,15 @@ export class UsersController {
     return this.usersService.update(+id, updateUserDto);
   }
   /**
-   * TODO: Only admin should be able to access this endpoint
+   * ! Only admin should be able to access this endpoint
    * @param id 
    * @returns 
    */
   @Delete('id/:id')
-  @ApiOperation({ summary: 'Delete a user by id' })
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'ADMIN: Delete a user by id' })
   remove(@Param('id') id: number) {
     return this.usersService.remove(+id);
   }
@@ -81,7 +98,10 @@ export class UsersController {
    * @returns 
    */
   @Get('email')
-  @ApiOperation({ summary: 'Find a user by email' })
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'ADMIN: Find a user by email' })
   @ApiQuery({ name: 'email', required: true, type: String })
   @ApiResponse({ status: 200, description: 'Return the user.', type: User })
   @ApiResponse({ status: 404, description: 'User not found.' })
@@ -95,8 +115,10 @@ export class UsersController {
    * @returns 
    */
   @Get('phone')  
-  // add guard here
-  @ApiOperation({ summary: 'Find a user by phone number' })
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'ADMIN: Find a user by phone number' })
   @ApiQuery({ name: 'phone_number', required: true, type: String })
   @ApiResponse({ status: 200, description: 'Return the user.', type: User })
   @ApiResponse({ status: 404, description: 'User not found.' })

@@ -17,6 +17,8 @@ import { AuthModule } from './auth/auth.module';
 import { GoogleSheetService } from './google-sheet/google-sheet.service';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GoogleSheetModule } from './google-sheet/google-sheet.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -48,7 +50,10 @@ import { GoogleSheetModule } from './google-sheet/google-sheet.module';
     GoogleSheetModule,
   ],
   controllers: [AppController],
-  providers: [AppService, CartService, GoogleSheetService],
+  providers: [AppService, CartService, GoogleSheetService, {
+    provide: APP_GUARD,
+    useClass: JwtAuthGuard,
+  }],
 })
 export class AppModule implements OnModuleInit {
   constructor(private readonly redisService: RedisService) {}

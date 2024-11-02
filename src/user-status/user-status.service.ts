@@ -9,7 +9,7 @@ import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserStatus } from './entities/user-status.entity';
 import { Repository } from 'typeorm';
-import { UserRole } from 'src/enum/rank';
+import { UserRank } from 'src/enum/rank';
 import User from 'src/users/entities/user.entity';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
@@ -52,7 +52,7 @@ export class UserStatusService {
         isAffiliate: isAffiliate || false,
         total_purchase: total_purchase || '0',
         total_orders: total_orders || 0,
-        user_rank: user_rank || UserRole.NVTN,
+        user_rank: user_rank || UserRank.NVTN,
       });
 
       return this.userStatusRepository.save(newUserStatus);

@@ -1,5 +1,5 @@
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
-import { UserRole } from '../../enum/rank';
+import { UserRank } from '../../enum/rank';
 
 export class UpdateAffiliateDto {
     @IsOptional()
@@ -27,6 +27,6 @@ export class UpdateAffiliateDto {
     direct_sales?: string;
 
     @IsOptional()
-    @IsEnum(UserRole)
-    rank?: UserRole;
+    @IsEnum(UserRank)
+    rank?: UserRank;
 }

@@ -9,7 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { AffiliateProfileService } from '../affiliate-profile/affiliate-profile.service';
 import { UserStatusService } from '../user-status/user-status.service';
-import { UserRole } from 'src/enum/rank';
+import { UserRank } from 'src/enum/rank';
 
 @Injectable()
 export class AuthService {
@@ -42,7 +42,7 @@ export class AuthService {
           isAffiliate: false,
           total_purchase: "0",
           total_orders: 0,
-          user_rank: UserRole.NVTN,
+          user_rank: UserRank.NVTN,
         })
       ]);
 
