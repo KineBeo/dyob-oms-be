@@ -22,8 +22,11 @@ export class OrdersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create an order' }) 
-  create(@Body() createOrderDto: CreateOrderDto) {
+  create(@Body() createOrderDto: CreateOrderDto, @Request() req) {
     const { user_id } = createOrderDto;
+    if (Number(req.user.sub) !== Number(user_id)) {
+      throw new ForbiddenException('You can only access your own information');
+    }
     return this.ordersService.create(user_id, createOrderDto);
   }
   /**
