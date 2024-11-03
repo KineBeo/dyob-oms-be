@@ -83,6 +83,22 @@ export class ProductsService {
     }
   }
 
+  async findOneByName(name: string): Promise<Product> {
+    try {
+      const product = await this.productRepository.findOne({ where: { name } });
+      if (!product) {
+        throw new NotFoundException('Product not found from find one by name product service');
+      }
+      
+      return product;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Something went wrong from find one by name product service', error);
+    }
+  }
+
   async update(id: number, updateProductDto: UpdateProductDto) {
     try {
       const product = await this.productRepository.findOne({ where: { id } });

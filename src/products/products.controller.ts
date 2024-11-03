@@ -37,6 +37,13 @@ export class ProductsController {
     return this.productsService.findOne(+id);
   }
 
+  @Get('byName/:name')
+  @Public()
+  @ApiOperation({ summary: 'Find a product by name' })
+  findByName(@Param('name') name: string) {
+    return this.productsService.findOneByName(name);
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @Roles(Role.ADMIN)
