@@ -262,6 +262,13 @@ export class OrdersService {
     try {
       const orders = await this.orderRepository.find({
         where: { user: { id: userId } },
+        relations: [
+          'orderProduct', // Lấy quan hệ với bảng trung gian OrderProduct
+          'orderProduct.product', // Lấy thông tin sản phẩm từ quan hệ với bảng trung gian
+        ],
+        order: {
+          createdAt: 'DESC' // Sắp xếp theo thời gian tạo giảm dần
+        }
       });
       if (orders.length === 0) {
         throw new NotFoundException(
@@ -273,9 +280,7 @@ export class OrdersService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException(
-        'Something went wrong from find all orders by user id service',
-      );
+      throw new Error(error)
     }
   }
 
