@@ -46,21 +46,22 @@ export class OrdersService {
     );
   }
  
-  async create(userId: number, createOrderDto: CreateOrderDto): Promise<Order> {
+  async create(createOrderDto: CreateOrderDto): Promise<Order> {
 
     // * get referral_code_of_referrer from createOrderDto
-    const { referral_code_of_referrer } = createOrderDto;
+    const { user_id, referral_code_of_referrer } = createOrderDto;
+    console.log('referral_code_of_referrer', referral_code_of_referrer);
 
     try {
       // Check if user exists
-      const user = await this.userService.findOne(userId);
+      const user = await this.userService.findOne(user_id);
       if (!user) {
         throw new NotFoundException(
-          `User with ID ${userId} not found from create order service`,
+          `User with ID ${user_id} not found from create order service`,
         );
       }
 
-      const cartItems = await this.cartService.getCart(userId);
+      const cartItems = await this.cartService.getCart(user_id);
       if (!cartItems || cartItems.length === 0) {
         throw new Error('Cart is empty from create order service');
       }
@@ -73,8 +74,8 @@ export class OrdersService {
       const userStatus = await this.userStatusService.findUserStatusByReferralCode(referral_code_of_referrer);
 
       const order = this.orderRepository.create({
-        user: { id: userId },
-        userStatus: { id: userStatus.id },
+        user: { id: user_id },
+        userStatus: userStatus || null,
         total_amount,
         address: createOrderDto.address,
         status: OrderStatus.NOT_START_YET,
@@ -94,7 +95,7 @@ export class OrdersService {
       }));
       await this.orderProductService.createMany(orderItems);
       // Clear the cart after successful order creation
-      await this.cartService.clearCart(userId);
+      await this.cartService.clearCart(user_id);
       return this.findOne(savedOrder.id);
     } catch (error) {
       if (error instanceof NotFoundException) {

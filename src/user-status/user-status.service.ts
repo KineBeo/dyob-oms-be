@@ -71,10 +71,13 @@ export class UserStatusService {
   }
   async findUserStatusByReferralCode(referralCode: string): Promise<UserStatus> {
     try {
+      if (referralCode === null || referralCode === undefined) {
+        return null;
+      }
       const referrer = await this.userStatusRepository.findOne({
         where: { personal_referral_code: referralCode },
       })
-
+      console.log('referrer from find userStatus by code', referrer);
       return referrer;
     } catch (error) {
       if (error instanceof NotFoundException) {

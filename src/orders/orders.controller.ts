@@ -27,7 +27,7 @@ export class OrdersController {
     if (Number(req.user.sub) !== Number(user_id)) {
       throw new ForbiddenException('You can only access your own information');
     }
-    return this.ordersService.create(user_id, createOrderDto);
+    return this.ordersService.create(createOrderDto);
   }
   /**
    * ! Admin

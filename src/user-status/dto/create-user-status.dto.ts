@@ -17,7 +17,7 @@ export class CreateUserStatusDto {
   })
   @IsString()
   @IsOptional()
-  referral_code_of_referrer: string;
+  referral_code_of_referrer?: string;
   
   @ApiProperty({
     description: 'User rank',

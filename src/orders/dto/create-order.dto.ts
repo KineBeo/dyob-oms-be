@@ -18,8 +18,8 @@ export class CreateOrderDto {
         description: 'referral_code_of_referrer',
         example: 'DEFAULT_1',
         required: false,
+        nullable: true,
     })
-    @IsString()
     @Optional()
     referral_code_of_referrer?: string;
 
