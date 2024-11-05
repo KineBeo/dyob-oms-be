@@ -77,7 +77,6 @@ export class UserStatusService {
       const referrer = await this.userStatusRepository.findOne({
         where: { personal_referral_code: referralCode },
       })
-      console.log('referrer from find userStatus by code', referrer);
       return referrer;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -98,15 +97,40 @@ export class UserStatusService {
     }
   }
 
-  async findOne(id: number): Promise<UserStatus> {
+  async findOne(id: number) {
     try {
       const userStatus = await this.userStatusRepository.findOne({
         where: { user: { id: id } },
+        relations: ['referrer'],
       });
+      let referrer_name = null;
+      if (!userStatus.referrer) {
+        referrer_name = null;
+      } else {
+        const userOfReferralCode = await this.userRepository.findOne({
+          where: { id: userStatus.referrer?.id },
+        })
+        referrer_name = userOfReferralCode?.fullname;
+      }
+
       if (!userStatus) {
         throw new NotFoundException('User status not found');
       }
-      return userStatus;
+      return {
+        id: userStatus.id,
+        personal_referral_code: userStatus.personal_referral_code,
+        total_purchase: userStatus.total_purchase,
+        total_orders: userStatus.total_orders,
+        total_sales: userStatus.total_sales,
+        commission: userStatus.commission,
+        last_rank_check: userStatus.last_rank_check,
+        rank_achievement_date: userStatus.rank_achievement_date,
+        user_rank: userStatus.user_rank,
+        createdAt: userStatus.createdAt,
+        updatedAt: userStatus.updatedAt,
+        referrer_id: userStatus.referrer?.id || null,
+        referrer_name: referrer_name,
+      };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
