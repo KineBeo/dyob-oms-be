@@ -15,25 +15,13 @@ export class CreateOrderDto {
     user_id: number;
 
     @ApiProperty({
-        description: 'affiliate_id',
-        example: 1,
+        description: 'referral_code_of_referrer',
+        example: 'DEFAULT_1',
         required: false,
     })
+    @IsString()
     @Optional()
-    affiliate_id?: number;
-
-    // @ApiProperty({
-    //     description: 'total_amount',
-    //     example: '0',
-    // })
-    // @IsNumberString()
-    // @IsNotEmpty()
-    // @MinLength(1)
-    // @MaxLength(20)
-    // @Matches(/^[0-9]+$/, {
-    //     message: 'total_amount must be a non-negative number string',
-    // })
-    // total_amount: string;
+    referral_code_of_referrer?: string;
 
     @ApiProperty({
         description: 'address',

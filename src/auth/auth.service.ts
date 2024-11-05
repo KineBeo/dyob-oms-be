@@ -7,7 +7,6 @@ import { DataSource, Repository } from 'typeorm';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
-import { AffiliateProfileService } from '../affiliate-profile/affiliate-profile.service';
 import { UserStatusService } from '../user-status/user-status.service';
 import { UserRank } from 'src/enum/rank';
 
@@ -15,7 +14,6 @@ import { UserRank } from 'src/enum/rank';
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private affiliateProfileService: AffiliateProfileService,
     private userStatusService: UserStatusService,
     private jwtService: JwtService,
     @InjectRepository(RefreshToken)
@@ -31,18 +29,13 @@ export class AuthService {
     try {
       // Create the user first
       const user = await this.usersService.create(createUserDto);
-
+      const { referral_code_of_referrer } = createUserDto;
       // Create associated profiles within the same transaction
       await Promise.all([
-        this.affiliateProfileService.create({ 
-          user_id: user.id 
-        }),
         this.userStatusService.create({ 
           user_id: user.id,
-          isAffiliate: false,
-          total_purchase: "0",
-          total_orders: 0,
-          user_rank: UserRank.NVTN,
+          referral_code_of_referrer: referral_code_of_referrer,
+          user_rank: UserRank.GUEST,
         })
       ]);
 

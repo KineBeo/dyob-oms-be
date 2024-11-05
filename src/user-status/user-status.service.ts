@@ -30,9 +30,10 @@ export class UserStatusService {
    */
   async create(createUserStatusDto: CreateUserStatusDto) {
     try {
-      const { user_id, isAffiliate, total_purchase, total_orders, user_rank } =
+      const { user_id, user_rank, referral_code_of_referrer } =
         createUserStatusDto;
 
+      // * Check if user status already exists
       const existingStatus = await this.userStatusRepository.findOne({
         where: { user: { id: user_id } },
       });
@@ -44,24 +45,45 @@ export class UserStatusService {
       const user = await this.userRepository.findOne({
         where: { id: user_id },
       });
+
       if (!user) {
         throw new NotFoundException('User not found');
       }
+
+      // * Check if referrer exists
+      const userStatusWithReferralCode = await this.findUserStatusByReferralCode(referral_code_of_referrer)
+      const DEFAULT_CODE = 'DEFAULT_';
       const newUserStatus = this.userStatusRepository.create({
         user: user,
-        isAffiliate: isAffiliate || false,
-        total_purchase: total_purchase || '0',
-        total_orders: total_orders || 0,
-        user_rank: user_rank || UserRank.NVTN,
+        personal_referral_code: `${DEFAULT_CODE}${user_id}`,
+        total_purchase: '0', // checked
+        total_orders:  0, // checked
+        total_sales: '0', // checked
+        commission: '0', // checked
+        referrer: userStatusWithReferralCode || null, // checked
+        user_rank: user_rank || UserRank.GUEST, // checked
       });
 
       return this.userStatusRepository.save(newUserStatus);
     } catch (error) {
-      throw new BadRequestException(
-        'Something went wrong from create user status service',
-      );
+      throw error;
     }
   }
+  async findUserStatusByReferralCode(referralCode: string): Promise<UserStatus> {
+    try {
+      const referrer = await this.userStatusRepository.findOne({
+        where: { personal_referral_code: referralCode },
+      })
+
+      return referrer;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException('Something went wrong from find user status by referral code service');
+    }
+  }
+
 
   async findAll(): Promise<UserStatus[]> {
     try {

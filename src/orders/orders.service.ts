@@ -11,13 +11,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import Order from './entities/order.entity';
 import { Repository } from 'typeorm';
 import { CartService } from '../cart/cart.service';
-import { AffiliateProfileService } from '../affiliate-profile/affiliate-profile.service';
 import { OrderStatus } from '../enum/order-status';
 import { UsersService } from '../users/users.service';
 import { OrderProductService } from '../order_product/order_product.service';
 import { CreateOrderFullAttributesDto } from './dto/create-order-full-attributes.dto';
 import { GoogleSheetService } from '../google-sheet/google-sheet.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { UserStatusService } from 'src/user-status/user-status.service';
 
 @Injectable()
 export class OrdersService {
@@ -25,29 +25,31 @@ export class OrdersService {
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
     private cartService: CartService,
-    private affiliateService: AffiliateProfileService,
     private userService: UsersService,
     @Inject(forwardRef(() => OrderProductService))
     private orderProductService: OrderProductService,
     private googleSheetsService: GoogleSheetService,
+    private userStatusService: UserStatusService,
     private eventEmitter: EventEmitter2,
   ) {
     // Listen for status changes from Google Sheets
     this.eventEmitter.on(
       'order.status.changed',
       async (payload: { orderId: number; newStatus: OrderStatus }) => {
-        console.log(
-          'Received status change event:',
-          payload.orderId,
-          payload.newStatus,
-        );
+        // console.log(
+        //   'Received status change event:',
+        //   payload.orderId,
+        //   payload.newStatus,
+        // );
         await this.handleStatusChange(payload.orderId, payload.newStatus);
       },
     );
   }
  
   async create(userId: number, createOrderDto: CreateOrderDto): Promise<Order> {
-    const { affiliate_id } = createOrderDto;
+
+    // * get referral_code_of_referrer from createOrderDto
+    const { referral_code_of_referrer } = createOrderDto;
 
     try {
       // Check if user exists
@@ -67,12 +69,12 @@ export class OrdersService {
         .reduce((sum, item) => sum + Number(item.price) * item.quantity, 0)
         .toString();
 
-      const affiliate =
-        await this.affiliateService.findAffiliateByUserId(affiliate_id);
+      // * get user status by referral_code_of_referrer
+      const userStatus = await this.userStatusService.findUserStatusByReferralCode(referral_code_of_referrer);
 
       const order = this.orderRepository.create({
         user: { id: userId },
-        affiliate: affiliate ? { id: affiliate.id } : null,
+        userStatus: { id: userStatus.id },
         total_amount,
         address: createOrderDto.address,
         status: OrderStatus.NOT_START_YET,
@@ -106,7 +108,7 @@ export class OrdersService {
 
   private async handleStatusChange(orderId: number, newStatus: OrderStatus) {
     try {
-      console.log('Handling status change for order', orderId);
+      // console.log('Handling status change for order', orderId);
       const order = await this.findOne(orderId);
 
       if (!order) {
@@ -114,11 +116,7 @@ export class OrdersService {
       }
 
       if (order.status !== newStatus) {
-        // console.log(
-        //   'Updating order status. Current affiliate:',
-        //   order.affiliate?.id || 'none',
-        // );
-        console.log(`Updating order ${orderId} status from ${order.status} to ${newStatus}`);
+        // console.log(`Updating order ${orderId} status from ${order.status} to ${newStatus}`);
 
         const previousStatus = order.status;
 
@@ -126,12 +124,11 @@ export class OrdersService {
           user_id: order.user.id,
           address: order.address,
           status: newStatus,
-          affiliate_id: order.affiliate?.id || null,
         });
 
         // ! if the new status is COMPLETED, emit event to update user's total purchase
         if (newStatus === OrderStatus.COMPLETED && previousStatus !== OrderStatus.COMPLETED) {
-          console.log(`Order ${orderId} marked as completed. Emitting order.completed event`);
+          // console.log(`Order ${orderId} marked as completed. Emitting order.completed event`);
           this.eventEmitter.emit('order.completed', {
             userId: order.user.id,
             orderAmount: order.total_amount,
@@ -140,20 +137,21 @@ export class OrdersService {
 
         // ! If the previous status was COMPLETED but new status isn't, we need to subtract
         if (previousStatus === OrderStatus.COMPLETED && newStatus !== OrderStatus.COMPLETED) {
-          console.log(`Order ${orderId} unmarked as completed. Emitting order.uncompleted event`);
+          // console.log(`Order ${orderId} unmarked as completed. Emitting order.uncompleted event`);
           this.eventEmitter.emit('order.uncompleted', {
             userId: order.user.id,
             orderAmount: order.total_amount,
           });
         }
-      } else {
-        console.log(`Order ${orderId} status unchanged: ${newStatus}`);
       }
+      // else {
+      //   console.log(`Order ${orderId} status unchanged: ${newStatus}`);
+      // }
     } catch (error) {
-      console.error(
-        `Failed to handle status change for order ${orderId}:`,
-        error,
-      );
+      // console.error(
+      //   `Failed to handle status change for order ${orderId}:`,
+      //   error,
+      // );
       throw error; // Re-throw the error for proper error handling upstream
     }
   }
@@ -161,13 +159,6 @@ export class OrdersService {
   async update(id: number, updateOrderDto: UpdateOrderDto) {
     try {
       const order = await this.findOne(id);
-      console.log(
-        'Updating order:',
-        id,
-        'Current affiliate ID:',
-        order.affiliate?.id || 'none',
-      );
-
       // Validate user exists
       const user = await this.userService.findOne(updateOrderDto.user_id);
       if (!user) {
@@ -176,30 +167,11 @@ export class OrdersService {
         );
       }
 
-      // Handle affiliate update
-      let affiliateEntity = null;
-      if (
-        updateOrderDto.affiliate_id !== undefined &&
-        updateOrderDto.affiliate_id !== null
-      ) {
-        const affiliate = await this.affiliateService.findAffiliateByUserId(
-          updateOrderDto.affiliate_id,
-        );
-        if (!affiliate) {
-          throw new NotFoundException(
-            `Affiliate with ID ${updateOrderDto.affiliate_id} not found`,
-          );
-        }
-        affiliateEntity = { id: affiliate.id };
-      } else if (order.affiliate) {
-        // Preserve existing affiliate if none specified in update
-        affiliateEntity = { id: order.affiliate.id };
-      }
+  
 
       // Update order
       const updatedOrder = Object.assign(order, {
         user: { id: updateOrderDto.user_id },
-        affiliate: affiliateEntity,
         address: updateOrderDto.address || order.address,
         status: updateOrderDto.status || order.status,
         updateAt: new Date(),
@@ -234,7 +206,7 @@ export class OrdersService {
     try {
       const order = await this.orderRepository.findOne({
         where: { id },
-        relations: ['user', 'affiliate'],
+        relations: ['user', 'userStatus'],
       });
       if (!order) {
         throw new NotFoundException(

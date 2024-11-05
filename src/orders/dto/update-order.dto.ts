@@ -10,16 +10,8 @@ export class UpdateOrderDto {
     @IsNotEmpty()
     @Min(0)
     @Max(100000)
-    user_id: number;
-
-    @ApiProperty({
-        description: 'affiliate_id',
-        example: 1,
-        required: false,
-    })
-    @IsOptional()
-    affiliate_id?: number;
-
+    user_id: number; 
+    
     @ApiProperty({
         description: 'address',
         example: '123 ABC street',

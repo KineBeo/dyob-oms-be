@@ -5,7 +5,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { OrdersModule } from './orders/orders.module';
 import { ProductsModule } from './products/products.module';
-import { AffiliateProfileModule } from './affiliate-profile/affiliate-profile.module';
 import { DatabaseModule } from './database/database.module';
 import { RedisService, RedisModule } from '@liaoliaots/nestjs-redis';
 import { CartService } from './cart/cart.service';
@@ -42,7 +41,6 @@ import { StrapiModule } from './strapi/strapi.module';
     UsersModule,
     OrdersModule,
     ProductsModule,
-    AffiliateProfileModule,
     CartModule,
     ProductCategoryModule,
     OrderProductModule,

@@ -1,5 +1,4 @@
 import { UserStatus } from '../../user-status/entities/user-status.entity';
-import AffiliateProfile from '../../affiliate-profile/entities/affiliate-profile.entity';
 import Order from '../../orders/entities/order.entity';
 import {
   BeforeInsert,
@@ -59,9 +58,6 @@ export default class User {
 
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
-
-  @OneToOne(() => AffiliateProfile, (affiliateProfile) => affiliateProfile.user)
-  affiliateProfile: AffiliateProfile;
 
   @OneToOne(() => UserStatus, status => status.user)
   status: UserStatus;

@@ -8,7 +8,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { AffiliateProfileModule } from 'src/affiliate-profile/affiliate-profile.module';
 import { UserStatusModule } from 'src/user-status/user-status.module';
 @Module({
   imports: [
@@ -27,7 +26,6 @@ import { UserStatusModule } from 'src/user-status/user-status.module';
     TypeOrmModule.forFeature([RefreshToken]),
     UsersModule,
     UserStatusModule,
-    AffiliateProfileModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
