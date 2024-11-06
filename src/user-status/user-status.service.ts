@@ -12,6 +12,9 @@ import { Repository } from 'typeorm';
 import { UserRank } from 'src/enum/rank';
 import User from 'src/users/entities/user.entity';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class UserStatusService {
@@ -21,12 +24,29 @@ export class UserStatusService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private eventEmitter: EventEmitter2,
+    // @InjectQueue('user-rank-update') private userRankUpdateQueue: Queue,
+
   ) {}
 
+  async onModuleInit() {
+    // Schedule a monthly reset of total_sales for all users
+    this.resetTotalSalesMonthly();
+  }
+
+  @Cron('0 0 1 * *', {
+    timeZone: 'Asia/Ho_Chi_Minh', 
+  })
+  async resetTotalSalesMonthly() {
+    const allUserStatus = await this.userStatusRepository.find();
+    allUserStatus.forEach(async (status) => {
+      status.total_sales = '0';
+      await this.userStatusRepository.save(status);
+    });
+  }
   /**
    * ! CRUD OPERATIONS
-   * @param createUserStatusDto 
-   * @returns 
+   * @param createUserStatusDto
+   * @returns
    */
   async create(createUserStatusDto: CreateUserStatusDto) {
     try {
@@ -51,13 +71,14 @@ export class UserStatusService {
       }
 
       // * Check if referrer exists
-      const userStatusWithReferralCode = await this.findUserStatusByReferralCode(referral_code_of_referrer)
+      const userStatusWithReferralCode =
+        await this.findUserStatusByReferralCode(referral_code_of_referrer);
       const DEFAULT_CODE = 'DEFAULT_';
       const newUserStatus = this.userStatusRepository.create({
         user: user,
         personal_referral_code: `${DEFAULT_CODE}${user_id}`,
         total_purchase: '0', // checked
-        total_orders:  0, // checked
+        total_orders: 0, // checked
         total_sales: '0', // checked
         commission: '0', // checked
         referrer: userStatusWithReferralCode || null, // checked
@@ -69,23 +90,26 @@ export class UserStatusService {
       throw error;
     }
   }
-  async findUserStatusByReferralCode(referralCode: string): Promise<UserStatus> {
+  async findUserStatusByReferralCode(
+    referralCode: string,
+  ): Promise<UserStatus> {
     try {
       if (referralCode === null || referralCode === undefined) {
         return null;
       }
       const referrer = await this.userStatusRepository.findOne({
         where: { personal_referral_code: referralCode },
-      })
+      });
       return referrer;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new BadRequestException('Something went wrong from find user status by referral code service');
+      throw new BadRequestException(
+        'Something went wrong from find user status by referral code service',
+      );
     }
   }
-
 
   async findAll(): Promise<UserStatus[]> {
     try {
@@ -109,7 +133,7 @@ export class UserStatusService {
       } else {
         const userOfReferralCode = await this.userRepository.findOne({
           where: { id: userStatus.referrer?.id },
-        })
+        });
         referrer_name = userOfReferralCode?.fullname;
       }
 
@@ -149,7 +173,7 @@ export class UserStatusService {
     return `This action removes a #${id} userStatus`;
   }
 
-  /** 
+  /**
    * ! ORDER EVENTS LISTENERS
    */
   @OnEvent('order.completed')
@@ -157,6 +181,7 @@ export class UserStatusService {
     try {
       const userStatus = await this.userStatusRepository.findOne({
         where: { user: { id: payload.userId } },
+        relations: ['referrer'],
       });
 
       if (!userStatus) {
@@ -169,21 +194,38 @@ export class UserStatusService {
       userStatus.total_orders += 1;
 
       // TODO: Update user rank based on total purchase
-      //  const newRank = this.calculateUserRank(userStatus.total_purchase);
-      //  if (newRank !== userStatus.user_rank) {
-      //    userStatus.user_rank = newRank;
-      //    userStatus.last_rank_update = new Date();
-         
-      //    // Emit rank change event if needed
-      //    this.eventEmitter.emit('user.rank.changed', {
-      //      userId: payload.userId,
-      //      oldRank: userStatus.user_rank,
-      //      newRank: newRank,
-      //    });
-      //  }
+      if (userStatus.referrer) {
+        const referrerStatus = await this.userStatusRepository.findOne({
+          where: { user: { id: userStatus.referrer.id } },
+        });
+
+        if (referrerStatus) {
+          referrerStatus.total_sales = (
+            Number(referrerStatus.total_sales) + orderAmount
+          ).toString();
+          await this.userStatusRepository.save(referrerStatus);
+        }
+      }
+
+      // Calculate and update user's own commission
+    const commission = this.calculateCommission(userStatus.referrer);
+    userStatus.referrer.commission = commission.toString();
+
+      const newRank = this.calculateUserRank(userStatus);
+      if (newRank !== userStatus.user_rank) {
+        userStatus.user_rank = newRank;
+        userStatus.rank_achievement_date = new Date();
+
+        this.eventEmitter.emit('user.rank.updated', {
+          userId: payload.userId,
+          oldRank: userStatus.user_rank,
+          newRank: newRank,
+        });
+
+        // await this.userRankUpdateQueue.add('update-rank', { userId: payload.userId, newRank });
+      }
 
       await this.userStatusRepository.save(userStatus);
-
     } catch (error) {
       throw new BadRequestException(
         `Failed to update user status from handleOrderCompleted Listener in UseStatus Service: ${error.message}`,
@@ -191,7 +233,10 @@ export class UserStatusService {
     }
   }
   @OnEvent('order.uncompleted')
-  async handleOrderUncompleted(payload: { userId: number; orderAmount: string }) {
+  async handleOrderUncompleted(payload: {
+    userId: number;
+    orderAmount: string;
+  }) {
     try {
       const userStatus = await this.userStatusRepository.findOne({
         where: { user: { id: payload.userId } },
@@ -204,9 +249,12 @@ export class UserStatusService {
       // Convert string amounts to numbers for calculation
       const currentTotal = Number(userStatus.total_purchase);
       const orderAmount = Number(payload.orderAmount);
-      
+
       // Update total purchase (ensure it doesn't go below 0)
-      userStatus.total_purchase = Math.max(0, currentTotal - orderAmount).toString();
+      userStatus.total_purchase = Math.max(
+        0,
+        currentTotal - orderAmount,
+      ).toString();
       console.log('userStatus.total_purchase', userStatus.total_purchase);
       userStatus.total_orders = Math.max(0, userStatus.total_orders - 1);
 
@@ -217,6 +265,39 @@ export class UserStatusService {
       throw new BadRequestException(
         `Failed to update user status from handleOrderUncompleted Listener in UseStatus Service: ${error.message}`,
       );
+    }
+  }
+
+  private calculateUserRank(userStatus: UserStatus): UserRank {
+    // Implement the logic to calculate the user's rank based on the given criteria
+    if (Number(userStatus.total_purchase) >= 3000000 && userStatus.referrer) {
+      return UserRank.NVKD;
+    } else if (Number(userStatus.total_sales) >= 50000000 && userStatus.referrals.filter(ref => ref.user_rank >= UserRank.NVKD).length >= 5) {
+      return UserRank.TPKD;
+    } else if (Number(userStatus.total_sales) >= 150000000 && userStatus.referrals.filter(ref => ref.user_rank >= UserRank.TPKD).length >= 3) {
+      return UserRank.GDKD;
+    } else if (Number(userStatus.total_sales) >= 500000000 && userStatus.referrals.filter(ref => ref.user_rank >= UserRank.GDKD).length >= 3) {
+      return UserRank.GDV;
+    } else if (Number(userStatus.total_sales) >= 1000000000 && userStatus.referrals.filter(ref => ref.user_rank >= UserRank.GDV).length >= 2) {
+      return UserRank.GDKV;
+    } else {
+      return UserRank.GUEST;
+    }
+  }
+  private calculateCommission(userStatus: UserStatus): number {
+    switch (userStatus.user_rank) {
+      case UserRank.NVKD:
+        return Number(userStatus.total_sales) * 0.1;
+      case UserRank.TPKD:
+        return Number(userStatus.total_sales) * 0.05;
+      case UserRank.GDKD:
+        return Number(userStatus.total_sales) * 0.03;
+      case UserRank.GDV:
+        return Number(userStatus.total_sales) * 0.02;
+      case UserRank.GDKV:
+        return Number(userStatus.total_sales) * 0.02;
+      default:
+        return 0;
     }
   }
 }
