@@ -25,7 +25,6 @@ export class UserStatusService {
     private userRepository: Repository<User>,
     private eventEmitter: EventEmitter2,
     // @InjectQueue('user-rank-update') private userRankUpdateQueue: Queue,
-
   ) {}
 
   async onModuleInit() {
@@ -34,7 +33,7 @@ export class UserStatusService {
   }
 
   @Cron('0 0 1 * *', {
-    timeZone: 'Asia/Ho_Chi_Minh', 
+    timeZone: 'Asia/Ho_Chi_Minh',
   })
   async resetTotalSalesMonthly() {
     const allUserStatus = await this.userStatusRepository.find();
@@ -205,11 +204,10 @@ export class UserStatusService {
           ).toString();
           await this.userStatusRepository.save(referrerStatus);
         }
-      }
 
-      // Calculate and update user's own commission
-    const commission = this.calculateCommission(userStatus.referrer);
-    userStatus.referrer.commission = commission.toString();
+        const referrerCommission = this.calculateCommission(referrerStatus);
+        referrerStatus.commission = referrerCommission.toString(); 
+      }
 
       const newRank = this.calculateUserRank(userStatus);
       if (newRank !== userStatus.user_rank) {
@@ -272,13 +270,29 @@ export class UserStatusService {
     // Implement the logic to calculate the user's rank based on the given criteria
     if (Number(userStatus.total_purchase) >= 3000000 && userStatus.referrer) {
       return UserRank.NVKD;
-    } else if (Number(userStatus.total_sales) >= 50000000 && userStatus.referrals.filter(ref => ref.user_rank >= UserRank.NVKD).length >= 5) {
+    } else if (
+      Number(userStatus.total_sales) >= 50000000 &&
+      userStatus.referrals.filter((ref) => ref.user_rank >= UserRank.NVKD)
+        .length >= 5
+    ) {
       return UserRank.TPKD;
-    } else if (Number(userStatus.total_sales) >= 150000000 && userStatus.referrals.filter(ref => ref.user_rank >= UserRank.TPKD).length >= 3) {
+    } else if (
+      Number(userStatus.total_sales) >= 150000000 &&
+      userStatus.referrals.filter((ref) => ref.user_rank >= UserRank.TPKD)
+        .length >= 3
+    ) {
       return UserRank.GDKD;
-    } else if (Number(userStatus.total_sales) >= 500000000 && userStatus.referrals.filter(ref => ref.user_rank >= UserRank.GDKD).length >= 3) {
+    } else if (
+      Number(userStatus.total_sales) >= 500000000 &&
+      userStatus.referrals.filter((ref) => ref.user_rank >= UserRank.GDKD)
+        .length >= 3
+    ) {
       return UserRank.GDV;
-    } else if (Number(userStatus.total_sales) >= 1000000000 && userStatus.referrals.filter(ref => ref.user_rank >= UserRank.GDV).length >= 2) {
+    } else if (
+      Number(userStatus.total_sales) >= 1000000000 &&
+      userStatus.referrals.filter((ref) => ref.user_rank >= UserRank.GDV)
+        .length >= 2
+    ) {
       return UserRank.GDKV;
     } else {
       return UserRank.GUEST;
