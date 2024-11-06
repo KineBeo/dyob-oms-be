@@ -9,7 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { UserStatusService } from '../user-status/user-status.service';
 import { UserRank } from 'src/enum/rank';
-
+import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class AuthService {
   constructor(
@@ -114,7 +114,14 @@ export class AuthService {
 
   private async generateAccessToken(userId: number): Promise<string> {
     const payload = { sub: userId };
-    return this.jwtService.signAsync(payload);
+    // return this.jwtService.signAsync(payload);
+    const token = await this.jwtService.signAsync(payload);
+    
+    const decodedToken = jwt.decode(token) as { exp: number };
+    const expirationTime = new Date(decodedToken.exp * 1000);
+    console.log(`Token expires at: ${expirationTime}`); // xoá sau khi test xong
+     
+    return token;
   }
 
   private async generateRefreshToken(userId: number): Promise<string> {

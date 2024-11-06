@@ -18,7 +18,7 @@ import { UserStatusModule } from 'src/user-status/user-status.module';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: '15m', // Access token expires in 15 minutes
+          expiresIn: '1m', // Access token expires in 15 minutes (sửa lại sau commit mới nhất)
         },
       }),
       inject: [ConfigService],
