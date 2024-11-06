@@ -50,7 +50,7 @@ export class OrdersService {
 
     // * get referral_code_of_referrer from createOrderDto
     const { user_id, referral_code_of_referrer } = createOrderDto;
-    console.log('referral_code_of_referrer', referral_code_of_referrer);
+    // console.log('referral_code_of_referrer', referral_code_of_referrer);
 
     try {
       // Check if user exists

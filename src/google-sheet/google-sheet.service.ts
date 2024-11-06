@@ -227,7 +227,7 @@ export class GoogleSheetService implements OnModuleInit {
           // Only emit if status has changed
           if (lastStatus !== currentStatus && 
               Object.values(OrderStatus).includes(currentStatus as OrderStatus)) {
-            console.log(`Status changed for order ${orderId}: ${lastStatus} -> ${currentStatus}`);
+            // console.log(`Status changed for order ${orderId}: ${lastStatus} -> ${currentStatus}`);
             
             this.eventEmitter.emit('order.status.changed', {
               orderId: Number(orderId),
