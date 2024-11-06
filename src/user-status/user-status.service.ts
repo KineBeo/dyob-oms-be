@@ -180,7 +180,7 @@ export class UserStatusService {
     try {
       const userStatus = await this.userStatusRepository.findOne({
         where: { user: { id: payload.userId } },
-        relations: ['referrer'],
+        relations: ['referrer', 'referrals'],
       });
 
       if (!userStatus) {
