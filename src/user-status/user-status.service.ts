@@ -192,23 +192,27 @@ export class UserStatusService {
       userStatus.total_purchase = (currentTotal + orderAmount).toString();
       userStatus.total_orders += 1;
 
-      // TODO: Update user rank based on total purchase
+      // Kiểm tra xem user có người giới thiệu không và cập nhật hoa hồng và doanh số cho người giới thiệu
       if (userStatus.referrer) {
         const referrerStatus = await this.userStatusRepository.findOne({
           where: { user: { id: userStatus.referrer.id } },
         });
 
         if (referrerStatus) {
+          // cập nhật doanh số cho người giới thiệu
           referrerStatus.total_sales = (
             Number(referrerStatus.total_sales) + orderAmount
           ).toString();
+
+          // cập nhật hoa hồng cho người giới thiệu
+          const referrerCommission = this.calculateCommission(referrerStatus);
+          referrerStatus.commission = referrerCommission.toString();
+
           await this.userStatusRepository.save(referrerStatus);
         }
-
-        const referrerCommission = this.calculateCommission(referrerStatus);
-        referrerStatus.commission = referrerCommission.toString(); 
       }
 
+      // Cập nhật rank cho user hiện tại
       const newRank = this.calculateUserRank(userStatus);
       if (newRank !== userStatus.user_rank) {
         userStatus.user_rank = newRank;
@@ -268,7 +272,10 @@ export class UserStatusService {
 
   private calculateUserRank(userStatus: UserStatus): UserRank {
     // Implement the logic to calculate the user's rank based on the given criteria
-    if (Number(userStatus.total_purchase) >= 3000000 && userStatus.referrer) {
+    if (
+      Number(userStatus.total_purchase) >= 3000000 &&
+      userStatus.referrals.length >= 1
+    ) {
       return UserRank.NVKD;
     } else if (
       Number(userStatus.total_sales) >= 50000000 &&
