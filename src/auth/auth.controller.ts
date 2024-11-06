@@ -36,9 +36,8 @@ export class AuthController {
     return this.authService.login(loginDto.email, loginDto.password);
   }
 
+  @Public()
   @Post('refresh')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth') // Reference the bearer auth defined in main.ts
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ 
     status: 200, 

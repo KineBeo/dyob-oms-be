@@ -69,6 +69,7 @@ export class AuthService {
     }
   }
 
+  // * OK return access_token, refresh_token and user info. Delete all existing refresh tokens for the user when logging in
   async login(email: string, password: string) {
     try {
       const user = await this.usersService.findByEmailWithPassword(email);
@@ -81,6 +82,9 @@ export class AuthService {
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid email or password');
       }
+
+      // Invalidate all existing refresh tokens for the user
+      await this.refreshTokenRepository.delete({ userId: user.id });
 
       const {access_token, refresh_token} = await this.generateTokens(user.id);
       return {
@@ -95,14 +99,14 @@ export class AuthService {
         refresh_token,
       }
     } catch (error) {
-      if (error instanceof ConflictException) {
+      if (error instanceof ConflictException || error instanceof UnauthorizedException) {
         throw error;
       }
 
-      throw error;
+      throw new UnauthorizedException('Authentication failed: ' + error);
     }
   }
-
+  // * OK 
   private async generateTokens(userId: number) {
     const [access_token, refresh_token] = await Promise.all([
       this.generateAccessToken(userId),
@@ -114,13 +118,17 @@ export class AuthService {
 
   private async generateAccessToken(userId: number): Promise<string> {
     const payload = { sub: userId };
-    // return this.jwtService.signAsync(payload);
     const token = await this.jwtService.signAsync(payload);
     
     const decodedToken = jwt.decode(token) as { exp: number };
     const expirationTime = new Date(decodedToken.exp * 1000);
     console.log(`Token expires at: ${expirationTime}`); // xoá sau khi test xong
-     
+
+    // Schedule a log when the token expires
+    setTimeout(() => {
+      console.log(`Token for user ${userId} has expired at: ${new Date()}`);
+    }, decodedToken.exp * 1000 - Date.now());
+
     return token;
   }
 
@@ -144,8 +152,13 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const accessToken = await this.generateAccessToken(token.userId);
-    return { accessToken };
+    const { access_token, refresh_token } = await this.generateTokens(token.userId);
+    await this.refreshTokenRepository.delete({ token: refreshToken });
+
+    return { 
+      access_token,
+      refresh_token
+    };
   }
 
   async logout(userId: number) {
