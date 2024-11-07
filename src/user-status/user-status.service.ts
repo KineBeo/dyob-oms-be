@@ -124,7 +124,7 @@ export class UserStatusService {
     try {
       const userStatus = await this.userStatusRepository.findOne({
         where: { user: { id: id } },
-        relations: ['referrer'],
+        relations: ['referrer', 'referrals'],
       });
       let referrer_name = null;
       if (!userStatus.referrer) {
@@ -153,6 +153,7 @@ export class UserStatusService {
         updatedAt: userStatus.updatedAt,
         referrer_id: userStatus.referrer?.id || null,
         referrer_name: referrer_name,
+        referrals: userStatus.referrals,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {

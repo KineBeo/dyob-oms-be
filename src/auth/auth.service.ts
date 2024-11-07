@@ -122,7 +122,7 @@ export class AuthService {
     
     const decodedToken = jwt.decode(token) as { exp: number };
     const expirationTime = new Date(decodedToken.exp * 1000);
-    console.log(`Token expires at: ${expirationTime}`); // xoá sau khi test xong
+    console.log(`Token of user ${userId} expires at: ${expirationTime}`); // xoá sau khi test xong
 
     // Schedule a log when the token expires
     setTimeout(() => {
