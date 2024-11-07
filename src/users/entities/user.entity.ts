@@ -11,6 +11,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Role } from '../../enum/role';
+import { UserAddress } from 'src/user-address/entities/user-address.entity';
 
 @Entity()
 export default class User {
@@ -61,4 +62,7 @@ export default class User {
 
   @OneToOne(() => UserStatus, status => status.user)
   status: UserStatus;
+
+  @OneToMany(() => UserAddress, address => address.user)
+  addresses: UserAddress[];
 }

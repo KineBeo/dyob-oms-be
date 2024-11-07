@@ -2,6 +2,7 @@ import Order from "src/orders/entities/order.entity";
 import { UserRank } from "../../enum/rank";
 import User from "../../users/entities/user.entity";
 import { PrimaryGeneratedColumn, OneToOne, JoinColumn, Column, CreateDateColumn, UpdateDateColumn, Entity, ManyToOne, OneToMany } from "typeorm";
+import { UserAddress } from "src/user-address/entities/user-address.entity";
 
 @Entity()
 export class UserStatus {
@@ -71,4 +72,5 @@ export class UserStatus {
 
     @OneToMany(() => Order, order => order.userStatus)
     orders: Order[];
+
 }

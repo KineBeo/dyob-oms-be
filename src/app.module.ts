@@ -19,6 +19,7 @@ import { GoogleSheetModule } from './google-sheet/google-sheet.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { StrapiModule } from './strapi/strapi.module';
+import { UserAddressModule } from './user-address/user-address.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { StrapiModule } from './strapi/strapi.module';
     StrapiModule,
     AuthModule,
     GoogleSheetModule,
+    UserAddressModule,
   ],
   controllers: [AppController],
   providers: [AppService, CartService, GoogleSheetService, {

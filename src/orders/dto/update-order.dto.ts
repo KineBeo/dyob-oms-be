@@ -20,7 +20,7 @@ export class UpdateOrderDto {
     @IsNotEmpty()
     @MinLength(6)
     @MaxLength(100)
-    address: string;
+    shipping_address_id: number;
 
     @ApiProperty({
         description: 'status',

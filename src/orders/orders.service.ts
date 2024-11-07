@@ -18,6 +18,7 @@ import { CreateOrderFullAttributesDto } from './dto/create-order-full-attributes
 import { GoogleSheetService } from '../google-sheet/google-sheet.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserStatusService } from 'src/user-status/user-status.service';
+import { UserAddressService } from 'src/user-address/user-address.service';
 
 @Injectable()
 export class OrdersService {
@@ -31,6 +32,7 @@ export class OrdersService {
     private googleSheetsService: GoogleSheetService,
     private userStatusService: UserStatusService,
     private eventEmitter: EventEmitter2,
+    private userAddressService: UserAddressService,
   ) {
     // Listen for status changes from Google Sheets
     this.eventEmitter.on(
@@ -45,11 +47,11 @@ export class OrdersService {
       },
     );
   }
- 
-  async create(createOrderDto: CreateOrderDto): Promise<Order> {
 
+  async create(createOrderDto: CreateOrderDto): Promise<Order> {
     // * get referral_code_of_referrer from createOrderDto
-    const { user_id, referral_code_of_referrer } = createOrderDto;
+    const { user_id, referral_code_of_referrer, shipping_address_id } =
+      createOrderDto;
     // console.log('referral_code_of_referrer', referral_code_of_referrer);
 
     try {
@@ -61,6 +63,13 @@ export class OrdersService {
         );
       }
 
+      const shippingAddress =
+        await this.userAddressService.findOne(shipping_address_id);
+      if (!shippingAddress) {
+        throw new NotFoundException(
+          `Shipping address with ID ${shipping_address_id} not found from create order service`,
+        );
+      }
       const cartItems = await this.cartService.getCart(user_id);
       if (!cartItems || cartItems.length === 0) {
         throw new Error('Cart is empty from create order service');
@@ -71,13 +80,22 @@ export class OrdersService {
         .toString();
 
       // * get user status by referral_code_of_referrer
-      const userStatus = await this.userStatusService.findUserStatusByReferralCode(referral_code_of_referrer);
+      const userStatus =
+        await this.userStatusService.findUserStatusByReferralCode(
+          referral_code_of_referrer,
+        );
 
       const order = this.orderRepository.create({
         user: { id: user_id },
         userStatus: userStatus || null,
         total_amount,
-        address: createOrderDto.address,
+        // address: createOrderDto.shipping_address_id,
+        shipping_address: shippingAddress,
+        shipping_address_id: shippingAddress.id,
+        snapshot_receiver_name: shippingAddress.receiver_name,
+        snapshot_phone_number: shippingAddress.phone_number,
+        snapshot_full_address: `${shippingAddress.street_address}, ${shippingAddress.ward}, ${shippingAddress.district}, ${shippingAddress.province}`,
+        snapshot_notes: shippingAddress.notes,
         status: OrderStatus.NOT_START_YET,
         createdAt: new Date(),
         updateAt: new Date(),
@@ -86,7 +104,7 @@ export class OrdersService {
 
       // ! Sync order to Google Sheet
       await this.googleSheetsService.syncOrderToSheet(savedOrder);
-  
+
       const orderItems = cartItems.map((item) => ({
         order_id: savedOrder.id,
         product_id: item.product_id,
@@ -123,12 +141,15 @@ export class OrdersService {
 
         await this.update(orderId, {
           user_id: order.user.id,
-          address: order.address,
+          shipping_address_id: order.shipping_address_id,
           status: newStatus,
         });
 
         // ! if the new status is COMPLETED, emit event to update user's total purchase
-        if (newStatus === OrderStatus.COMPLETED && previousStatus !== OrderStatus.COMPLETED) {
+        if (
+          newStatus === OrderStatus.COMPLETED &&
+          previousStatus !== OrderStatus.COMPLETED
+        ) {
           // console.log(`Order ${orderId} marked as completed. Emitting order.completed event`);
           this.eventEmitter.emit('order.completed', {
             userId: order.user.id,
@@ -137,7 +158,10 @@ export class OrdersService {
         }
 
         // ! If the previous status was COMPLETED but new status isn't, we need to subtract
-        if (previousStatus === OrderStatus.COMPLETED && newStatus !== OrderStatus.COMPLETED) {
+        if (
+          previousStatus === OrderStatus.COMPLETED &&
+          newStatus !== OrderStatus.COMPLETED
+        ) {
           // console.log(`Order ${orderId} unmarked as completed. Emitting order.uncompleted event`);
           this.eventEmitter.emit('order.uncompleted', {
             userId: order.user.id,
@@ -167,13 +191,11 @@ export class OrdersService {
           `User with ID ${updateOrderDto.user_id} not found`,
         );
       }
-
-  
-
+      const updateAddress = await this.userAddressService.findOne(updateOrderDto.shipping_address_id);
       // Update order
       const updatedOrder = Object.assign(order, {
         user: { id: updateOrderDto.user_id },
-        address: updateOrderDto.address || order.address,
+        address: updateAddress || order.snapshot_full_address,
         status: updateOrderDto.status || order.status,
         updateAt: new Date(),
       });
@@ -240,8 +262,8 @@ export class OrdersService {
           'orderProduct.product', // Lấy thông tin sản phẩm từ quan hệ với bảng trung gian
         ],
         order: {
-          createdAt: 'DESC' // Sắp xếp theo thời gian tạo giảm dần
-        }
+          createdAt: 'DESC', // Sắp xếp theo thời gian tạo giảm dần
+        },
       });
       if (orders.length === 0) {
         throw new NotFoundException(
@@ -253,7 +275,7 @@ export class OrdersService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new Error(error)
+      throw new Error(error);
     }
   }
 

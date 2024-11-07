@@ -115,14 +115,14 @@ export class GoogleSheetService implements OnModuleInit {
         valueInputOption: 'RAW',
         requestBody: {
           values: [[
-            'Order ID',
-            'User ID',
-            'From User Status with ID',
-            'Total Amount',
-            'Address',
-            'Status',
-            'Created At',
-            'Updated At'
+            'ID đơn hàng',
+            'Người nhận hàng',
+            'Đơn hàng từ người dùng với ID',
+            'Tổng tiền đơn hàng',
+            'Địa chỉ nhận hàng',
+            'Trạng thái',
+            'Ngày tạo',
+            'Ngày cập nhật',
           ]],
         },
       });
@@ -178,7 +178,7 @@ export class GoogleSheetService implements OnModuleInit {
         order.user.id.toString(),
         order.userStatus?.id?.toString() || '',
         order.total_amount.toString(),
-        order.address,
+        order.snapshot_full_address,
         order.status,
         order.createdAt.toISOString(),
         order.updateAt.toISOString()

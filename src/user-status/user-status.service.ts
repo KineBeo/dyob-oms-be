@@ -309,13 +309,13 @@ export class UserStatusService {
   private calculateCommission(userStatus: UserStatus): number {
     switch (userStatus.user_rank) {
       case UserRank.NVKD:
-        return Number(userStatus.total_sales) * 0.1;
+        return Number(userStatus.total_sales) * 0.2;
       case UserRank.TPKD:
         return Number(userStatus.total_sales) * 0.05;
       case UserRank.GDKD:
-        return Number(userStatus.total_sales) * 0.03;
+        return Number(userStatus.total_sales) * 0.04;
       case UserRank.GDV:
-        return Number(userStatus.total_sales) * 0.02;
+        return Number(userStatus.total_sales) * 0.03;
       case UserRank.GDKV:
         return Number(userStatus.total_sales) * 0.02;
       default:

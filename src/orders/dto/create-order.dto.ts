@@ -25,11 +25,9 @@ export class CreateOrderDto {
 
     @ApiProperty({
         description: 'address',
-        example: '123 ABC street',
+        example: '1',
     })
-    @IsString()
-    @IsNotEmpty()
-    @MinLength(6)
-    @MaxLength(100)
-    address: string;
+    @IsNumber()
+    @Min(1)
+    shipping_address_id: number;
 }

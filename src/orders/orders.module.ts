@@ -8,6 +8,7 @@ import { UsersModule } from '../users/users.module';
 import { OrderProductModule } from '../order_product/order_product.module';
 import { GoogleSheetModule } from 'src/google-sheet/google-sheet.module';
 import { UserStatusModule } from 'src/user-status/user-status.module';
+import { UserAddressModule } from 'src/user-address/user-address.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { UserStatusModule } from 'src/user-status/user-status.module';
     UsersModule,
     forwardRef(() => OrderProductModule), // Use forwardRef here
     GoogleSheetModule,
-    UserStatusModule
+    UserStatusModule,
+    UserAddressModule
   ],
   controllers: [OrdersController],
   providers: [OrdersService],
