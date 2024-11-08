@@ -120,25 +120,71 @@ export class UserStatusService {
     }
   }
 
+  // async findOne(id: number) {
+  //   try {
+  //     const userStatus = await this.userStatusRepository.findOne({
+  //       where: { user: { id: id } },
+  //       relations: ['referrer', 'referrals'],
+  //     });
+  //     let referrer_name = null;
+  //     if (!userStatus.referrer) {
+  //       referrer_name = null;
+  //     } else {
+  //       const userOfReferralCode = await this.userRepository.findOne({
+  //         where: { id: userStatus.referrer?.id },
+  //       });
+  //       referrer_name = userOfReferralCode?.fullname;
+  //     }
+
+  //     if (!userStatus) {
+  //       throw new NotFoundException('User status not found');
+  //     }
+  //     return {
+  //       id: userStatus.id,
+  //       personal_referral_code: userStatus.personal_referral_code,
+  //       total_purchase: userStatus.total_purchase,
+  //       total_orders: userStatus.total_orders,
+  //       total_sales: userStatus.total_sales,
+  //       commission: userStatus.commission,
+  //       last_rank_check: userStatus.last_rank_check,
+  //       rank_achievement_date: userStatus.rank_achievement_date,
+  //       user_rank: userStatus.user_rank,
+  //       createdAt: userStatus.createdAt,
+  //       updatedAt: userStatus.updatedAt,
+  //       referrer_id: userStatus.referrer?.id || null,
+  //       referrer_name: referrer_name,
+  //       referrals: userStatus.referrals,
+  //     };
+  //   } catch (error) {
+  //     if (error instanceof NotFoundException) {
+  //       throw error;
+  //     }
+  //     throw new BadRequestException(
+  //       'Something went wrong from find one user status service',
+  //     );
+  //   }
+  // }
   async findOne(id: number) {
     try {
       const userStatus = await this.userStatusRepository.findOne({
-        where: { user: { id: id } },
-        relations: ['referrer', 'referrals'],
+        where: { id },
+        relations: ['referrer', 'referrals', 'referrals.user'],
       });
-      let referrer_name = null;
-      if (!userStatus.referrer) {
-        referrer_name = null;
-      } else {
-        const userOfReferralCode = await this.userRepository.findOne({
-          where: { id: userStatus.referrer?.id },
-        });
-        referrer_name = userOfReferralCode?.fullname;
-      }
-
+  
       if (!userStatus) {
         throw new NotFoundException('User status not found');
       }
+  
+      const referrals = await Promise.all(
+        userStatus.referrals.map(async (referral) => ({
+          id: referral.id,
+          personal_referral_code: referral.personal_referral_code,
+          user_rank: referral.user_rank,
+          total_sales: referral.total_sales,
+          fullname: referral.user?.fullname || null,
+        }))
+      );
+  
       return {
         id: userStatus.id,
         personal_referral_code: userStatus.personal_referral_code,
@@ -152,15 +198,15 @@ export class UserStatusService {
         createdAt: userStatus.createdAt,
         updatedAt: userStatus.updatedAt,
         referrer_id: userStatus.referrer?.id || null,
-        referrer_name: referrer_name,
-        referrals: userStatus.referrals,
+        referrer_name: userStatus.referrer?.user?.fullname || null,
+        referrals,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
       throw new BadRequestException(
-        'Something went wrong from find one user status service',
+        'Something went wrong from find one user status service'
       );
     }
   }
