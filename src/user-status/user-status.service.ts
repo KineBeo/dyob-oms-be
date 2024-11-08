@@ -27,21 +27,22 @@ export class UserStatusService {
     // @InjectQueue('user-rank-update') private userRankUpdateQueue: Queue,
   ) {}
 
-  async onModuleInit() {
-    // Schedule a monthly reset of total_sales for all users
-    this.resetTotalSalesMonthly();
-  }
+  // async onModuleInit() {
+  //   // Schedule a monthly reset of total_sales for all users
+  //   this.resetTotalSalesMonthly();
+  // }
 
-  @Cron('0 0 1 * *', {
-    timeZone: 'Asia/Ho_Chi_Minh',
-  })
-  async resetTotalSalesMonthly() {
-    const allUserStatus = await this.userStatusRepository.find();
-    allUserStatus.forEach(async (status) => {
-      status.total_sales = '0';
-      await this.userStatusRepository.save(status);
-    });
-  }
+  // @Cron('0 0 1 * *', {
+  //   timeZone: 'Asia/Ho_Chi_Minh',
+  // })
+  // async resetTotalSalesMonthly() {
+  //   console.log('Resetting total sales for all users', new Date());
+  //   const allUserStatus = await this.userStatusRepository.find();
+  //   allUserStatus.forEach(async (status) => {
+  //     status.total_sales = '0';
+  //     await this.userStatusRepository.save(status);
+  //   });
+  // }
   /**
    * ! CRUD OPERATIONS
    * @param createUserStatusDto
