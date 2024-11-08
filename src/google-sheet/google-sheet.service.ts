@@ -175,8 +175,8 @@ export class GoogleSheetService implements OnModuleInit {
 
       const values = [[
         order.id.toString(),
-        order.user.id.toString(),
-        order.userStatus?.id?.toString() || '',
+        order.user.fullname.toString(),
+        order.userStatus?.user.fullname.toString() || '',
         order.total_amount.toString(),
         order.snapshot_full_address,
         order.status,
