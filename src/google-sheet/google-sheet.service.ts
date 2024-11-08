@@ -117,6 +117,7 @@ export class GoogleSheetService implements OnModuleInit {
           values: [[
             'ID đơn hàng',
             'Người nhận hàng',
+            'Số điện thoại người nhận',
             'Đơn hàng từ người dùng với ID',
             'Tổng tiền đơn hàng',
             'Địa chỉ nhận hàng',
@@ -175,7 +176,8 @@ export class GoogleSheetService implements OnModuleInit {
 
       const values = [[
         order.id?.toString() ?? '',
-        order.user?.fullname?.toString() ?? '',
+        order.snapshot_receiver_name ?? '',
+        order.snapshot_phone_number ?? '',
         order.userStatus?.user?.fullname?.toString() ?? '',
         order.total_amount?.toString() ?? '',
         order.snapshot_full_address ?? '',
@@ -183,7 +185,7 @@ export class GoogleSheetService implements OnModuleInit {
         order.createdAt?.toISOString() ?? '',
         order.updateAt?.toISOString() ?? ''
       ]];
-
+      console.log('values', values);
       if (orderIndex === -1) {
         // Order doesn't exist, append it
         await this.sheets.spreadsheets.values.append({
