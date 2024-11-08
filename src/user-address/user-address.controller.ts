@@ -31,7 +31,7 @@ export class UserAddressController {
     return this.userAddressService.findAll();
   }
 
-  @Get(':id')
+  @Get('/user/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   findOne(@Param('id') id: number, @Request() req) {
@@ -41,7 +41,7 @@ export class UserAddressController {
     return this.userAddressService.getUserAddresses(+id);
   }
 
-  @Get(':id')
+  @Get('/default/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   findDefault(@Param('id') id: number, @Request() req) {
