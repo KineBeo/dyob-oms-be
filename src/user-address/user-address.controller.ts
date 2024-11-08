@@ -38,7 +38,17 @@ export class UserAddressController {
     if (Number(req.user.sub) !== Number(id)) {
       throw new ForbiddenException('You can only access your own information');
     }
-    return this.userAddressService.findOne(+id);
+    return this.userAddressService.getUserAddresses(+id);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  findDefault(@Param('id') id: number, @Request() req) {
+    if (Number(req.user.sub) !== Number(id)) {
+      throw new ForbiddenException('You can only access your own information');
+    }
+    return this.userAddressService.getDefaultAddress(+id);
   }
 
   @Patch(':id')
