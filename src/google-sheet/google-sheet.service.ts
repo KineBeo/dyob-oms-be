@@ -174,14 +174,14 @@ export class GoogleSheetService implements OnModuleInit {
       const orderIndex = rows.findIndex(row => row[0] === order.id.toString());
 
       const values = [[
-        order.id.toString(),
-        order.user.fullname.toString(),
-        order.userStatus?.user.fullname.toString() || '',
-        order.total_amount.toString(),
-        order.snapshot_full_address,
-        order.status,
-        order.createdAt.toISOString(),
-        order.updateAt.toISOString()
+        order.id?.toString() ?? '',
+        order.user?.fullname?.toString() ?? '',
+        order.userStatus?.user?.fullname?.toString() ?? '',
+        order.total_amount?.toString() ?? '',
+        order.snapshot_full_address ?? '',
+        order.status ?? '',
+        order.createdAt?.toISOString() ?? '',
+        order.updateAt?.toISOString() ?? ''
       ]];
 
       if (orderIndex === -1) {
