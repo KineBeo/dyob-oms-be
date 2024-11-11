@@ -36,7 +36,9 @@ export class GoogleSheetService implements OnModuleInit {
 
   async onModuleInit() {
     try {
+      // console.log('Initializing Google Sheet service...');
       await this.initializeWithRetry();
+      // console.log('Google Sheet service initialized successfully.');
     } catch (error) {
       console.error('Failed to initialize Google Sheet service:', error);
     }
@@ -44,14 +46,18 @@ export class GoogleSheetService implements OnModuleInit {
 
   private async initializeWithRetry(retryCount = 0) {
     try {
+      // console.log(`Attempt ${retryCount + 1} to initialize...`);
       await this.createSheetIfNotExists();
       await this.initializeSheet();
       await this.initializeStatusTracking();
       await this.protectNonStatusColumns();
       await this.setupSheetWatcher();
+      // console.log('Initialization successful.');
     } catch (error) {
+      console.error(`Initialization attempt ${retryCount + 1} failed:`, error);
       if (retryCount < this.MAX_RETRIES) {
         const delay = Math.pow(2, retryCount) * 1000;
+        console.log(`Retrying in ${delay / 1000} seconds...`);
         await new Promise(resolve => setTimeout(resolve, delay));
         return this.initializeWithRetry(retryCount + 1);
       }
@@ -61,6 +67,7 @@ export class GoogleSheetService implements OnModuleInit {
 
   private async createSheetIfNotExists() {
     try {
+      // console.log('gg-1: Checking if sheet exists...');
       const response = await this.sheets.spreadsheets.get({
         spreadsheetId: this.spreadsheetId,
       });
@@ -70,6 +77,7 @@ export class GoogleSheetService implements OnModuleInit {
       );
 
       if (!sheet) {
+        // console.log('gg-2: Sheet does not exist. Creating new sheet...');
         await this.sheets.spreadsheets.batchUpdate({
           spreadsheetId: this.spreadsheetId,
           requestBody: {
@@ -85,6 +93,9 @@ export class GoogleSheetService implements OnModuleInit {
             }]
           }
         });
+        // console.log('gg-3: Sheet created successfully.');
+      } else {
+        // console.log('gg-4: Sheet already exists.');
       }
     } catch (error) {
       console.error('Failed to check/create sheet:', error);
@@ -94,6 +105,7 @@ export class GoogleSheetService implements OnModuleInit {
 
   private async initializeSheet() {
     try {
+      // console.log('gg-5: Initializing sheet...');
       const response = await this.sheets.spreadsheets.get({
         spreadsheetId: this.spreadsheetId,
       });
@@ -183,6 +195,7 @@ export class GoogleSheetService implements OnModuleInit {
           }]
         }
       });
+      console.log('gg-6: Sheet initialized successfully.');
     } catch (error) {
       console.error('Failed to initialize sheet:', error);
       throw error;
@@ -191,6 +204,7 @@ export class GoogleSheetService implements OnModuleInit {
 
   private async initializeStatusTracking() {
     try {
+      // console.log('gg-7: Initializing status tracking...');
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
         range: `${this.sheetName}!A:F`,
@@ -206,22 +220,26 @@ export class GoogleSheetService implements OnModuleInit {
           this.lastKnownStatuses.set(orderId.toString(), status as OrderStatus);
         }
       }
+      // console.log('gg-8: Status tracking initialized successfully.');
     } catch (error) {
       console.error('Failed to initialize status tracking:', error);
     }
   }
 
   private async setupSheetWatcher() {
+    // console.log('gg-9: Setting up sheet watcher...');
     setInterval(async () => {
       if (!this.isProcessing) {
         await this.checkForStatusUpdates();
       }
     }, this.POLLING_INTERVAL);
+    // console.log('Sheet watcher set up successfully.');
   }
 
   @Throttle({default: {limit: 100, ttl: 60}}) // 100 requests per minute
   async syncOrderToSheet(order: Order) {
     try {
+      // console.log('gg-10: Syncing order to sheet:', order);
       const values = [[
         order.id?.toString() ?? '',
         order.snapshot_receiver_name ?? '',
@@ -233,18 +251,27 @@ export class GoogleSheetService implements OnModuleInit {
         order.updateAt?.toISOString() ?? ''
       ]];
 
-      // First check if order exists using binary search
+      // Get all values to find the correct row
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
         range: `${this.sheetName}!A:A`,
-        majorDimension: 'COLUMNS'
+        majorDimension: 'ROWS'
       });
 
-      const orderIds = response.data.values?.[0] || [];
-      const orderIndex = this.binarySearch(orderIds, order.id.toString());
+      const rows = response.data.values || [];
+      let rowIndex = -1;
 
-      if (orderIndex === -1) {
+      // Find the exact row index by iterating through rows
+      for (let i = 1; i < rows.length; i++) {
+        if (rows[i][0] === order.id.toString()) {
+          rowIndex = i + 1; // +1 because sheet rows are 1-based
+          break;
+        }
+      }
+
+      if (rowIndex === -1) {
         // Order doesn't exist, append it
+        // console.log('gg-11: Order does not exist. Appending new order...');
         await this.sheets.spreadsheets.values.append({
           spreadsheetId: this.spreadsheetId,
           range: `${this.sheetName}!A:H`,
@@ -252,14 +279,17 @@ export class GoogleSheetService implements OnModuleInit {
           insertDataOption: 'INSERT_ROWS',
           requestBody: { values },
         });
+        // console.log('gg-12: Order appended successfully.');
       } else {
         // Order exists, update it
+        // console.log(`Order exists at row ${rowIndex}. Updating order...`);
         await this.sheets.spreadsheets.values.update({
           spreadsheetId: this.spreadsheetId,
-          range: `${this.sheetName}!A${orderIndex}:H${orderIndex}`,
+          range: `${this.sheetName}!A${rowIndex}:H${rowIndex}`,
           valueInputOption: 'RAW',
           requestBody: { values },
         });
+        // console.log('gg-13: Order updated successfully.');
       }
     } catch (error) {
       console.error('Failed to sync order to sheet:', error);
@@ -267,29 +297,33 @@ export class GoogleSheetService implements OnModuleInit {
     }
   }
 
-  private binarySearch(arr: string[], target: string): number {
-    let left = 0;
-    let right = arr.length - 1;
+  // private binarySearch(arr: string[], target: string): number {
+  //   console.log('Performing binary search for target:', target);
+  //   let left = 0;
+  //   let right = arr.length - 1;
 
-    while (left <= right) {
-      const mid = Math.floor((left + right) / 2);
-      if (arr[mid] === target) {
-        return mid + 1; // Add 1 because sheet rows are 1-based
-      }
-      if (arr[mid] < target) {
-        left = mid + 1;
-      } else {
-        right = mid - 1;
-      }
-    }
-    return -1;
-  }
+  //   while (left <= right) {
+  //     const mid = Math.floor((left + right) / 2);
+  //     if (arr[mid] === target) {
+  //       console.log('Target found at index:', mid);
+  //       return mid + 1; // Add 1 because sheet rows are 1-based
+  //     }
+  //     if (arr[mid] < target) {
+  //       left = mid + 1;
+  //     } else {
+  //       right = mid - 1;
+  //     }
+  //   }
+  //   console.log('Target not found.');
+  //   return -1;
+  // }
 
   private async checkForStatusUpdates() {
     if (this.isProcessing) return;
 
     this.isProcessing = true;
     try {
+      // console.log('gg-14: Checking for status updates...');
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: this.spreadsheetId,
         range: `${this.sheetName}!A:F`,
@@ -304,6 +338,7 @@ export class GoogleSheetService implements OnModuleInit {
         const batch = rows.slice(i, i + this.BATCH_SIZE);
         await this.processBatch(batch);
       }
+      // console.log('g-15: Status updates checked successfully.');
     } catch (error) {
       console.error('Failed to check for status updates:', error);
     } finally {
@@ -312,6 +347,7 @@ export class GoogleSheetService implements OnModuleInit {
   }
 
   private async processBatch(rows: any[]) {
+    // console.log('Processing batch of rows:', rows);
     for (let i = 1; i < rows.length; i++) {
       const [orderId, , , , , currentStatus] = rows[i];
       
@@ -320,6 +356,7 @@ export class GoogleSheetService implements OnModuleInit {
         
         if (lastStatus !== currentStatus && 
             Object.values(OrderStatus).includes(currentStatus as OrderStatus)) {
+          // console.log(`gg-16: Order status changed for orderId ${orderId}: ${lastStatus} -> ${currentStatus}`);
           this.eventEmitter.emit('order.status.changed', {
             orderId: Number(orderId),
             newStatus: currentStatus as OrderStatus,
@@ -334,6 +371,7 @@ export class GoogleSheetService implements OnModuleInit {
 
   async protectNonStatusColumns() {
     try {
+      // console.log('Protecting non-status columns...');
       const response = await this.sheets.spreadsheets.get({
         spreadsheetId: this.spreadsheetId,
       });
@@ -402,6 +440,7 @@ export class GoogleSheetService implements OnModuleInit {
         spreadsheetId: this.spreadsheetId,
         requestBody: { requests },
       });
+      // console.log('Non-status columns protected successfully.');
     } catch (error) {
       console.error('Failed to protect columns:', error);
       throw error;

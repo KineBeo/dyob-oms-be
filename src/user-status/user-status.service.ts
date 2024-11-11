@@ -226,6 +226,7 @@ export class UserStatusService {
   @OnEvent('order.completed')
   async handleOrderCompleted(payload: { userId: number; orderAmount: string }) {
     try {
+      // console.log('1: Order completed event received:', payload);
       const userStatus = await this.userStatusRepository.findOne({
         where: { user: { id: payload.userId } },
         relations: ['referrer', 'referrals'],
@@ -240,6 +241,8 @@ export class UserStatusService {
       userStatus.total_purchase = (currentTotal + orderAmount).toString();
       userStatus.total_orders += 1;
 
+      // console.log('2: Updated user status:', userStatus);
+
       // Kiểm tra xem user có người giới thiệu không và cập nhật hoa hồng và doanh số cho người giới thiệu
       if (userStatus.referrer) {
         const referrerStatus = await this.userStatusRepository.findOne({
@@ -253,8 +256,13 @@ export class UserStatusService {
           ).toString();
 
           // cập nhật hoa hồng cho người giới thiệu
-          const referrerCommission = this.calculateCommission(referrerStatus);
-          referrerStatus.commission = referrerCommission.toString();
+          const referrerCommission = this.calculateCommission(referrerStatus, orderAmount);
+          referrerStatus.commission = (
+            Number(referrerStatus.commission) + referrerCommission
+          ).toString();
+          // console.log('3: Hoa hồng người giới thiệu:', referrerCommission);
+
+          // console.log('4: Updated referrer status:', referrerStatus);
 
           await this.userStatusRepository.save(referrerStatus);
         }
@@ -265,6 +273,12 @@ export class UserStatusService {
       if (newRank !== userStatus.user_rank) {
         userStatus.user_rank = newRank;
         userStatus.rank_achievement_date = new Date();
+
+        // console.log('5: User rank updated:', {
+        //   userId: payload.userId,
+        //   oldRank: userStatus.user_rank,
+        //   newRank: newRank,
+        // });
 
         this.eventEmitter.emit('user.rank.updated', {
           userId: payload.userId,
@@ -277,8 +291,11 @@ export class UserStatusService {
 
       await this.userStatusRepository.save(userStatus);
     } catch (error) {
+      console.error(
+        `Failed to update user status from handleOrderCompleted Listener in UseStatus Service: ${error.message}`
+      );
       throw new BadRequestException(
-        `Failed to update user status from handleOrderCompleted Listener in UseStatus Service: ${error.message}`,
+        `Failed to update user status from handleOrderCompleted Listener in UseStatus Service: ${error.message}`
       );
     }
   }
@@ -305,7 +322,7 @@ export class UserStatusService {
         0,
         currentTotal - orderAmount,
       ).toString();
-      console.log('userStatus.total_purchase', userStatus.total_purchase);
+      // console.log('userStatus.total_purchase', userStatus.total_purchase);
       userStatus.total_orders = Math.max(0, userStatus.total_orders - 1);
 
       // TODO: Update user rank based on total purchase like in handleOrderCompleted
@@ -353,18 +370,19 @@ export class UserStatusService {
       return UserRank.GUEST;
     }
   }
-  private calculateCommission(userStatus: UserStatus): number {
+  // lỗi ở đây (refferrer hưởng 20% số tiền của đơn hàng của refferal: -> cần fix)
+  private calculateCommission(userStatus: UserStatus, orderAmount: number): number {
     switch (userStatus.user_rank) {
       case UserRank.NVKD:
-        return Number(userStatus.total_sales) * 0.2;
+        return Number(orderAmount) * 0.2;
       case UserRank.TPKD:
-        return Number(userStatus.total_sales) * 0.05;
+        return Number(orderAmount) * 0.05;
       case UserRank.GDKD:
-        return Number(userStatus.total_sales) * 0.04;
+        return Number(orderAmount) * 0.04;
       case UserRank.GDV:
-        return Number(userStatus.total_sales) * 0.03;
+        return Number(orderAmount) * 0.03;
       case UserRank.GDKV:
-        return Number(userStatus.total_sales) * 0.02;
+        return Number(orderAmount) * 0.02;
       default:
         return 0;
     }
