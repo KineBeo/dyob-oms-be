@@ -15,57 +15,57 @@ import {
 import { Role } from '../../enum/role';
 export class CreateUserDto {
   @ApiProperty({
-    description: 'Full name of the user',
-    example: 'John Doe',
+    description: 'Họ và tên của người dùng',
+    example: 'Nguyễn Văn A',
     minLength: 6,
     maxLength: 50,
   })
   @IsString()
-  @MinLength(6, { message: 'Fullname must be at least 6 characters long' })
-  @MaxLength(50, { message: 'Fullname must not exceed 50 characters' })
-  @IsNotEmpty({ message: 'Fullname is required' })
+  @MinLength(6, { message: 'Họ và tên phải có ít nhất 6 ký tự' })
+  @MaxLength(50, { message: 'Họ và tên không được vượt quá 50 ký tự' })
+  @IsNotEmpty({ message: 'Họ và tên là bắt buộc' })
   fullname: string;
 
   @ApiProperty({
-    description: 'Vietnamese phone number',
+    description: 'Số điện thoại Việt Nam',
     example: '0123456789',
     minLength: 10,
     maxLength: 10,
   })
-  @IsNumberString({}, { message: 'Phone number must contain only numbers' })
-  @IsNotEmpty({ message: 'Phone number is required' })
-  @Length(10, 10, { message: 'Phone number must be exactly 10 digits' })
-  @IsPhoneNumber('VN', { message: 'Must be a valid Vietnamese phone number' })
+  @IsNumberString({}, { message: 'Số điện thoại chỉ được chứa các chữ số' })
+  @IsNotEmpty({ message: 'Số điện thoại là bắt buộc' })
+  @Length(10, 10, { message: 'Số điện thoại phải có đúng 10 chữ số' })
+  @IsPhoneNumber('VN', { message: 'Phải là số điện thoại hợp lệ của Việt Nam' })
   phone_number: string;
 
-  @ApiProperty({
-    description: 'Email address',
-    example: 'example@gmail.com',
-  })
-  @IsString()
-  @IsNotEmpty({ message: 'Email is required' })
-  @IsEmail({}, { message: 'Must be a valid email address' })
-  email: string;
+  // @ApiProperty({
+  //   description: 'Email address',
+  //   example: 'example@gmail.com',
+  // })
+  // @IsString()
+  // @IsNotEmpty({ message: 'Email is required' })
+  // @IsEmail({}, { message: 'Must be a valid email address' })
+  // email: string;
 
   @ApiProperty({
-    description: 'Password with specific requirements',
+    description: 'Mật khẩu với các yêu cầu cụ thể',
     example: 'StrongP@ssw0rd!',
   })
   @IsString()
-  @IsNotEmpty({ message: 'Password is required' })
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
-  @MaxLength(200, { message: 'Password must not exceed 200 characters' })
+  @IsNotEmpty({ message: 'Mật khẩu là bắt buộc' })
+  @MinLength(8, { message: 'Mật khẩu phải có ít nhất 8 ký tự' })
+  @MaxLength(200, { message: 'Mật khẩu không được vượt quá 200 ký tự' })
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     {
       message:
-        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+        'Mật khẩu phải chứa ít nhất một chữ cái viết hoa, một chữ cái viết thường, một số và một ký tự đặc biệt',
     },
   )
   password_hash: string;
 
   @ApiProperty({
-    description: 'referral code from referrer',
+    description: 'Mã giới thiệu từ người giới thiệu',
     example: 'DEFAULT_1',
   })
   @IsString()

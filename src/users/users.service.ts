@@ -25,19 +25,21 @@ export class UsersService {
     await queryRunner.startTransaction();
 
     try {
-      const { email, phone_number, password_hash, ...rest } = createUserDto;
+      // const { email, phone_number, password_hash, ...rest } = createUserDto;
+      const { phone_number, password_hash, ...rest } = createUserDto;
 
       // Check for existing user with the same email or phone number
+      // const existingUser = await queryRunner.manager
+      //   .createQueryBuilder(User, 'user')
+      //   .where('LOWER(user.email) = LOWER(:email)', { email })
+      //   .orWhere('user.phone_number = :phone_number', { phone_number })
+      //   .getOne();
       const existingUser = await queryRunner.manager
         .createQueryBuilder(User, 'user')
-        .where('LOWER(user.email) = LOWER(:email)', { email })
         .orWhere('user.phone_number = :phone_number', { phone_number })
         .getOne();
 
       if (existingUser) {
-        if (existingUser.email.toLowerCase() === email.toLowerCase()) {
-          throw new ConflictException('Email address is already in use');
-        }
         if (existingUser.phone_number === phone_number) {
           throw new ConflictException('Phone number is already in use');
         }
@@ -49,7 +51,6 @@ export class UsersService {
       // Create new user
       const newUser = queryRunner.manager.create(User, {
         ...rest,
-        email: email, // Normalize email to lowercase
         phone_number,
         password_hash: hashedPassword,
       });
@@ -73,9 +74,6 @@ export class UsersService {
       if (error instanceof QueryFailedError) {
         const err = error as any;
         if (err.code === '23505') { // Postgres unique violation
-          if (err.detail?.includes('email')) {
-            throw new ConflictException('Email address is already in use');
-          }
           if (err.detail?.includes('phone_number')) {
             throw new ConflictException('Phone number is already in use');
           }
@@ -161,46 +159,63 @@ export class UsersService {
     }
   }
 
-  async findByEmail(
-    email: string,
-  ): Promise<Omit<User, 'password_hash'> | undefined> {
-    try {
-      const user = await this.userRepository.findOne({
-        where: { email },
-      });
-      if (!user) {
-        throw new ConflictException(
-          'User not found from find by email service',
-        );
-      }
-      const {
-        password_hash,
-        updateCreatedAt,
-        updateUpdatedAt,
-        ...userWithoutPassword
-      } = user;
-      return { ...userWithoutPassword, updateCreatedAt, updateUpdatedAt };
-    } catch (error) {
-      throw new BadRequestException(
-        'Something went wrong from find by email service',
-      );
-    }
-  }
+  // async findByEmail(
+  //   email: string,
+  // ): Promise<Omit<User, 'password_hash'> | undefined> {
+  //   try {
+  //     const user = await this.userRepository.findOne({
+  //       where: { email },
+  //     });
+  //     if (!user) {
+  //       throw new ConflictException(
+  //         'User not found from find by email service',
+  //       );
+  //     }
+  //     const {
+  //       password_hash,
+  //       updateCreatedAt,
+  //       updateUpdatedAt,
+  //       ...userWithoutPassword
+  //     } = user;
+  //     return { ...userWithoutPassword, updateCreatedAt, updateUpdatedAt };
+  //   } catch (error) {
+  //     throw new BadRequestException(
+  //       'Something went wrong from find by email service',
+  //     );
+  //   }
+  // }
 
-  async findByEmailWithPassword(email: string): Promise<User | undefined> {
+  // async findByEmailWithPassword(email: string): Promise<User | undefined> {
+  //   try {
+  //     const user = await this.userRepository.findOne({
+  //       where: { email },
+  //     });
+  //     if (!user) {
+  //       throw new ConflictException(
+  //         'User not found from find by email with password service',
+  //       );
+  //     }
+  //     return user;
+  //   } catch (error) {
+  //     throw new BadRequestException(
+  //       'Something went wrong from find by email with password service',
+  //     );
+  //   }
+  // }
+  async findByPhoneNumberWithPassword(phone_number: string) : Promise<User | undefined> {
     try {
       const user = await this.userRepository.findOne({
-        where: { email },
+        where: { phone_number },
       });
       if (!user) {
         throw new ConflictException(
-          'User not found from find by email with password service',
+          'User not found from find by phone number with password service',
         );
       }
       return user;
     } catch (error) {
       throw new BadRequestException(
-        'Something went wrong from find by email with password service',
+        'Something went wrong from find by phone number with password service',
       );
     }
   }
@@ -232,29 +247,29 @@ export class UsersService {
   }
 
   // TODO: service for seed users
-  async createUserSeed(
-    createUserWithFullAttributesDto: CreateUserFullAttributesDto,
-  ): Promise<User> {
-    const { email, phone_number, password_hash, ...rest } =
-      createUserWithFullAttributesDto;
+  // async createUserSeed(
+  //   createUserWithFullAttributesDto: CreateUserFullAttributesDto,
+  // ): Promise<User> {
+  //   const { email, phone_number, password_hash, ...rest } =
+  //     createUserWithFullAttributesDto;
 
-    const existingUser = await this.userRepository.findOne({
-      where: [{ email }, { phone_number }],
-    });
-    if (existingUser) {
-      throw new ConflictException(
-        'User already exists with that email or phone number',
-      );
-    }
+  //   const existingUser = await this.userRepository.findOne({
+  //     where: [{ email }, { phone_number }],
+  //   });
+  //   if (existingUser) {
+  //     throw new ConflictException(
+  //       'User already exists with that email or phone number',
+  //     );
+  //   }
 
-    const hashedPassword = await bcrypt.hash(password_hash, 10);
-    const newUser = this.userRepository.create({
-      ...rest,
-      email,
-      phone_number,
-      password_hash: hashedPassword,
-    });
+  //   const hashedPassword = await bcrypt.hash(password_hash, 10);
+  //   const newUser = this.userRepository.create({
+  //     ...rest,
+  //     email,
+  //     phone_number,
+  //     password_hash: hashedPassword,
+  //   });
 
-    return this.userRepository.save(newUser);
-  }
+  //   return this.userRepository.save(newUser);
+  // }
 }

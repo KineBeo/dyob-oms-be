@@ -22,13 +22,13 @@ export default class User {
   @Column({ nullable: false })
   fullname: string;
   
-  @Index('phone_number_idx')
+  @Index('phone_number_idx', {unique: true})
   @Column({ nullable: false })
   phone_number: string;
 
-  @Index('email_idx', { unique: true })
-  @Column({ unique: true })
-  email: string;
+  // @Index('email_idx', { unique: true })
+  // @Column({ unique: true })
+  // email: string;
 
   @Column()
   password_hash: string;

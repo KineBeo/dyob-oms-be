@@ -33,7 +33,7 @@ export class AuthController {
   })
   @ApiBody({ type: LoginDto })
   async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto.email, loginDto.password);
+    return this.authService.login(loginDto.phone_number, loginDto.password);
   }
 
   @Public()
