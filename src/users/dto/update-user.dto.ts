@@ -36,14 +36,14 @@ export class UpdateUserDto implements Partial<CreateUserDto> {
   })
   phone_number?: string;
 
-  @ApiProperty({
-    example: 'yourchangedmail@gmail.com',
-    required: false,
-  })
-  @IsOptional()
-  @IsString()
-  @IsEmail()
-  email?: string;
+  // @ApiProperty({
+  //   example: 'yourchangedmail@gmail.com',
+  //   required: false,
+  // })
+  // @IsOptional()
+  // @IsString()
+  // @IsEmail()
+  // email?: string;
 
   @ApiProperty({
     example: 'Your changed password',

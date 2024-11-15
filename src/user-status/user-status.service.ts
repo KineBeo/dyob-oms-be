@@ -8,11 +8,10 @@ import { CreateUserStatusDto } from './dto/create-user-status.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserStatus } from './entities/user-status.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { UserRank } from 'src/enum/rank';
 import User from 'src/users/entities/user.entity';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
@@ -24,7 +23,6 @@ export class UserStatusService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private eventEmitter: EventEmitter2,
-    // @InjectQueue('user-rank-update') private userRankUpdateQueue: Queue,
   ) {}
 
   // async onModuleInit() {
@@ -43,6 +41,93 @@ export class UserStatusService {
   //     await this.userStatusRepository.save(status);
   //   });
   // }
+
+  /**
+   * ! HELPER FUNCTIONS
+   */
+  private getRankValue(rank: UserRank): number {
+    const rankValues = {
+      [UserRank.GUEST]: 0,
+      [UserRank.NVKD]: 1,
+      [UserRank.TPKD]: 2,
+      [UserRank.GDKD]: 3,
+      [UserRank.GDV]: 4,
+      [UserRank.GDKV]: 5,
+    };
+    return rankValues[rank];
+  }
+
+  private isEqualOrHigherRank(rank1: UserRank, rank2: UserRank): boolean {
+    console.log('rank1: ', rank1);
+    console.log('rank2: ', rank2);
+    return this.getRankValue(rank1) >= this.getRankValue(rank2);
+  }
+
+  /** 
+   * ! CRON JOBS 1: RESET TOTAL_SALES VỀ 0 HÀNG THÁNG (ĐẦU THÁNG)
+   */
+
+  /** 
+   * ! CRON JOBS 2: TÍNH TOÁN ĐỒNG CẤP VƯỢT CẤP 
+   */
+  // @Cron(CronExpression.EVERY_9_HOURS, {
+  //   name: 'calculate-rank',
+  //   timeZone: 'Asia/Ho_Chi_Minh',
+  // })
+  async calculateOverrideCommissionMonthly() {
+    try {
+      const vietnamTime = new Date().toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+    });
+      console.log('Calculating override commission for all users', vietnamTime);
+
+      // get all user statuses that have referrer
+      const userStatuses = await this.userStatusRepository.find({
+        relations: ['referrer'],
+        where: {
+          referrer: {
+            id: Not(IsNull()),
+          },
+        },
+      });
+
+      for (const userStatus of userStatuses) {
+        if (!userStatus.referrer) {
+          continue;
+        }
+
+        if (this.isEqualOrHigherRank(userStatus.user_rank, userStatus.referrer.user_rank)) {
+          
+          // TODO: Calculate the override commission for the referrer
+          const overrideCommission = Number(userStatus.total_sales) * 0.01;
+
+          // TODO: Update the referrer's commission
+          userStatus.referrer.commission = (
+            Number(userStatus.referrer.commission) + overrideCommission
+          ).toString();
+
+          // * MONITORING
+          console.log(`Override commission calculated:`, {
+            referrerId: userStatus.referrer.id,
+            userId: userStatus.id,
+            userRank: userStatus.user_rank,
+            referrerRank: userStatus.referrer.user_rank,
+            userTotalSales: userStatus.total_sales,
+            overrideCommission: overrideCommission,
+          });
+
+          await this.userStatusRepository.save(userStatus.referrer);
+        }
+      }
+      console.log('Override commission calculation completed:', vietnamTime);
+    } catch (error) {
+      console.error('Error calculating override commission:', error);
+      throw new BadRequestException(
+        `Failed to calculate override commission: ${error.message}`,
+      );
+    }
+  }
+
   /**
    * ! CRUD OPERATIONS
    * @param createUserStatusDto
@@ -121,61 +206,17 @@ export class UserStatusService {
     }
   }
 
-  // async findOne(id: number) {
-  //   try {
-  //     const userStatus = await this.userStatusRepository.findOne({
-  //       where: { user: { id: id } },
-  //       relations: ['referrer', 'referrals'],
-  //     });
-  //     let referrer_name = null;
-  //     if (!userStatus.referrer) {
-  //       referrer_name = null;
-  //     } else {
-  //       const userOfReferralCode = await this.userRepository.findOne({
-  //         where: { id: userStatus.referrer?.id },
-  //       });
-  //       referrer_name = userOfReferralCode?.fullname;
-  //     }
-
-  //     if (!userStatus) {
-  //       throw new NotFoundException('User status not found');
-  //     }
-  //     return {
-  //       id: userStatus.id,
-  //       personal_referral_code: userStatus.personal_referral_code,
-  //       total_purchase: userStatus.total_purchase,
-  //       total_orders: userStatus.total_orders,
-  //       total_sales: userStatus.total_sales,
-  //       commission: userStatus.commission,
-  //       last_rank_check: userStatus.last_rank_check,
-  //       rank_achievement_date: userStatus.rank_achievement_date,
-  //       user_rank: userStatus.user_rank,
-  //       createdAt: userStatus.createdAt,
-  //       updatedAt: userStatus.updatedAt,
-  //       referrer_id: userStatus.referrer?.id || null,
-  //       referrer_name: referrer_name,
-  //       referrals: userStatus.referrals,
-  //     };
-  //   } catch (error) {
-  //     if (error instanceof NotFoundException) {
-  //       throw error;
-  //     }
-  //     throw new BadRequestException(
-  //       'Something went wrong from find one user status service',
-  //     );
-  //   }
-  // }
   async findOne(id: number) {
     try {
       const userStatus = await this.userStatusRepository.findOne({
         where: { id },
         relations: ['referrer', 'referrals', 'referrals.user'],
       });
-  
+
       if (!userStatus) {
         throw new NotFoundException('User status not found');
       }
-  
+
       const referrals = await Promise.all(
         userStatus.referrals.map(async (referral) => ({
           id: referral.id,
@@ -183,9 +224,9 @@ export class UserStatusService {
           user_rank: referral.user_rank,
           total_sales: referral.total_sales,
           fullname: referral.user?.fullname || null,
-        }))
+        })),
       );
-  
+
       return {
         id: userStatus.id,
         personal_referral_code: userStatus.personal_referral_code,
@@ -207,7 +248,7 @@ export class UserStatusService {
         throw error;
       }
       throw new BadRequestException(
-        'Something went wrong from find one user status service'
+        'Something went wrong from find one user status service',
       );
     }
   }
@@ -241,33 +282,6 @@ export class UserStatusService {
       userStatus.total_purchase = (currentTotal + orderAmount).toString();
       userStatus.total_orders += 1;
 
-      // console.log('2: Updated user status:', userStatus);
-
-      // Kiểm tra xem user có người giới thiệu không và cập nhật hoa hồng và doanh số cho người giới thiệu
-      if (userStatus.referrer) {
-        const referrerStatus = await this.userStatusRepository.findOne({
-          where: { user: { id: userStatus.referrer.id } },
-        });
-
-        if (referrerStatus) {
-          // cập nhật doanh số cho người giới thiệu
-          referrerStatus.total_sales = (
-            Number(referrerStatus.total_sales) + orderAmount
-          ).toString();
-
-          // cập nhật hoa hồng cho người giới thiệu
-          const referrerCommission = this.calculateCommission(referrerStatus, orderAmount);
-          referrerStatus.commission = (
-            Number(referrerStatus.commission) + referrerCommission
-          ).toString();
-          // console.log('3: Hoa hồng người giới thiệu:', referrerCommission);
-
-          // console.log('4: Updated referrer status:', referrerStatus);
-
-          await this.userStatusRepository.save(referrerStatus);
-        }
-      }
-
       // Cập nhật rank cho user hiện tại
       const newRank = this.calculateUserRank(userStatus);
       if (newRank !== userStatus.user_rank) {
@@ -285,6 +299,35 @@ export class UserStatusService {
           oldRank: userStatus.user_rank,
           newRank: newRank,
         });
+        // console.log('2: Updated user status:', userStatus);
+
+        // Kiểm tra xem user có người giới thiệu không và cập nhật hoa hồng và doanh số cho người giới thiệu
+        if (userStatus.referrer) {
+          const referrerStatus = await this.userStatusRepository.findOne({
+            where: { user: { id: userStatus.referrer.id } },
+          });
+
+          if (referrerStatus) {
+            // cập nhật doanh số cho người giới thiệu
+            referrerStatus.total_sales = (
+              Number(referrerStatus.total_sales) + orderAmount
+            ).toString();
+
+            // cập nhật hoa hồng cho người giới thiệu
+            const referrerCommission = this.calculateCommission(
+              referrerStatus,
+              orderAmount,
+            );
+            referrerStatus.commission = (
+              Number(referrerStatus.commission) + referrerCommission
+            ).toString();
+            // console.log('3: Hoa hồng người giới thiệu:', referrerCommission);
+
+            // console.log('4: Updated referrer status:', referrerStatus);
+
+            await this.userStatusRepository.save(referrerStatus);
+          }
+        }
 
         // await this.userRankUpdateQueue.add('update-rank', { userId: payload.userId, newRank });
       }
@@ -292,10 +335,10 @@ export class UserStatusService {
       await this.userStatusRepository.save(userStatus);
     } catch (error) {
       console.error(
-        `Failed to update user status from handleOrderCompleted Listener in UseStatus Service: ${error.message}`
+        `Failed to update user status from handleOrderCompleted Listener in UseStatus Service: ${error.message}`,
       );
       throw new BadRequestException(
-        `Failed to update user status from handleOrderCompleted Listener in UseStatus Service: ${error.message}`
+        `Failed to update user status from handleOrderCompleted Listener in UseStatus Service: ${error.message}`,
       );
     }
   }
@@ -334,7 +377,12 @@ export class UserStatusService {
       );
     }
   }
-
+  
+  /**
+   * 
+   * ! TÍNH TOÁN RANK CHO USER
+   * * RETURN: UserRank
+   */
   private calculateUserRank(userStatus: UserStatus): UserRank {
     // Implement the logic to calculate the user's rank based on the given criteria
     if (
@@ -370,8 +418,19 @@ export class UserStatusService {
       return UserRank.GUEST;
     }
   }
-  // lỗi ở đây (refferrer hưởng 20% số tiền của đơn hàng của refferal: -> cần fix)
-  private calculateCommission(userStatus: UserStatus, orderAmount: number): number {
+
+  /**
+   * 
+   * @param userStatus 
+   * @param orderAmount 
+   * * RETURN: NUMBER
+   * 
+   * ! TÍNH TOÁN HOA HỒNG CHO USER
+   */
+  private calculateCommission(
+    userStatus: UserStatus,
+    orderAmount: number,
+  ): number {
     switch (userStatus.user_rank) {
       case UserRank.NVKD:
         return Number(orderAmount) * 0.2;
@@ -387,4 +446,15 @@ export class UserStatusService {
         return 0;
     }
   }
+
+  // @Cron(CronExpression.EVERY_30_SECONDS, {
+  //   name: 'notifications',
+  //   timeZone: 'Asia/Ho_Chi_Minh',
+  // })
+  // triggerNotifications() {
+  //   // const vietnamTime = new Date().toLocaleString('vi-VN', {
+  //   //   timeZone: 'Asia/Ho_Chi_Minh',
+  //   // });
+  //   console.log('Notifications triggered at:', new Date());
+  // }
 }

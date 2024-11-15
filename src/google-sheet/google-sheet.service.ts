@@ -239,7 +239,7 @@ export class GoogleSheetService implements OnModuleInit {
   @Throttle({default: {limit: 100, ttl: 60}}) // 100 requests per minute
   async syncOrderToSheet(order: Order) {
     try {
-      // console.log('gg-10: Syncing order to sheet:', order);
+      console.log('gg-10: Syncing order to sheet:', order);
       const values = [[
         order.id?.toString() ?? '',
         order.snapshot_receiver_name ?? '',
@@ -271,7 +271,7 @@ export class GoogleSheetService implements OnModuleInit {
 
       if (rowIndex === -1) {
         // Order doesn't exist, append it
-        // console.log('gg-11: Order does not exist. Appending new order...');
+        console.log('gg-11: Order does not exist. Appending new order...');
         await this.sheets.spreadsheets.values.append({
           spreadsheetId: this.spreadsheetId,
           range: `${this.sheetName}!A:H`,
@@ -279,10 +279,10 @@ export class GoogleSheetService implements OnModuleInit {
           insertDataOption: 'INSERT_ROWS',
           requestBody: { values },
         });
-        // console.log('gg-12: Order appended successfully.');
+        console.log('gg-12: Order appended successfully.');
       } else {
         // Order exists, update it
-        // console.log(`Order exists at row ${rowIndex}. Updating order...`);
+        console.log(`Order exists at row ${rowIndex}. Updating order...`);
         await this.sheets.spreadsheets.values.update({
           spreadsheetId: this.spreadsheetId,
           range: `${this.sheetName}!A${rowIndex}:H${rowIndex}`,
@@ -296,27 +296,6 @@ export class GoogleSheetService implements OnModuleInit {
       throw error;
     }
   }
-
-  // private binarySearch(arr: string[], target: string): number {
-  //   console.log('Performing binary search for target:', target);
-  //   let left = 0;
-  //   let right = arr.length - 1;
-
-  //   while (left <= right) {
-  //     const mid = Math.floor((left + right) / 2);
-  //     if (arr[mid] === target) {
-  //       console.log('Target found at index:', mid);
-  //       return mid + 1; // Add 1 because sheet rows are 1-based
-  //     }
-  //     if (arr[mid] < target) {
-  //       left = mid + 1;
-  //     } else {
-  //       right = mid - 1;
-  //     }
-  //   }
-  //   console.log('Target not found.');
-  //   return -1;
-  // }
 
   private async checkForStatusUpdates() {
     if (this.isProcessing) return;
@@ -356,7 +335,7 @@ export class GoogleSheetService implements OnModuleInit {
         
         if (lastStatus !== currentStatus && 
             Object.values(OrderStatus).includes(currentStatus as OrderStatus)) {
-          // console.log(`gg-16: Order status changed for orderId ${orderId}: ${lastStatus} -> ${currentStatus}`);
+          console.log(`gg-16: Order status changed for orderId ${orderId}: ${lastStatus} -> ${currentStatus}`);
           this.eventEmitter.emit('order.status.changed', {
             orderId: Number(orderId),
             newStatus: currentStatus as OrderStatus,
