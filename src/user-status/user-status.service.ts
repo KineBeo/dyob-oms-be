@@ -307,11 +307,15 @@ export class UserStatusService {
             where: { user: { id: userStatus.referrer.id } },
           });
 
+          console.log('Referrer status from user-status:', referrerStatus);
+
           if (referrerStatus) {
             // cập nhật doanh số cho người giới thiệu
             referrerStatus.total_sales = (
               Number(referrerStatus.total_sales) + orderAmount
             ).toString();
+
+            console.log('3: Doanh số người giới thiệu:', referrerStatus.total_sales);
 
             // cập nhật hoa hồng cho người giới thiệu
             const referrerCommission = this.calculateCommission(
