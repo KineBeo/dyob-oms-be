@@ -35,27 +35,23 @@ export class OrdersService {
     private userAddressService: UserAddressService,
   ) {
     // Listen for status changes from Google Sheets
-    this.eventEmitter.on(
-      'order.status.changed',
-      async (payload: { orderId: number; newStatus: OrderStatus }) => {
-        // console.log(
-        //   'Received status change event:',
-        //   payload.orderId,
-        //   payload.newStatus,
-        // );
-        await this.handleStatusChange(payload.orderId, payload.newStatus);
-      },
-    );
+    // this.eventEmitter.on(
+    //   'order.status.changed',
+    //   async (payload: { orderId: number; newStatus: OrderStatus }) => {
+    //     // console.log(
+    //     //   'Received status change event:',
+    //     //   payload.orderId,
+    //     //   payload.newStatus,
+    //     // );
+    //     await this.handleStatusChange(payload.orderId, payload.newStatus);
+    //   },
+    // );
   }
 
   async create(createOrderDto: CreateOrderDto): Promise<Order> {
-    // * get referral_code_of_referrer from createOrderDto
     const { user_id, referral_code_of_referrer, shipping_address_id } =
       createOrderDto;
-    // console.log('referral_code_of_referrer', referral_code_of_referrer);
-
     try {
-      // Check if user exists
       const user = await this.userService.findOne(user_id);
       if (!user) {
         throw new NotFoundException(
@@ -67,7 +63,8 @@ export class OrdersService {
         await this.userAddressService.findOne(shipping_address_id);
       if (!shippingAddress) {
         throw new NotFoundException(
-          `Shipping address with ID ${shipping_address_id} not found from create order service`,
+          `Shipping address with ID ${shipping_address_id} 
+           not found from create order service`,
         );
       }
       const cartItems = await this.cartService.getCart(user_id);
@@ -89,7 +86,6 @@ export class OrdersService {
         user: { id: user_id },
         userStatus: userStatus || null,
         total_amount,
-        // address: createOrderDto.shipping_address_id,
         shipping_address: shippingAddress,
         shipping_address_id: shippingAddress.id,
         snapshot_receiver_name: shippingAddress.receiver_name,
@@ -102,8 +98,8 @@ export class OrdersService {
       });
       const savedOrder = await this.orderRepository.save(order);
 
-      // ! Sync order to Google Sheet
-      await this.googleSheetsService.syncOrderToSheet(savedOrder);
+      // // ! Sync order to Google Sheet
+      // await this.googleSheetsService.syncOrderToSheet(savedOrder);
 
       const orderItems = cartItems.map((item) => ({
         order_id: savedOrder.id,
@@ -112,7 +108,6 @@ export class OrdersService {
         price: item.price,
       }));
       await this.orderProductService.createMany(orderItems);
-      // Clear the cart after successful order creation
       await this.cartService.clearCart(user_id);
       return this.findOne(savedOrder.id);
     } catch (error) {
@@ -121,6 +116,41 @@ export class OrdersService {
       }
       throw new BadRequestException(
         `Failed to create order: ${error.message} from create order service`,
+      );
+    }
+  }
+
+  async updateStatus(orderId: number, newStatus: OrderStatus): Promise<{ message: string }> {
+    console.log('orderId: ', orderId);
+    try {
+      const currentOrder = await this.findOne(orderId);
+      const currentStatus = currentOrder.status;
+      if (currentStatus !== newStatus) {
+        await this.update(orderId, {
+          user_id: currentOrder.user.id,
+          shipping_address_id: currentOrder.shipping_address_id,
+          status: newStatus,
+        });
+
+        if (newStatus === OrderStatus.COMPLETED && currentStatus !== OrderStatus.COMPLETED) {
+          this.eventEmitter.emit('order.completed', {
+            userId: currentOrder.user.id,
+            orderAmount: currentOrder.total_amount,
+          });
+        }
+
+        if (currentStatus === OrderStatus.COMPLETED && newStatus !== OrderStatus.COMPLETED) {
+          this.eventEmitter.emit('order.uncompleted', {
+            userId: currentOrder.user.id,
+            orderAmount: currentOrder.total_amount,
+          });
+        }
+      }
+
+      return { message: `Order status updated from ${currentStatus} to ${newStatus} successfully` };
+    } catch (error) {
+      throw new BadRequestException(
+        `Failed to admin's update order status: ${error.message}`,
       );
     }
   }
@@ -191,7 +221,9 @@ export class OrdersService {
           `User with ID ${updateOrderDto.user_id} not found`,
         );
       }
-      const updateAddress = await this.userAddressService.findOne(updateOrderDto.shipping_address_id);
+      const updateAddress = await this.userAddressService.findOne(
+        updateOrderDto.shipping_address_id,
+      );
       // Update order
       const updatedOrder = Object.assign(order, {
         user: { id: updateOrderDto.user_id },
@@ -203,7 +235,7 @@ export class OrdersService {
       const savedOrder = await this.orderRepository.save(updatedOrder);
 
       // Sync updates to Google Sheet
-      await this.googleSheetsService.syncOrderToSheet(savedOrder);
+      // await this.googleSheetsService.syncOrderToSheet(savedOrder);
 
       return savedOrder;
     } catch (error) {

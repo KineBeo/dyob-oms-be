@@ -25,15 +25,6 @@ export default class Order {
     @Column()
     total_amount: string;
 
-    // ! checked 4 
-    // TODO: update sau 
-    // ! backup for sure
-    // @Column({ nullable: false })
-    // address: string;
-
-    /**
-     * from here it will be risky
-     */
     @Column()
     shipping_address_id: number;
 
