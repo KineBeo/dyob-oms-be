@@ -59,11 +59,9 @@ export class UserAddressController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update an address' })
-  update(@Param('id') id: number, @Request() req, @Body() updateUserAddressDto: UpdateUserAddressDto) {
-    if (Number(req.user.sub) !== Number(id)) {
-      throw new ForbiddenException('You can only access your own information');
-    }
-    return this.userAddressService.update(+id, updateUserAddressDto);
+  update(@Param('id') id: number, @Request() req, @Body() dto: UpdateUserAddressDto) {
+    const user_id = Number(req.user.sub);
+    return this.userAddressService.update(+user_id, id, dto);
   }
 
   @Delete(':id')
@@ -71,9 +69,7 @@ export class UserAddressController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete an address' })
   remove(@Param('id') id: number, @Request() req) {
-    if (Number(req.user.sub) !== Number(id)) {
-      throw new ForbiddenException('You can only access your own information');
-    }
-    return this.userAddressService.remove(+id);
+    const user_id = Number(req.user.sub);
+    return this.userAddressService.remove(+user_id, id);
   }
 }

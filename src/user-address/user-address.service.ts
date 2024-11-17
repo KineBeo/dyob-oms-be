@@ -68,11 +68,41 @@ export class UserAddressService {
     }
   }
 
-  update(id: number, updateUserAddressDto: UpdateUserAddressDto) {
-    return `This action updates a #${id} userAddress`;
+  async update(user_id: number, address_id: number, dto: UpdateUserAddressDto) {
+    try {
+      const address = await this.userAddressRepository.findOne({ where: { id: address_id, user: { id: user_id } } });
+      if (!address) {
+        throw new BadRequestException('Address not found in update user address service');
+      }
+      if (dto.is_default) {
+        await this.userAddressRepository.update(
+          { user: { id: user_id }, is_default: true },
+          { is_default: false },
+        );
+      }
+
+      await this.userAddressRepository.update({ id: address_id }, dto);
+      return this.userAddressRepository.findOne({ where: { id: address_id } });
+    } catch (error) {
+      throw new BadRequestException(
+        'Error updating user address from user address service',
+        error.message,
+      );
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} userAddress`;
-  }
+  async remove(user_id: number, address_id: number) {
+    try {
+      const address = await this.userAddressRepository.findOne({ where: { id: address_id, user: { id: user_id } } });
+      if (!address) {
+        throw new BadRequestException('Address not found in remove user address service');
+      }
+      return this.userAddressRepository.delete({ id: address_id });
+    } catch (error) {
+      throw new BadRequestException(
+        'Error removing user address from user address service',
+        error.message,
+      );
+    }
+  } 
 }
