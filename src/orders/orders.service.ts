@@ -15,7 +15,6 @@ import { OrderStatus } from '../enum/order-status';
 import { UsersService } from '../users/users.service';
 import { OrderProductService } from '../order_product/order_product.service';
 import { CreateOrderFullAttributesDto } from './dto/create-order-full-attributes.dto';
-import { GoogleSheetService } from '../google-sheet/google-sheet.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserStatusService } from 'src/user-status/user-status.service';
 import { UserAddressService } from 'src/user-address/user-address.service';
@@ -29,7 +28,6 @@ export class OrdersService {
     private userService: UsersService,
     @Inject(forwardRef(() => OrderProductService))
     private orderProductService: OrderProductService,
-    private googleSheetsService: GoogleSheetService,
     private userStatusService: UserStatusService,
     private eventEmitter: EventEmitter2,
     private userAddressService: UserAddressService,

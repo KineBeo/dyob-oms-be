@@ -20,74 +20,29 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+    const { phone_number, password_hash, ...rest } = createUserDto;
 
-    try {
-      // const { email, phone_number, password_hash, ...rest } = createUserDto;
-      const { phone_number, password_hash, ...rest } = createUserDto;
+    // Check for existing user with the same phone number
+    const existingUser = await this.userRepository.findOne({
+      where: { phone_number },
+    });
 
-      // Check for existing user with the same email or phone number
-      // const existingUser = await queryRunner.manager
-      //   .createQueryBuilder(User, 'user')
-      //   .where('LOWER(user.email) = LOWER(:email)', { email })
-      //   .orWhere('user.phone_number = :phone_number', { phone_number })
-      //   .getOne();
-      const existingUser = await queryRunner.manager
-        .createQueryBuilder(User, 'user')
-        .orWhere('user.phone_number = :phone_number', { phone_number })
-        .getOne();
-
-      if (existingUser) {
-        if (existingUser.phone_number === phone_number) {
-          throw new ConflictException('Phone number is already in use');
-        }
-      }
-
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password_hash, 10);
-
-      // Create new user
-      const newUser = queryRunner.manager.create(User, {
-        ...rest,
-        phone_number,
-        password_hash: hashedPassword,
-      });
-
-      // Save the user within the transaction
-      const savedUser = await queryRunner.manager.save(newUser);
-      
-      // Commit transaction
-      await queryRunner.commitTransaction();
-      
-      return savedUser;
-
-    } catch (error) {
-      // Rollback transaction on error
-      await queryRunner.rollbackTransaction();
-
-      if (error instanceof ConflictException) {
-        throw error;
-      }
-
-      if (error instanceof QueryFailedError) {
-        const err = error as any;
-        if (err.code === '23505') { // Postgres unique violation
-          if (err.detail?.includes('phone_number')) {
-            throw new ConflictException('Phone number is already in use');
-          }
-        }
-      }
-
-      throw new BadRequestException(
-        'Failed to create user: ' + (error.message || 'Unknown error')
-      );
-
-    } finally {
-      // Release the query runner
-      await queryRunner.release();
+    if (existingUser) {
+      throw new ConflictException('Phone number is already in use');
     }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password_hash, 10);
+
+    // Create new user
+    const newUser = this.userRepository.create({
+      ...rest,
+      phone_number,
+      password_hash: hashedPassword,
+    });
+
+    // Save the user
+    return this.userRepository.save(newUser);
   }
 
   async findAll(): Promise<Omit<User, 'password_hash'>[]> {

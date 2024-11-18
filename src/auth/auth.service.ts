@@ -22,25 +22,17 @@ export class AuthService {
   ) {}
 
   async register(createUserDto: CreateUserDto) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
     try {
       // Create the user first
       const user = await this.usersService.create(createUserDto);
       const { referral_code_of_referrer } = createUserDto;
-      // Create associated profiles within the same transaction
-      await Promise.all([
-        this.userStatusService.create({ 
-          user_id: user.id,
-          referral_code_of_referrer: referral_code_of_referrer,
-          user_rank: UserRank.GUEST,
-        })
-      ]);
 
-      // Commit the transaction
-      await queryRunner.commitTransaction();
+      // Create associated profiles
+      await this.userStatusService.create({ 
+        user_id: user.id,
+        referral_code_of_referrer: referral_code_of_referrer,
+        user_rank: UserRank.GUEST,
+      });
 
       return {
         user: {
@@ -51,9 +43,6 @@ export class AuthService {
       };
 
     } catch (error) {
-      // Rollback the transaction on error
-      await queryRunner.rollbackTransaction();
-
       if (error instanceof ConflictException) {
         throw error;
       }
@@ -61,10 +50,6 @@ export class AuthService {
       throw new BadRequestException(
         'Registration failed: ' + error
       );
-
-    } finally {
-      // Release the query runner
-      await queryRunner.release();
     }
   }
 

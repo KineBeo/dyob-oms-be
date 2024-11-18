@@ -13,9 +13,7 @@ import { ProductCategoryModule } from './product-category/product-category.modul
 import { OrderProductModule } from './order_product/order_product.module';
 import { UserStatusModule } from './user-status/user-status.module';
 import { AuthModule } from './auth/auth.module';
-import { GoogleSheetService } from './google-sheet/google-sheet.service';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { GoogleSheetModule } from './google-sheet/google-sheet.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { StrapiModule } from './strapi/strapi.module';
@@ -50,11 +48,10 @@ import { ScheduleModule } from '@nestjs/schedule';
     UserStatusModule,
     StrapiModule,
     AuthModule,
-    GoogleSheetModule,
     UserAddressModule,
   ],
   controllers: [AppController],
-  providers: [AppService, CartService, GoogleSheetService, {
+  providers: [AppService, CartService, {
     provide: APP_GUARD,
     useClass: JwtAuthGuard,
   }],

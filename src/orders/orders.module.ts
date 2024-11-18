@@ -6,7 +6,6 @@ import Order from './entities/order.entity';
 import { CartModule } from '../cart/cart.module';
 import { UsersModule } from '../users/users.module';
 import { OrderProductModule } from '../order_product/order_product.module';
-import { GoogleSheetModule } from 'src/google-sheet/google-sheet.module';
 import { UserStatusModule } from 'src/user-status/user-status.module';
 import { UserAddressModule } from 'src/user-address/user-address.module';
 
@@ -16,7 +15,6 @@ import { UserAddressModule } from 'src/user-address/user-address.module';
     CartModule,
     UsersModule,
     forwardRef(() => OrderProductModule), // Use forwardRef here
-    GoogleSheetModule,
     UserStatusModule,
     UserAddressModule
   ],
