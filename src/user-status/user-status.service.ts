@@ -69,10 +69,10 @@ export class UserStatusService {
   /**
    * ! CRON JOBS 2: TÍNH TOÁN ĐỒNG CẤP VƯỢT CẤP
    */
-  // @Cron(CronExpression.EVERY_9_HOURS, {
-  //   name: 'calculate-rank',
-  //   timeZone: 'Asia/Ho_Chi_Minh',
-  // })
+  @Cron("0 45 13 * * *", {
+    name: 'calculate-rank',
+    timeZone: 'Asia/Ho_Chi_Minh',
+  })
   async calculateOverrideCommissionMonthly() {
     try {
       const vietnamTime = new Date().toLocaleString('vi-VN', {
@@ -101,17 +101,18 @@ export class UserStatusService {
             userStatus.referrer.user_rank,
           )
         ) {
+          const refferrer = userStatus.referrer;
           // TODO: Calculate the override commission for the referrer
           const overrideCommission = Number(userStatus.total_sales) * 0.01;
 
           // TODO: Update the referrer's commission
-          userStatus.referrer.commission = (
-            Number(userStatus.referrer.commission) + overrideCommission
+          refferrer.commission = (
+            Number(refferrer.commission) + overrideCommission
           ).toString();
 
           // * MONITORING
           console.log(`Override commission calculated:`, {
-            referrerId: userStatus.referrer.id,
+            referrerId: refferrer.id,
             userId: userStatus.id,
             userRank: userStatus.user_rank,
             referrerRank: userStatus.referrer.user_rank,
