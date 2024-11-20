@@ -118,6 +118,7 @@ export class UserStatusService {
             referrerRank: userStatus.referrer.user_rank,
             userTotalSales: userStatus.total_sales,
             overrideCommission: overrideCommission,
+            newConmission: refferrer.commission,
           });
 
           await this.userStatusRepository.save(userStatus.referrer);
