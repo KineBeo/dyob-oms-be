@@ -69,7 +69,7 @@ export class UserStatusService {
   /**
    * ! CRON JOBS 2: TÍNH TOÁN ĐỒNG CẤP VƯỢT CẤP
    */
-  @Cron("0 15 14 * * *", {
+  @Cron("0 30 14 * * *", {
     name: 'calculate-rank',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
