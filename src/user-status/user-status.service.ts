@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserStatusDto } from './dto/create-user-status.dto';
@@ -24,22 +25,7 @@ export class UserStatusService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  // async onModuleInit() {
-  //   // Schedule a monthly reset of total_sales for all users
-  //   this.resetTotalSalesMonthly();
-  // }
-
-  // @Cron('0 0 1 * *', {
-  //   timeZone: 'Asia/Ho_Chi_Minh',
-  // })
-  // async resetTotalSalesMonthly() {
-  //   console.log('Resetting total sales for all users', new Date());
-  //   const allUserStatus = await this.userStatusRepository.find();
-  //   allUserStatus.forEach(async (status) => {
-  //     status.total_sales = '0';
-  //     await this.userStatusRepository.save(status);
-  //   });
-  // }
+  private readonly logger = new Logger(UserStatusService.name);
 
   /**
    * ! HELPER FUNCTIONS
@@ -65,20 +51,54 @@ export class UserStatusService {
   /**
    * ! CRON JOBS 1: RESET TOTAL_SALES VỀ 0 HÀNG THÁNG (ĐẦU THÁNG)
    */
+  @Cron('0 30 7 1 * *', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+  })
+  async resetTotalSalesMonthly() {
+    console.log('Resetting total sales for all users', new Date());
+    const allUserStatus = await this.userStatusRepository.find();
+    allUserStatus.forEach(async (status) => {
+      status.total_sales = '0';
+      await this.userStatusRepository.save(status);
+    });
+  }
 
   /**
-   * ! CRON JOBS 2: TÍNH TOÁN ĐỒNG CẤP VƯỢT CẤP
+   * ! CRON JOBS 2: TÍNH TOÁN ĐỒNG CẤP VƯỢT CẤP (CUỐI THÁNG: 28 sẽ chạy, trong hàm handleCalculateOverrideCommission thì sẽ kiểm tra xem ngày hiện tại có phải là cuối tháng không, nếu có thì mới chạy) 
    */
-  @Cron("0 30 14 * * *", {
+  @Cron('0 30 7 * * *', {
     name: 'calculate-rank',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
+  async handleCalculateOverrideCommission() {
+    try {
+      if (this.isLastDayOfMonth()) {
+        this.logger.log('Call calculateOverrideCommissionMonthly');
+        this.calculateOverrideCommissionMonthly();
+      } 
+    } catch (error) {
+      console.error('Error calculating override commission:', error);
+      throw new BadRequestException(
+        `Failed to calculate override commission: ${error.message}`,
+      );
+    }
+  }
+
+  private isLastDayOfMonth(): boolean {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    return tomorrow.getMonth() !== today.getMonth();
+  }
+
+
   async calculateOverrideCommissionMonthly() {
     try {
       const vietnamTime = new Date().toLocaleString('vi-VN', {
         timeZone: 'Asia/Ho_Chi_Minh',
       });
-      console.log('Calculating override commission for all users', vietnamTime);
+      this.logger.log('Calculating override commission for all users', vietnamTime);
 
       // get all user statuses that have referrer
       const userStatuses = await this.userStatusRepository.find({
@@ -111,7 +131,7 @@ export class UserStatusService {
           ).toString();
 
           // * MONITORING
-          console.log(`Override commission calculated:`, {
+          this.logger.log(`Override commission calculated:`, {
             referrerId: refferrer.id,
             userId: userStatus.id,
             userRank: userStatus.user_rank,
@@ -133,6 +153,12 @@ export class UserStatusService {
     }
   }
 
+  private generateReferralCode(userId: number): string {
+    const timestamp = Date.now().toString(36);
+    const userIdHash = userId.toString(36);
+    const referralCode = `REF${(userIdHash + timestamp).toUpperCase().slice(0, 8)}`;
+    return referralCode;
+  }
   /**
    * ! CRUD OPERATIONS
    * @param createUserStatusDto
@@ -163,11 +189,11 @@ export class UserStatusService {
       const userStatusWithReferralCode =
         await this.findUserStatusByReferralCode(referral_code_of_referrer);
 
-      const DEFAULT_CODE = 'DEFAULT_';
+      const referralCode = this.generateReferralCode(user_id);
 
       const newUserStatus = this.userStatusRepository.create({
         user: user,
-        personal_referral_code: `${DEFAULT_CODE}${user_id}`,
+        personal_referral_code: referralCode, // checked
         total_purchase: '0', // checked
         total_orders: 0, // checked
         total_sales: '0', // checked
@@ -315,7 +341,7 @@ export class UserStatusService {
       if (referrer) {
         const referrerStatus = await this.userStatusRepository.findOne({
           where: { user: { id: referrer.id } },
-          relations: ['referrals']
+          relations: ['referrals'],
         });
         if (referrerStatus) {
           referrerStatus.total_sales = (
@@ -477,4 +503,15 @@ export class UserStatusService {
         return 0;
     }
   }
+
+  // @Cron("0 36 15 22 * *", {
+  //     name: 'notifications',
+  //     timeZone: 'Asia/Ho_Chi_Minh',
+  //   })
+  //   triggerNotifications() {
+  //     const vietnamTime = new Date().toLocaleString('vi-VN', {
+  //       timeZone: 'Asia/Ho_Chi_Minh',
+  //     });
+  //     this.logger.log(`Triggering notifications at ${vietnamTime}`);
+  //   }
 }
