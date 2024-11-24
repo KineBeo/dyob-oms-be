@@ -32,18 +32,6 @@ export class OrdersService {
     private eventEmitter: EventEmitter2,
     private userAddressService: UserAddressService,
   ) {
-    // Listen for status changes from Google Sheets
-    // this.eventEmitter.on(
-    //   'order.status.changed',
-    //   async (payload: { orderId: number; newStatus: OrderStatus }) => {
-    //     // console.log(
-    //     //   'Received status change event:',
-    //     //   payload.orderId,
-    //     //   payload.newStatus,
-    //     // );
-    //     await this.handleStatusChange(payload.orderId, payload.newStatus);
-    //   },
-    // );
   }
 
   async create(createOrderDto: CreateOrderDto): Promise<Order> {
@@ -246,7 +234,12 @@ export class OrdersService {
 
   async findAll(): Promise<Order[]> {
     try {
-      const orders = await this.orderRepository.find();
+      const orders = await this.orderRepository.find({
+        relations: [
+          'orderProduct', // Lấy quan hệ với bảng trung gian OrderProduct,
+          'orderProduct.product'
+        ]
+      });
       return orders;
     } catch (error) {
       throw new BadRequestException(
