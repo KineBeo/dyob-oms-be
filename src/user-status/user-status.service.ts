@@ -64,94 +64,93 @@ export class UserStatusService {
   }
 
   /**
-   * ! CRON JOBS 2: TÍNH TOÁN ĐỒNG CẤP VƯỢT CẤP (CUỐI THÁNG: 28 sẽ chạy, trong hàm handleCalculateOverrideCommission thì sẽ kiểm tra xem ngày hiện tại có phải là cuối tháng không, nếu có thì mới chạy) 
+   * ! CRON JOBS 2: TÍNH TOÁN ĐỒNG CẤP VƯỢT CẤP (CUỐI THÁNG: 28 sẽ chạy, trong hàm handleCalculateOverrideCommission thì sẽ kiểm tra xem ngày hiện tại có phải là cuối tháng không, nếu có thì mới chạy)
    */
-  @Cron('0 30 7 * * *', {
-    name: 'calculate-rank',
-    timeZone: 'Asia/Ho_Chi_Minh',
-  })
-  async handleCalculateOverrideCommission() {
-    try {
-      if (this.isLastDayOfMonth()) {
-        this.logger.log('Call calculateOverrideCommissionMonthly');
-        this.calculateOverrideCommissionMonthly();
-      } 
-    } catch (error) {
-      console.error('Error calculating override commission:', error);
-      throw new BadRequestException(
-        `Failed to calculate override commission: ${error.message}`,
-      );
-    }
-  }
+  // @Cron('0 30 7 * * *', {
+  //   name: 'calculate-rank',
+  //   timeZone: 'Asia/Ho_Chi_Minh',
+  // })
+  // async handleCalculateOverrideCommission() {
+  //   try {
+  //     if (this.isLastDayOfMonth()) {
+  //       this.logger.log('Call calculateOverrideCommissionMonthly');
+  //       this.calculateOverrideCommissionMonthly();
+  //     }
+  //   } catch (error) {
+  //     console.error('Error calculating override commission:', error);
+  //     throw new BadRequestException(
+  //       `Failed to calculate override commission: ${error.message}`,
+  //     );
+  //   }
+  // }
 
-  private isLastDayOfMonth(): boolean {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    return tomorrow.getMonth() !== today.getMonth();
-  }
+  // private isLastDayOfMonth(): boolean {
+  //   const today = new Date();
+  //   const tomorrow = new Date(today);
+  //   tomorrow.setDate(tomorrow.getDate() + 1);
 
+  //   return tomorrow.getMonth() !== today.getMonth();
+  // }
 
-  async calculateOverrideCommissionMonthly() {
-    try {
-      const vietnamTime = new Date().toLocaleString('vi-VN', {
-        timeZone: 'Asia/Ho_Chi_Minh',
-      });
-      this.logger.log('Calculating override commission for all users', vietnamTime);
+  // async calculateOverrideCommissionMonthly() {
+  //   try {
+  //     const vietnamTime = new Date().toLocaleString('vi-VN', {
+  //       timeZone: 'Asia/Ho_Chi_Minh',
+  //     });
+  //     this.logger.log('Calculating override commission for all users', vietnamTime);
 
-      // get all user statuses that have referrer
-      const userStatuses = await this.userStatusRepository.find({
-        relations: ['referrer'],
-        where: {
-          referrer: {
-            id: Not(IsNull()),
-          },
-        },
-      });
+  //     // get all user statuses that have referrer
+  //     const userStatuses = await this.userStatusRepository.find({
+  //       relations: ['referrer'],
+  //       where: {
+  //         referrer: {
+  //           id: Not(IsNull()),
+  //         },
+  //       },
+  //     });
 
-      for (const userStatus of userStatuses) {
-        if (!userStatus.referrer) {
-          continue;
-        }
+  //     for (const userStatus of userStatuses) {
+  //       if (!userStatus.referrer) {
+  //         continue;
+  //       }
 
-        if (
-          this.isEqualOrHigherRank(
-            userStatus.user_rank,
-            userStatus.referrer.user_rank,
-          )
-        ) {
-          const refferrer = userStatus.referrer;
-          // TODO: Calculate the override commission for the referrer
-          const overrideCommission = Number(userStatus.total_sales) * 0.01;
+  //       if (
+  //         this.isEqualOrHigherRank(
+  //           userStatus.user_rank,
+  //           userStatus.referrer.user_rank,
+  //         )
+  //       ) {
+  //         const refferrer = userStatus.referrer;
+  //         // TODO: Calculate the override commission for the referrer
+  //         const overrideCommission = Number(userStatus.total_sales) * 0.01;
 
-          // TODO: Update the referrer's commission
-          refferrer.commission = (
-            Number(refferrer.commission) + overrideCommission
-          ).toString();
+  //         // TODO: Update the referrer's commission
+  //         refferrer.commission = (
+  //           Number(refferrer.commission) + overrideCommission
+  //         ).toString();
 
-          // * MONITORING
-          this.logger.log(`Override commission calculated:`, {
-            referrerId: refferrer.id,
-            userId: userStatus.id,
-            userRank: userStatus.user_rank,
-            referrerRank: userStatus.referrer.user_rank,
-            userTotalSales: userStatus.total_sales,
-            overrideCommission: overrideCommission,
-            newConmission: refferrer.commission,
-          });
+  //         // * MONITORING
+  //         this.logger.log(`Override commission calculated:`, {
+  //           referrerId: refferrer.id,
+  //           userId: userStatus.id,
+  //           userRank: userStatus.user_rank,
+  //           referrerRank: userStatus.referrer.user_rank,
+  //           userTotalSales: userStatus.total_sales,
+  //           overrideCommission: overrideCommission,
+  //           newConmission: refferrer.commission,
+  //         });
 
-          await this.userStatusRepository.save(userStatus.referrer);
-        }
-      }
-      console.log('Override commission calculation completed:', vietnamTime);
-    } catch (error) {
-      console.error('Error calculating override commission:', error);
-      throw new BadRequestException(
-        `Failed to calculate override commission: ${error.message}`,
-      );
-    }
-  }
+  //         await this.userStatusRepository.save(userStatus.referrer);
+  //       }
+  //     }
+  //     console.log('Override commission calculation completed:', vietnamTime);
+  //   } catch (error) {
+  //     console.error('Error calculating override commission:', error);
+  //     throw new BadRequestException(
+  //       `Failed to calculate override commission: ${error.message}`,
+  //     );
+  //   }
+  // }
 
   private generateReferralCode(userId: number): string {
     const timestamp = Date.now().toString(36);
@@ -301,10 +300,10 @@ export class UserStatusService {
     try {
       const userStatus = await this.userStatusRepository.findOne({
         where: { user: { id: payload.userId } },
-        relations: ['referrer', 'referrals'],
+        relations: ['referrer', 'referrer.referrer', 'referrer.referrer.referrer', 'referrals'],
       });
 
-      console.log('userStatus', userStatus);
+      console.log('userStatus', userStatus, "## end of userStatus ##");
 
       if (!userStatus) {
         throw new Error(`UserStatus not found for user ${payload.userId}`);
@@ -335,39 +334,7 @@ export class UserStatusService {
         });
       }
 
-      const referrer = userStatus.referrer;
-
-      // TODO: Kiểm tra xem user có người giới thiệu không và cập nhật hoa hồng và doanh số cho người giới thiệu
-      if (referrer) {
-        const referrerStatus = await this.userStatusRepository.findOne({
-          where: { user: { id: referrer.id } },
-          relations: ['referrals'],
-        });
-        if (referrerStatus) {
-          referrerStatus.total_sales = (
-            Number(referrerStatus.total_sales) + orderAmount
-          ).toString();
-
-          referrerStatus.commission = (
-            Number(referrerStatus.commission) +
-            this.calculateCommission(referrerStatus, orderAmount)
-          ).toString();
-
-          await this.userStatusRepository.save(referrerStatus);
-
-          const referrerRank = referrerStatus.user_rank;
-          const referrerNewRank = this.calculateUserRank(referrerStatus);
-          if (referrerNewRank !== referrerRank) {
-            referrerStatus.user_rank = referrerNewRank;
-            referrerStatus.rank_achievement_date = new Date();
-
-            console.log('Referrer rank updated to:', referrerNewRank);
-            await this.userStatusRepository.save(referrerStatus);
-          }
-        }
-      } else {
-        console.log('User has no referrer');
-      }
+      await this.calculateCommission(userStatus, orderAmount);
 
       await this.userStatusRepository.save(userStatus);
     } catch (error) {
@@ -427,49 +394,57 @@ export class UserStatusService {
     console.log('Total sales:', userStatus.total_sales);
     console.log('Referrals:', userStatus.referrals);
     // TODO: GUEST -> NVKD -> TPKD -> GDKD -> GDV -> GDKV
+    // if (
+    //   userStatus.user_rank === UserRank.GUEST &&
+    //   Number(userStatus.total_purchase) >= 3000000 &&
+    //   userStatus.referrals.length >= 1
+    // ) {
+    //   console.log('đã vào NVKD');
+    //   return UserRank.NVKD;
+    // }
+    // else if (
+    //   userStatus.user_rank === UserRank.NVKD &&
+    //   Number(userStatus.total_sales) >= 50000000 &&
+    //   userStatus.referrals.filter((ref) =>
+    //     this.isEqualOrHigherRank(ref.user_rank, UserRank.NVKD),
+    //   ).length >= 5
+    // ) {
+    //   console.log('đã vào TPKD');
+    //   return UserRank.TPKD;
+    // } else if (
+    //   userStatus.user_rank === UserRank.TPKD &&
+    //   Number(userStatus.total_sales) >= 150000000 &&
+    //   userStatus.referrals.filter((ref) =>
+    //     this.isEqualOrHigherRank(ref.user_rank, UserRank.TPKD),
+    //   ).length >= 3
+    // ) {
+    //   console.log('đã vào GDKD');
+    //   return UserRank.GDKD;
+    // } else if (
+    //   userStatus.user_rank === UserRank.GDKD &&
+    //   Number(userStatus.total_sales) >= 500000000 &&
+    //   userStatus.referrals.filter((ref) =>
+    //     this.isEqualOrHigherRank(ref.user_rank, UserRank.GDKD),
+    //   ).length >= 3
+    // ) {
+    //   console.log('đã vào GDV');
+    //   return UserRank.GDV;
+    // } else if (
+    //   userStatus.user_rank === UserRank.GDV &&
+    //   Number(userStatus.total_sales) >= 1000000000 &&
+    //   userStatus.referrals.filter((ref) =>
+    //     this.isEqualOrHigherRank(ref.user_rank, UserRank.GDV),
+    //   ).length >= 2
+    // ) {
+    //   console.log('đã vào GDKV');
+    //   return UserRank.GDKV;
+    // }
     if (
       userStatus.user_rank === UserRank.GUEST &&
-      Number(userStatus.total_purchase) >= 3000000 &&
-      userStatus.referrals.length >= 1
+      Number(userStatus.total_purchase) >= 500000
     ) {
       console.log('đã vào NVKD');
       return UserRank.NVKD;
-    } else if (
-      userStatus.user_rank === UserRank.NVKD &&
-      Number(userStatus.total_sales) >= 50000000 &&
-      userStatus.referrals.filter((ref) =>
-        this.isEqualOrHigherRank(ref.user_rank, UserRank.NVKD),
-      ).length >= 5
-    ) {
-      console.log('đã vào TPKD');
-      return UserRank.TPKD;
-    } else if (
-      userStatus.user_rank === UserRank.TPKD &&
-      Number(userStatus.total_sales) >= 150000000 &&
-      userStatus.referrals.filter((ref) =>
-        this.isEqualOrHigherRank(ref.user_rank, UserRank.TPKD),
-      ).length >= 3
-    ) {
-      console.log('đã vào GDKD');
-      return UserRank.GDKD;
-    } else if (
-      userStatus.user_rank === UserRank.GDKD &&
-      Number(userStatus.total_sales) >= 500000000 &&
-      userStatus.referrals.filter((ref) =>
-        this.isEqualOrHigherRank(ref.user_rank, UserRank.GDKD),
-      ).length >= 3
-    ) {
-      console.log('đã vào GDV');
-      return UserRank.GDV;
-    } else if (
-      userStatus.user_rank === UserRank.GDV &&
-      Number(userStatus.total_sales) >= 1000000000 &&
-      userStatus.referrals.filter((ref) =>
-        this.isEqualOrHigherRank(ref.user_rank, UserRank.GDV),
-      ).length >= 2
-    ) {
-      console.log('đã vào GDKV');
-      return UserRank.GDKV;
     }
 
     // TODO: trả về rank ban đầu
@@ -484,34 +459,79 @@ export class UserStatusService {
    *
    * ! TÍNH TOÁN HOA HỒNG CHO USER
    */
-  private calculateCommission(
+  private async calculateCommission(
     userStatus: UserStatus,
     orderAmount: number,
-  ): number {
-    switch (userStatus.user_rank) {
-      case UserRank.NVKD:
-        return Number(orderAmount) * 0.2;
-      case UserRank.TPKD:
-        return Number(orderAmount) * 0.05;
-      case UserRank.GDKD:
-        return Number(orderAmount) * 0.04;
-      case UserRank.GDV:
-        return Number(orderAmount) * 0.03;
-      case UserRank.GDKV:
-        return Number(orderAmount) * 0.02;
-      default:
-        return 0;
-    }
-  }
+  ): Promise<{message: string}> {
+    // console.log('Calculating commission for user:', userStatus);
+    const referrer = userStatus.referrer;
+    const referrerOfReferrer = userStatus.referrer?.referrer;
+    const referrerOfReferrerOfReferrer = userStatus.referrer?.referrer?.referrer;
+    console.log('referrer', referrer);
+    console.log('referrerOfReferrer', referrerOfReferrer);
+    console.log('referrerOfReferrerOfReferrer', referrerOfReferrerOfReferrer);
 
-  // @Cron("0 36 15 22 * *", {
-  //     name: 'notifications',
-  //     timeZone: 'Asia/Ho_Chi_Minh',
-  //   })
-  //   triggerNotifications() {
-  //     const vietnamTime = new Date().toLocaleString('vi-VN', {
-  //       timeZone: 'Asia/Ho_Chi_Minh',
-  //     });
-  //     this.logger.log(`Triggering notifications at ${vietnamTime}`);
-  //   }
+    // TODO: Kiểm tra xem user có người giới thiệu không và cập nhật hoa hồng và doanh số cho người giới thiệu
+    if (referrer && referrer.user_rank === UserRank.NVKD) {
+      const referrerStatus = await this.userStatusRepository.findOne({
+        where: { user: { id: referrer.id } },
+        relations: ['referrals'],
+      });
+
+      if (referrerStatus) {
+        referrerStatus.total_sales = (
+          Number(referrerStatus.total_sales) + orderAmount
+        ).toString();
+
+        referrerStatus.commission = (
+          Number(referrerStatus.commission) +
+          Number(orderAmount) * 0.2
+        ).toString();
+
+        await this.userStatusRepository.save(referrerStatus);
+      }
+    } else {
+      console.log('User has no referrer');
+    }
+
+    if (referrerOfReferrer && referrerOfReferrer.user_rank === UserRank.NVKD) {
+      const referrerOfReferrerStatus = await this.userStatusRepository.findOne({
+        where: { user: { id: referrerOfReferrer.id } },
+        relations: ['referrals'],
+      });
+
+      if (referrerOfReferrerStatus) {
+        referrerOfReferrerStatus.commission = (
+          Number(referrerOfReferrerStatus.commission) +
+          Number(orderAmount) * 0.06
+        ).toString();
+
+        await this.userStatusRepository.save(referrerOfReferrerStatus);
+      }
+    } else {
+      console.log('User has no referrer of referrer');
+    }
+
+    if (referrerOfReferrerOfReferrer && referrerOfReferrerOfReferrer.user_rank === UserRank.NVKD) {
+      const referrerOfReferrerOfReferrerStatus =
+        await this.userStatusRepository.findOne({
+          where: { user: { id: referrerOfReferrerOfReferrer.id } },
+          relations: ['referrals'],
+        });
+
+      if (referrerOfReferrerOfReferrerStatus) {
+        referrerOfReferrerOfReferrerStatus.commission = (
+          Number(referrerOfReferrerOfReferrerStatus.commission) +
+          Number(orderAmount) * 0.03
+        ).toString();
+
+        await this.userStatusRepository.save(
+          referrerOfReferrerOfReferrerStatus,
+        );
+      } else {
+        console.log('User has no referrer of referrer of referrer');
+      }
+    }
+    return {message: 'Commission calculated successfully'};
+  }
 }
