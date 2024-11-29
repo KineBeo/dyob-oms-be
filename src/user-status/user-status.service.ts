@@ -50,6 +50,7 @@ export class UserStatusService {
 
   /**
    * ! CRON JOBS 1: RESET TOTAL_SALES VỀ 0 HÀNG THÁNG (ĐẦU THÁNG)
+   * TODO: THÊM RESET GROUP_SALES
    */
   @Cron('0 30 7 1 * *', {
     timeZone: 'Asia/Ho_Chi_Minh',
@@ -196,6 +197,7 @@ export class UserStatusService {
         total_purchase: '0', // checked
         total_orders: 0, // checked
         total_sales: '0', // checked
+        group_sales: '0', // checked
         commission: '0', // checked
         referrer: userStatusWithReferralCode || null, // checked
         user_rank: user_rank || UserRank.GUEST, // checked
@@ -300,10 +302,15 @@ export class UserStatusService {
     try {
       const userStatus = await this.userStatusRepository.findOne({
         where: { user: { id: payload.userId } },
-        relations: ['referrer', 'referrer.referrer', 'referrer.referrer.referrer', 'referrals'],
+        relations: [
+          'referrer',
+          'referrer.referrer',
+          'referrer.referrer.referrer',
+          'referrals',
+        ],
       });
 
-      console.log('userStatus', userStatus, "## end of userStatus ##");
+      // console.log('userStatus', userStatus, "## end of userStatus ##");
 
       if (!userStatus) {
         throw new Error(`UserStatus not found for user ${payload.userId}`);
@@ -388,11 +395,11 @@ export class UserStatusService {
    * * RETURN: UserRank
    */
   private calculateUserRank(userStatus: UserStatus): UserRank {
-    console.log('Calculating rank for user:', userStatus.id);
-    console.log('Current rank:', userStatus.user_rank);
-    console.log('Total purchase:', userStatus.total_purchase);
-    console.log('Total sales:', userStatus.total_sales);
-    console.log('Referrals:', userStatus.referrals);
+    // console.log('Calculating rank for user:', userStatus.id);
+    // console.log('Current rank:', userStatus.user_rank);
+    // console.log('Total purchase:', userStatus.total_purchase);
+    // console.log('Total sales:', userStatus.total_sales);
+    // console.log('Referrals:', userStatus.referrals);
     // TODO: GUEST -> NVKD -> TPKD -> GDKD -> GDV -> GDKV
     // if (
     //   userStatus.user_rank === UserRank.GUEST &&
@@ -462,14 +469,15 @@ export class UserStatusService {
   private async calculateCommission(
     userStatus: UserStatus,
     orderAmount: number,
-  ): Promise<{message: string}> {
+  ): Promise<{ message: string }> {
     // console.log('Calculating commission for user:', userStatus);
     const referrer = userStatus.referrer;
     const referrerOfReferrer = userStatus.referrer?.referrer;
-    const referrerOfReferrerOfReferrer = userStatus.referrer?.referrer?.referrer;
-    console.log('referrer', referrer);
-    console.log('referrerOfReferrer', referrerOfReferrer);
-    console.log('referrerOfReferrerOfReferrer', referrerOfReferrerOfReferrer);
+    const referrerOfReferrerOfReferrer =
+      userStatus.referrer?.referrer?.referrer;
+    // console.log('referrer', referrer);
+    // console.log('referrerOfReferrer', referrerOfReferrer);
+    // console.log('referrerOfReferrerOfReferrer', referrerOfReferrerOfReferrer);
 
     // TODO: Kiểm tra xem user có người giới thiệu không và cập nhật hoa hồng và doanh số cho người giới thiệu
     if (referrer && referrer.user_rank === UserRank.NVKD) {
@@ -488,6 +496,9 @@ export class UserStatusService {
           Number(orderAmount) * 0.2
         ).toString();
 
+        referrerStatus.group_sales = (
+          Number(referrerStatus.group_sales) + orderAmount
+        ).toString();
         await this.userStatusRepository.save(referrerStatus);
       }
     } else {
@@ -506,13 +517,19 @@ export class UserStatusService {
           Number(orderAmount) * 0.06
         ).toString();
 
+        referrerOfReferrerStatus.group_sales = (
+          Number(referrerOfReferrerStatus.group_sales) + orderAmount
+        ).toString();
         await this.userStatusRepository.save(referrerOfReferrerStatus);
       }
     } else {
       console.log('User has no referrer of referrer');
     }
 
-    if (referrerOfReferrerOfReferrer && referrerOfReferrerOfReferrer.user_rank === UserRank.NVKD) {
+    if (
+      referrerOfReferrerOfReferrer &&
+      referrerOfReferrerOfReferrer.user_rank === UserRank.NVKD
+    ) {
       const referrerOfReferrerOfReferrerStatus =
         await this.userStatusRepository.findOne({
           where: { user: { id: referrerOfReferrerOfReferrer.id } },
@@ -525,6 +542,9 @@ export class UserStatusService {
           Number(orderAmount) * 0.03
         ).toString();
 
+        referrerOfReferrerOfReferrerStatus.group_sales = (
+          Number(referrerOfReferrerOfReferrerStatus.group_sales) + orderAmount
+        ).toString();
         await this.userStatusRepository.save(
           referrerOfReferrerOfReferrerStatus,
         );
@@ -532,6 +552,6 @@ export class UserStatusService {
         console.log('User has no referrer of referrer of referrer');
       }
     }
-    return {message: 'Commission calculated successfully'};
+    return { message: 'Commission calculated successfully' };
   }
 }
