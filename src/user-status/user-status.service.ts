@@ -70,7 +70,7 @@ export class UserStatusService {
    * ! CRON JOBS 2: Tính toán group_sales cuối tháng
    * ! TRUONG HOANG: Sửa ở đây nhé (0 54 11 * * *) 0 là giây, 54 phút, 11 giờ (11h54))
    */
-  @Cron('0 54 11 * * *', {
+  @Cron('0 30 11 * * *', {
     name: 'calculate-rank',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
