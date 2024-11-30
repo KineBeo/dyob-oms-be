@@ -14,6 +14,7 @@ import { UserRank } from 'src/enum/rank';
 import User from 'src/users/entities/user.entity';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { group } from 'console';
 
 @Injectable()
 export class UserStatusService {
@@ -60,98 +61,90 @@ export class UserStatusService {
     const allUserStatus = await this.userStatusRepository.find();
     allUserStatus.forEach(async (status) => {
       status.total_sales = '0';
+      status.group_sales = '0';
       await this.userStatusRepository.save(status);
     });
   }
 
   /**
-   * ! CRON JOBS 2: TÍNH TOÁN ĐỒNG CẤP VƯỢT CẤP (CUỐI THÁNG: 28 sẽ chạy, trong hàm handleCalculateOverrideCommission thì sẽ kiểm tra xem ngày hiện tại có phải là cuối tháng không, nếu có thì mới chạy)
+   * ! CRON JOBS 2: Tính toán group_sales cuối tháng
+   * ! TRUONG HOANG: Sửa ở đây nhé (0 54 11 * * *) 0 là giây, 54 phút, 11 giờ (11h54))
    */
-  // @Cron('0 30 7 * * *', {
-  //   name: 'calculate-rank',
-  //   timeZone: 'Asia/Ho_Chi_Minh',
-  // })
-  // async handleCalculateOverrideCommission() {
-  //   try {
-  //     if (this.isLastDayOfMonth()) {
-  //       this.logger.log('Call calculateOverrideCommissionMonthly');
-  //       this.calculateOverrideCommissionMonthly();
-  //     }
-  //   } catch (error) {
-  //     console.error('Error calculating override commission:', error);
-  //     throw new BadRequestException(
-  //       `Failed to calculate override commission: ${error.message}`,
-  //     );
-  //   }
-  // }
+  @Cron('0 54 11 * * *', {
+    name: 'calculate-rank',
+    timeZone: 'Asia/Ho_Chi_Minh',
+  })
+  async handleCalculateGroupCommission() {
+    try {
+      if (this.isLastDayOfMonth()) {
+        this.logger.log('Cuối tháng rồi em ơi');
+        // ! call here
+        this.calculateGroupSalesCommission();
+      }
+    } catch (error) {
+      console.error('Error calculating override commission:', error);
+      throw new BadRequestException(
+        `Failed to calculate override commission: ${error.message}`,
+      );
+    }
+  }
+  /**
+   * * Helper function to check if today is the last day of the month
+   * @returns
+   */
+  private isLastDayOfMonth(): boolean {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    console.log('Hôm nay', today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    console.log('Ngày mai', tomorrow);
 
-  // private isLastDayOfMonth(): boolean {
-  //   const today = new Date();
-  //   const tomorrow = new Date(today);
-  //   tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.getMonth() !== today.getMonth();
+  }
 
-  //   return tomorrow.getMonth() !== today.getMonth();
-  // }
+  /**
+   * * Helper function to calculate group sales commission percentage
+   * @param group_sales
+   * @returns
+   */
+  private calculateGroupSalesCommissionPercentage(group_sales: string): number {
+    const group_sales_number = Number(group_sales);
+    const group_sales_milestone_1 = 5000000;
+    const group_sales_milestone_2 = 50000000;
+    const group_sales_milestone_3 = 500000000;
+    if (group_sales_number >= group_sales_milestone_1) {
+      return 0.03;
+    } else if (group_sales_number >= group_sales_milestone_2) {
+      return 0.06;
+    } else if (group_sales_number >= group_sales_milestone_3) {
+      return 0.1;
+    }
+    return 0;
+  }
 
-  // async calculateOverrideCommissionMonthly() {
-  //   try {
-  //     const vietnamTime = new Date().toLocaleString('vi-VN', {
-  //       timeZone: 'Asia/Ho_Chi_Minh',
-  //     });
-  //     this.logger.log('Calculating override commission for all users', vietnamTime);
+  private async calculateGroupSalesCommission() {
+    const allUserStatus = await this.userStatusRepository.find();
+    allUserStatus.forEach(async (status) => {
+      const commissionPercentage = this.calculateGroupSalesCommissionPercentage(
+        status.group_sales,
+      );
+      console.log('commissionPercentage', commissionPercentage, 'of user', status.id);
+      status.commission = (
+        Number(status.commission) +
+        Number(status.group_sales) * commissionPercentage
+      ).toString();
+      await this.userStatusRepository.save(status);
 
-  //     // get all user statuses that have referrer
-  //     const userStatuses = await this.userStatusRepository.find({
-  //       relations: ['referrer'],
-  //       where: {
-  //         referrer: {
-  //           id: Not(IsNull()),
-  //         },
-  //       },
-  //     });
-
-  //     for (const userStatus of userStatuses) {
-  //       if (!userStatus.referrer) {
-  //         continue;
-  //       }
-
-  //       if (
-  //         this.isEqualOrHigherRank(
-  //           userStatus.user_rank,
-  //           userStatus.referrer.user_rank,
-  //         )
-  //       ) {
-  //         const refferrer = userStatus.referrer;
-  //         // TODO: Calculate the override commission for the referrer
-  //         const overrideCommission = Number(userStatus.total_sales) * 0.01;
-
-  //         // TODO: Update the referrer's commission
-  //         refferrer.commission = (
-  //           Number(refferrer.commission) + overrideCommission
-  //         ).toString();
-
-  //         // * MONITORING
-  //         this.logger.log(`Override commission calculated:`, {
-  //           referrerId: refferrer.id,
-  //           userId: userStatus.id,
-  //           userRank: userStatus.user_rank,
-  //           referrerRank: userStatus.referrer.user_rank,
-  //           userTotalSales: userStatus.total_sales,
-  //           overrideCommission: overrideCommission,
-  //           newConmission: refferrer.commission,
-  //         });
-
-  //         await this.userStatusRepository.save(userStatus.referrer);
-  //       }
-  //     }
-  //     console.log('Override commission calculation completed:', vietnamTime);
-  //   } catch (error) {
-  //     console.error('Error calculating override commission:', error);
-  //     throw new BadRequestException(
-  //       `Failed to calculate override commission: ${error.message}`,
-  //     );
-  //   }
-  // }
+      console.log(
+        'UserStatus:',
+        status.id,
+        'User group_sales:',
+        status.group_sales,
+        'commission:',
+        status.commission,
+      );
+    });
+  }
 
   private generateReferralCode(userId: number): string {
     const timestamp = Date.now().toString(36);
