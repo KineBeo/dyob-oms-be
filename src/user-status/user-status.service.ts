@@ -268,6 +268,7 @@ export class UserStatusService {
         total_purchase: userStatus.total_purchase,
         total_orders: userStatus.total_orders,
         total_sales: userStatus.total_sales,
+        group_sales: userStatus.group_sales,
         commission: userStatus.commission,
         last_rank_check: userStatus.last_rank_check,
         rank_achievement_date: userStatus.rank_achievement_date,
