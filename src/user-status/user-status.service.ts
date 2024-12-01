@@ -264,6 +264,7 @@ export class UserStatusService {
       return {
         id: userStatus.id,
         personal_referral_code: userStatus.personal_referral_code,
+        user_type: userStatus.user_type,
         total_purchase: userStatus.total_purchase,
         total_orders: userStatus.total_orders,
         total_sales: userStatus.total_sales,
