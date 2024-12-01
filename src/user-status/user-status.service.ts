@@ -15,6 +15,7 @@ import User from 'src/users/entities/user.entity';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { group } from 'console';
+import { UserType } from 'src/enum/user_type';
 
 @Injectable()
 export class UserStatusService {
@@ -182,6 +183,12 @@ export class UserStatusService {
       const userStatusWithReferralCode =
         await this.findUserStatusByReferralCode(referral_code_of_referrer);
 
+      let user_type = UserType.NORMAL;
+      if (userStatusWithReferralCode) {
+        user_type = UserType.AFFILIATE;
+      }
+      // console.log('User type:', user_type);
+
       const referralCode = this.generateReferralCode(user_id);
 
       const newUserStatus = this.userStatusRepository.create({
@@ -192,6 +199,7 @@ export class UserStatusService {
         total_sales: '0', // checked
         group_sales: '0', // checked
         commission: '0', // checked
+        user_type: user_type, // checked
         referrer: userStatusWithReferralCode || null, // checked
         user_rank: user_rank || UserRank.GUEST, // checked
       });

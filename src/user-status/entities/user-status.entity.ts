@@ -12,7 +12,7 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
-import { UserAddress } from 'src/user-address/entities/user-address.entity';
+import { UserType } from 'src/enum/user_type';
 
 @Entity()
 export class UserStatus {
@@ -40,6 +40,13 @@ export class UserStatus {
 
   @Column()
   commission: string;
+
+  @Column({
+    type: 'enum',
+    enum: UserType,
+    default: UserType.NORMAL,
+  })
+  user_type: UserType;
 
   /**
    * * Referral code của Người giới thiệu
