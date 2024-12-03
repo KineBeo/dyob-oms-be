@@ -72,7 +72,7 @@ export class UserStatusService {
    * ! CRON JOBS 2: Tính toán group_sales cuối tháng
    * ! TRUONG HOANG: Sửa ở đây nhé (0 57 16 * * *) 0 là giây, 54 phút, 11 giờ (11h54))
    */
-  @Cron('0 54 17 * * *', {
+  @Cron('0 0 7 * * *', {
     name: 'calculate-rank',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
@@ -134,6 +134,12 @@ export class UserStatusService {
     };
 
     const group_sales_number = Number(group_sales);
+    // console.log(
+    //   'group_sales_number',
+    //   group_sales_number,
+    //   'user_class',
+    //   user_class,
+    // );
     if (user_class === UserClass.BASIC) {
       if (
         group_sales_number >= group_sales_percentage[user_class].milestone_3
@@ -157,7 +163,9 @@ export class UserStatusService {
         return group_sales_percentage[user_class]
           .commission_percentage_milestone_1;
       }
-    } else if (user_class === UserClass.VIP) {
+    }
+
+    if (user_class === UserClass.VIP) {
       if (
         group_sales_number >= group_sales_percentage[user_class].milestone_3
       ) {
@@ -400,7 +408,7 @@ export class UserStatusService {
         ],
       });
 
-      console.log('userStatus', userStatus, '## end of userStatus ##');
+      // console.log('userStatus', userStatus, '## end of userStatus ##');
 
       if (!userStatus) {
         throw new Error(`UserStatus not found for user ${payload.userId}`);
@@ -591,9 +599,9 @@ export class UserStatusService {
     const referrerOfReferrer = userStatus.referrer?.referrer;
     const referrerOfReferrerOfReferrer =
       userStatus.referrer?.referrer?.referrer;
-    console.log('referrer', referrer);
-    console.log('referrerOfReferrer', referrerOfReferrer);
-    console.log('referrerOfReferrerOfReferrer', referrerOfReferrerOfReferrer);
+    // console.log('referrer', referrer);
+    // console.log('referrerOfReferrer', referrerOfReferrer);
+    // console.log('referrerOfReferrerOfReferrer', referrerOfReferrerOfReferrer);
 
     // TODO: Kiểm tra xem user có người giới thiệu không và cập nhật hoa hồng và doanh số cho người giới thiệu
     if (referrer && referrer.user_rank === UserRank.NVKD) {
