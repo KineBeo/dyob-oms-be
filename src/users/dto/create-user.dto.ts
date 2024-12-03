@@ -13,6 +13,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { Role } from '../../enum/role';
+import { UserClass } from 'src/enum/user-class';
 export class CreateUserDto {
   @ApiProperty({
     description: 'Họ và tên của người dùng',
@@ -71,6 +72,15 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   referral_code_of_referrer?: string;
+
+  @ApiProperty({
+    description: 'Gói dịch vụ người dùng chọn',
+    example: 'BASIC',
+    enum: UserClass,
+  })
+  @IsEnum(UserClass)
+  @IsOptional()
+  user_class?: UserClass;
 
   @ApiProperty({
     description: 'User role',

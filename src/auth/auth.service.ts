@@ -1,4 +1,9 @@
-import { BadRequestException, ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,6 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { UserStatusService } from '../user-status/user-status.service';
 import { UserRank } from 'src/enum/rank';
 import * as jwt from 'jsonwebtoken';
+import { UserClass } from 'src/enum/user-class';
 @Injectable()
 export class AuthService {
   constructor(
@@ -28,10 +34,11 @@ export class AuthService {
       const { referral_code_of_referrer } = createUserDto;
 
       // Create associated profiles
-      await this.userStatusService.create({ 
+      await this.userStatusService.create({
         user_id: user.id,
         referral_code_of_referrer: referral_code_of_referrer,
         user_rank: UserRank.GUEST,
+        user_class: createUserDto.user_class,
       });
 
       return {
@@ -39,30 +46,31 @@ export class AuthService {
           id: user.id,
           fullname: user.fullname,
           phone_number: user.phone_number,
-        }
+        },
       };
-
     } catch (error) {
       if (error instanceof ConflictException) {
         throw error;
       }
 
-      throw new BadRequestException(
-        'Registration failed: ' + error
-      );
+      throw new BadRequestException('Registration failed: ' + error);
     }
   }
 
   // * OK return access_token, refresh_token and user info. Delete all existing refresh tokens for the user when logging in
   async login(phone_number: string, password: string) {
     try {
-      const user = await this.usersService.findByPhoneNumberWithPassword(phone_number);
-      
+      const user =
+        await this.usersService.findByPhoneNumberWithPassword(phone_number);
+
       if (!user) {
         throw new UnauthorizedException('Invalid email or password');
       }
 
-      const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        user.password_hash,
+      );
       if (!isPasswordValid) {
         throw new UnauthorizedException('Invalid email or password');
       }
@@ -70,7 +78,9 @@ export class AuthService {
       // Invalidate all existing refresh tokens for the user
       await this.refreshTokenRepository.delete({ userId: user.id });
 
-      const {access_token, refresh_token} = await this.generateTokens(user.id);
+      const { access_token, refresh_token } = await this.generateTokens(
+        user.id,
+      );
       return {
         user: {
           id: user.id,
@@ -80,16 +90,19 @@ export class AuthService {
         },
         access_token,
         refresh_token,
-      }
+      };
     } catch (error) {
-      if (error instanceof ConflictException || error instanceof UnauthorizedException) {
+      if (
+        error instanceof ConflictException ||
+        error instanceof UnauthorizedException
+      ) {
         throw error;
       }
 
       throw new UnauthorizedException('Authentication failed: ' + error);
     }
   }
-  // * OK 
+  // * OK
   private async generateTokens(userId: number) {
     const [access_token, refresh_token] = await Promise.all([
       this.generateAccessToken(userId),
@@ -102,15 +115,18 @@ export class AuthService {
   private async generateAccessToken(userId: number): Promise<string> {
     const payload = { sub: userId };
     const token = await this.jwtService.signAsync(payload);
-    
+
     const decodedToken = jwt.decode(token) as { exp: number };
     const expirationTime = new Date(decodedToken.exp * 1000);
     console.log(`Token of user ${userId} expires at: ${expirationTime}`); // xoá sau khi test xong
 
     // Schedule a log when the token expires
-    setTimeout(() => {
-      console.log(`Token for user ${userId} has expired at: ${new Date()}`);
-    }, decodedToken.exp * 1000 - Date.now());
+    setTimeout(
+      () => {
+        console.log(`Token for user ${userId} has expired at: ${new Date()}`);
+      },
+      decodedToken.exp * 1000 - Date.now(),
+    );
 
     return token;
   }
@@ -135,12 +151,14 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const { access_token, refresh_token } = await this.generateTokens(token.userId);
+    const { access_token, refresh_token } = await this.generateTokens(
+      token.userId,
+    );
     await this.refreshTokenRepository.delete({ token: refreshToken });
 
-    return { 
+    return {
       access_token,
-      refresh_token
+      refresh_token,
     };
   }
 

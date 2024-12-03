@@ -16,6 +16,7 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { group } from 'console';
 import { UserType } from 'src/enum/user_type';
+import { UserClass } from 'src/enum/user-class';
 
 @Injectable()
 export class UserStatusService {
@@ -69,9 +70,9 @@ export class UserStatusService {
 
   /**
    * ! CRON JOBS 2: Tính toán group_sales cuối tháng
-   * ! TRUONG HOANG: Sửa ở đây nhé (0 54 11 * * *) 0 là giây, 54 phút, 11 giờ (11h54))
+   * ! TRUONG HOANG: Sửa ở đây nhé (0 57 16 * * *) 0 là giây, 54 phút, 11 giờ (11h54))
    */
-  @Cron('0 30 11 * * *', {
+  @Cron('0 0 7 * * *', {
     name: 'calculate-rank',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
@@ -100,6 +101,7 @@ export class UserStatusService {
     tomorrow.setDate(tomorrow.getDate() + 1);
     console.log('Ngày mai', tomorrow);
 
+    // return true;
     return tomorrow.getMonth() !== today.getMonth();
   }
 
@@ -108,18 +110,94 @@ export class UserStatusService {
    * @param group_sales
    * @returns
    */
-  private calculateGroupSalesCommissionPercentage(group_sales: string): number {
+  private calculateGroupSalesCommissionPercentage(
+    group_sales: string,
+    user_class: UserClass,
+  ): number {
+    const group_sales_percentage = {
+      [UserClass.BASIC]: {
+        milestone_1: 5000000,
+        milestone_2: 50000000,
+        milestone_3: 500000000,
+        commission_percentage_milestone_1: 0.03,
+        commission_percentage_milestone_2: 0.06,
+        commission_percentage_milestone_3: 0.1,
+      },
+      [UserClass.VIP]: {
+        milestone_1: 60000000,
+        milestone_2: 120000000,
+        milestone_3: 500000000,
+        commission_percentage_milestone_1: 0.05,
+        commission_percentage_milestone_2: 0.1,
+        commission_percentage_milestone_3: 0.15,
+      },
+    };
+
     const group_sales_number = Number(group_sales);
-    const group_sales_milestone_1 = 5000000;
-    const group_sales_milestone_2 = 50000000;
-    const group_sales_milestone_3 = 500000000;
-    if (group_sales_number >= group_sales_milestone_1) {
-      return 0.03;
-    } else if (group_sales_number >= group_sales_milestone_2) {
-      return 0.06;
-    } else if (group_sales_number >= group_sales_milestone_3) {
-      return 0.1;
+    // console.log(
+    //   'group_sales_number',
+    //   group_sales_number,
+    //   'user_class',
+    //   user_class,
+    // );
+    if (user_class === UserClass.BASIC) {
+      if (
+        group_sales_number >= group_sales_percentage[user_class].milestone_3
+      ) {
+        return group_sales_percentage[user_class]
+          .commission_percentage_milestone_3;
+      }
+
+      if (
+        group_sales_number >= group_sales_percentage[user_class].milestone_2 &&
+        group_sales_number < group_sales_percentage[user_class].milestone_3
+      ) {
+        return group_sales_percentage[user_class]
+          .commission_percentage_milestone_2;
+      }
+
+      if (
+        group_sales_number >= group_sales_percentage[user_class].milestone_1 &&
+        group_sales_number < group_sales_percentage[user_class].milestone_2
+      ) {
+        return group_sales_percentage[user_class]
+          .commission_percentage_milestone_1;
+      }
     }
+
+    if (user_class === UserClass.VIP) {
+      if (
+        group_sales_number >= group_sales_percentage[user_class].milestone_3
+      ) {
+        return group_sales_percentage[user_class]
+          .commission_percentage_milestone_3;
+      }
+
+      if (
+        group_sales_number >= group_sales_percentage[user_class].milestone_2
+      ) {
+        return group_sales_percentage[user_class]
+          .commission_percentage_milestone_2;
+      }
+
+      if (
+        group_sales_number >= group_sales_percentage[user_class].milestone_1
+      ) {
+        return group_sales_percentage[user_class]
+          .commission_percentage_milestone_1;
+      }
+    }
+
+    // const group_sales_milestone_1 = 5000000;
+    // const group_sales_milestone_2 = 50000000;
+    // const group_sales_milestone_3 = 500000000;
+    // if (group_sales_number >= group_sales_milestone_1) {
+    //   return 0.03;
+    // } else if (group_sales_number >= group_sales_milestone_2) {
+    //   return 0.06;
+    // } else if (group_sales_number >= group_sales_milestone_3) {
+    //   return 0.1;
+    // }
     return 0;
   }
 
@@ -128,8 +206,14 @@ export class UserStatusService {
     allUserStatus.forEach(async (status) => {
       const commissionPercentage = this.calculateGroupSalesCommissionPercentage(
         status.group_sales,
+        status.user_class,
       );
-      console.log('commissionPercentage', commissionPercentage, 'of user', status.id);
+      console.log(
+        'commissionPercentage',
+        commissionPercentage,
+        'of user',
+        status.id,
+      );
       status.commission = (
         Number(status.commission) +
         Number(status.group_sales) * commissionPercentage
@@ -143,6 +227,8 @@ export class UserStatusService {
         status.group_sales,
         'commission:',
         status.commission,
+        'commissionPercentage:',
+        commissionPercentage,
       );
     });
   }
@@ -160,7 +246,7 @@ export class UserStatusService {
    */
   async create(createUserStatusDto: CreateUserStatusDto) {
     try {
-      const { user_id, user_rank, referral_code_of_referrer } =
+      const { user_id, user_rank, referral_code_of_referrer, user_class } =
         createUserStatusDto;
 
       // * Check if user status already exists
@@ -183,6 +269,14 @@ export class UserStatusService {
       const userStatusWithReferralCode =
         await this.findUserStatusByReferralCode(referral_code_of_referrer);
 
+      // * Nếu user có referrer thì user-class phải được điền
+      if (
+        userStatusWithReferralCode &&
+        (user_class === null || user_class === undefined)
+      ) {
+        throw new BadRequestException('User class is required');
+      }
+
       let user_type = UserType.NORMAL;
       if (userStatusWithReferralCode) {
         user_type = UserType.AFFILIATE;
@@ -200,6 +294,7 @@ export class UserStatusService {
         group_sales: '0', // checked
         commission: '0', // checked
         user_type: user_type, // checked
+        user_class: user_class, // checked
         referrer: userStatusWithReferralCode || null, // checked
         user_rank: user_rank || UserRank.GUEST, // checked
       });
@@ -313,7 +408,7 @@ export class UserStatusService {
         ],
       });
 
-      // console.log('userStatus', userStatus, "## end of userStatus ##");
+      // console.log('userStatus', userStatus, '## end of userStatus ##');
 
       if (!userStatus) {
         throw new Error(`UserStatus not found for user ${payload.userId}`);
@@ -451,14 +546,40 @@ export class UserStatusService {
     // }
     if (
       userStatus.user_rank === UserRank.GUEST &&
+      userStatus.user_class === UserClass.BASIC &&
       Number(userStatus.total_purchase) >= 500000
     ) {
-      console.log('đã vào NVKD');
+      console.log('đã vào NVKD với quyền lợi BASIC');
+      return UserRank.NVKD;
+    }
+
+    if (
+      userStatus.user_rank === UserRank.GUEST &&
+      userStatus.user_class === UserClass.VIP &&
+      Number(userStatus.total_purchase) >= 3000000
+    ) {
+      console.log('đã vào NVKD với quyền lợi VIP');
       return UserRank.NVKD;
     }
 
     // TODO: trả về rank ban đầu
     return userStatus.user_rank;
+  }
+
+  private calculateCommissionPercentage(
+    user_class: UserClass,
+    upperLevel: number,
+  ) {
+    const basicCommissionPercentage = [0.2, 0.06, 0.03];
+    const vipCommissionPercentage = [0.25, 0.09, 0.06];
+
+    if (user_class === UserClass.BASIC) {
+      return basicCommissionPercentage[upperLevel - 1];
+    } else if (user_class === UserClass.VIP) {
+      return vipCommissionPercentage[upperLevel - 1];
+    }
+
+    return 0;
   }
 
   /**
@@ -496,7 +617,8 @@ export class UserStatusService {
 
         referrerStatus.commission = (
           Number(referrerStatus.commission) +
-          Number(orderAmount) * 0.2
+          Number(orderAmount) *
+            this.calculateCommissionPercentage(referrerStatus.user_class, 1)
         ).toString();
 
         referrerStatus.group_sales = (
@@ -517,7 +639,11 @@ export class UserStatusService {
       if (referrerOfReferrerStatus) {
         referrerOfReferrerStatus.commission = (
           Number(referrerOfReferrerStatus.commission) +
-          Number(orderAmount) * 0.06
+          Number(orderAmount) *
+            this.calculateCommissionPercentage(
+              referrerOfReferrerStatus.user_class,
+              2,
+            )
         ).toString();
 
         referrerOfReferrerStatus.group_sales = (
@@ -542,7 +668,11 @@ export class UserStatusService {
       if (referrerOfReferrerOfReferrerStatus) {
         referrerOfReferrerOfReferrerStatus.commission = (
           Number(referrerOfReferrerOfReferrerStatus.commission) +
-          Number(orderAmount) * 0.03
+          Number(orderAmount) *
+            this.calculateCommissionPercentage(
+              referrerOfReferrerOfReferrerStatus.user_class,
+              3,
+            )
         ).toString();
 
         referrerOfReferrerOfReferrerStatus.group_sales = (

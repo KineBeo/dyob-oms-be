@@ -13,6 +13,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { UserType } from 'src/enum/user_type';
+import { UserClass } from 'src/enum/user-class';
 
 @Entity()
 export class UserStatus {
@@ -47,6 +48,13 @@ export class UserStatus {
     default: UserType.NORMAL,
   })
   user_type: UserType;
+
+  @Column({
+    type: 'enum',
+    enum: UserClass,
+    default: UserClass.NONE,
+  })
+  user_class: UserClass;
 
   /**
    * * Referral code của Người giới thiệu
