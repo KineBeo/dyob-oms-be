@@ -409,10 +409,10 @@ export class UserStatusService {
       const processReferralLevel = (referrals) => {
         return referrals.map((referral) => ({
           id: referral.id,
-          personal_referral_code: referral.personal_referral_code,
-          user_rank: referral.user_rank,
-          total_sales: referral.total_sales,
           fullname: referral.user?.fullname || null,
+          user_rank: referral.user_rank,
+          total_purchase: referral.total_purchase,
+          total_sales: referral.total_sales,
           referrals: referral.referrals
             ? processReferralLevel(referral.referrals)
             : [],
