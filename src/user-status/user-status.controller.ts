@@ -58,7 +58,7 @@ export class UserStatusController {
   @Get('referrer/:id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Get user status by referrer id' })
+  @ApiOperation({ summary: 'Get 4 level referrals user status' })
   findByReferrerId(@Param('id') id: number, @Request() req) {
     if (Number(req.user.sub) !== Number(id)) {
       throw new ForbiddenException(
