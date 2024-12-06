@@ -384,6 +384,52 @@ export class UserStatusService {
     }
   }
 
+  async findReferralLevels(id: number) {
+    try {
+      // Tìm kiếm user status với mối quan hệ ban đầu
+      const userStatus = await this.userStatusRepository.findOne({
+        where: { id },
+        relations: [
+          'referrals',
+          'referrals.user',
+          'referrals.referrals',
+          'referrals.referrals.user',
+          'referrals.referrals.referrals',
+          'referrals.referrals.referrals.user',
+          'referrals.referrals.referrals.referrals',
+          'referrals.referrals.referrals.referrals.user',
+        ],
+      });
+
+      if (!userStatus) {
+        throw new NotFoundException('User status not found');
+      }
+
+      // Hàm để xử lý từng cấp referral
+      const processReferralLevel = (referrals) => {
+        return referrals.map((referral) => ({
+          id: referral.id,
+          fullname: referral.user?.fullname || null,
+          user_rank: referral.user_rank,
+          total_purchase: referral.total_purchase,
+          total_sales: referral.total_sales,
+          referrals: referral.referrals
+            ? processReferralLevel(referral.referrals)
+            : [],
+        }));
+      };
+
+      // Xử lý các tầng referral
+      const processedReferrals = processReferralLevel(userStatus.referrals);
+
+      return processedReferrals;
+    } catch (error) {
+      throw new BadRequestException(
+        'Something went wrong from find referral levels service',
+      );
+    }
+  }
+
   update(id: number, updateUserStatusDto: UpdateUserStatusDto) {
     return `This action updates a #${id} userStatus`;
   }
