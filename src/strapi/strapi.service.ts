@@ -120,7 +120,7 @@ export class StrapiService {
             price: product.Price?.toString() || '0',
             description: product.Product_details?.toString() || 'nothing',
             category: category, // Set the entire category object instead of just the ID
-            stock: 0,
+            stock: product.stock || 0,
             attributes: {}, 
             type: 'nothing',
           };
