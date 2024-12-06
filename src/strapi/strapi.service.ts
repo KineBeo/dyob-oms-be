@@ -93,7 +93,7 @@ export class StrapiService {
   async syncProducts(): Promise<void> {
     try {
       const strapiProducts = await this.fetchFromStrapi<any>(
-        'products?fields=id,Name,Price,slug,Product_details&populate[Main_image][fields]=width, height, provider_metadata&populate[Sub_images][fields]=width, height, provider_metadata&populate[category][fields]=name'
+        'products?fields=id,Name,Price,slug,Product_details, stock&populate[category][fields]=name'
       );
       console.log('Fetched products from Strapi:', JSON.stringify(strapiProducts, null, 2));
   
