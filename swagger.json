@@ -1,0 +1,2287 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/users": {
+      "post": {
+        "operationId": "UsersController_create",
+        "summary": "ADMIN: Create a user",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The user has been successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "UsersController_findAll",
+        "summary": "ADMIN: Get all users",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Return all users.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/users/id/{id}": {
+      "get": {
+        "operationId": "UsersController_findOne",
+        "summary": "Find a user by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_update",
+        "summary": "Update a user by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_remove",
+        "summary": "ADMIN: Delete a user by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/users/phone": {
+      "get": {
+        "operationId": "UsersController_findByPhone",
+        "summary": "ADMIN: Find a user by phone number",
+        "parameters": [
+          {
+            "name": "phone_number",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return the user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found."
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/orders": {
+      "post": {
+        "operationId": "OrdersController_create",
+        "summary": "Create an order",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "OrdersController_findAll",
+        "summary": "ADMIN: Get all orders",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/orders/id/updateOrderAdmin/{id}": {
+      "patch": {
+        "operationId": "OrdersController_updateStatusAdmin",
+        "summary": "ADMIN: Update an order status by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/orders/id/getOrder/{id}": {
+      "get": {
+        "operationId": "OrdersController_findOne",
+        "summary": "ADMIN: Find an order by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/orders/user/getAll/{user_id}": {
+      "get": {
+        "operationId": "OrdersController_findAllByUserId",
+        "summary": "Find all orders by user id",
+        "parameters": [
+          {
+            "name": "user_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/orders/id/updateOrder/{id}": {
+      "patch": {
+        "operationId": "OrdersController_update",
+        "summary": "Update an order by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/orders/id/{id}": {
+      "delete": {
+        "operationId": "OrdersController_remove",
+        "summary": "ADMIN: Delete an order by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "orders"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/cart": {
+      "post": {
+        "operationId": "CartController_addToCart",
+        "summary": "Add to cart",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCartDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "cart"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/cart/id/{id}": {
+      "get": {
+        "operationId": "CartController_getCart",
+        "summary": "Get cart by user id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "cart"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "CartController_clearCart",
+        "summary": "Clear cart of user with id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "cart"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "CartController_updateCartItem",
+        "summary": "Update cart item quantity of user with id",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCartDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "cart"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/cart/all": {
+      "get": {
+        "operationId": "CartController_getAllCarts",
+        "summary": "Get all carts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "cart"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/cart/all/id/{id}/product/{productId}": {
+      "delete": {
+        "operationId": "CartController_removeFromCart",
+        "summary": "Remove product from cart of user with id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "cart"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/products": {
+      "post": {
+        "operationId": "ProductsController_create",
+        "summary": "ADMIN: Create a product",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "products"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "ProductsController_findAll",
+        "summary": "Get all products",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/products/{id}": {
+      "get": {
+        "operationId": "ProductsController_findOne",
+        "summary": "Find a product by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "products"
+        ]
+      },
+      "patch": {
+        "operationId": "ProductsController_update",
+        "summary": "ADMIN: Update a product by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "products"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "ProductsController_remove",
+        "summary": "ADMIN: Delete a product by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "products"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/products/byName/{name}": {
+      "get": {
+        "operationId": "ProductsController_findByName",
+        "summary": "Find a product by name",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/order-product": {
+      "post": {
+        "operationId": "OrderProductController_create",
+        "summary": "ADMIN: Create an order product",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "order-product"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "OrderProductController_findAll",
+        "summary": "ADMIN: Get all order products",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "order-product"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/order-product/{id}": {
+      "get": {
+        "operationId": "OrderProductController_findOne",
+        "summary": "ADMIN: Find an order product by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "order-product"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "OrderProductController_update",
+        "summary": "ADMIN: Update an order product by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "order-product"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "OrderProductController_remove",
+        "summary": "ADMIN: Delete an order product by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "order-product"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/user-status": {
+      "post": {
+        "operationId": "UserStatusController_create",
+        "summary": "ADMIN: Create user status",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "user-status"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "UserStatusController_findAll",
+        "summary": "ADMIN: Get all user status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "user-status"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/user-status/{id}": {
+      "get": {
+        "operationId": "UserStatusController_findOne",
+        "summary": "Get user status by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "user-status"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "UserStatusController_update",
+        "summary": "Update user status by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "user-status"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "UserStatusController_remove",
+        "summary": "ADMIN: Delete user status by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "user-status"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/user-status/referrer/{id}": {
+      "get": {
+        "operationId": "UserStatusController_findByReferrerId",
+        "summary": "Get 4 level referrals user status",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "user-status"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/user-address": {
+      "post": {
+        "operationId": "UserAddressController_create",
+        "summary": "Create an address",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserAddressDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "User Address"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "UserAddressController_findAll",
+        "summary": "ADMIN: Get all addresses",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "User Address"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/user-address/user/{id}": {
+      "get": {
+        "operationId": "UserAddressController_findOne",
+        "summary": "Get all addresses of a user",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "User Address"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/user-address/default/{id}": {
+      "get": {
+        "operationId": "UserAddressController_findDefault",
+        "summary": "Get default address of a user",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "User Address"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/user-address/{id}": {
+      "patch": {
+        "operationId": "UserAddressController_update",
+        "summary": "Update an address",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserAddressDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "User Address"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "UserAddressController_remove",
+        "summary": "Delete an address",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "User Address"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/product-category": {
+      "post": {
+        "operationId": "ProductCategoryController_create",
+        "summary": "ADMIN: Create a product category",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "product-category"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "ProductCategoryController_findAll",
+        "summary": "Get all product categories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "product-category"
+        ]
+      }
+    },
+    "/product-category/{id}": {
+      "get": {
+        "operationId": "ProductCategoryController_findOne",
+        "summary": "Find a product category by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "product-category"
+        ]
+      },
+      "patch": {
+        "operationId": "ProductCategoryController_update",
+        "summary": "ADMIN: Update a product category by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "product-category"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "ProductCategoryController_remove",
+        "summary": "ADMIN: Delete a product category by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "product-category"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/strapi/sync": {
+      "post": {
+        "operationId": "StrapiController_syncStrapi",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "strapi"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/strapi": {
+      "post": {
+        "operationId": "StrapiController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStrapiDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "strapi"
+        ]
+      },
+      "get": {
+        "operationId": "StrapiController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "strapi"
+        ]
+      }
+    },
+    "/strapi/{id}": {
+      "get": {
+        "operationId": "StrapiController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "strapi"
+        ]
+      },
+      "patch": {
+        "operationId": "StrapiController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStrapiDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "strapi"
+        ]
+      },
+      "delete": {
+        "operationId": "StrapiController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "strapi"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "summary": "Register new user",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User successfully registered."
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "summary": "Login user",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User successfully logged in."
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refreshToken",
+        "summary": "Refresh access token",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token successfully refreshed."
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "summary": "Logout user",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "User successfully logged out."
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "AuthController_getProfile",
+        "summary": "Get current user profile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns the current user profile."
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "NestJS API",
+    "description": "API Documentation",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "JWT-auth": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "name": "JWT",
+        "description": "Enter JWT token",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "fullname": {
+            "type": "string",
+            "description": "Họ và tên của người dùng",
+            "example": "Nguyễn Văn A",
+            "minLength": 6,
+            "maxLength": 50
+          },
+          "phone_number": {
+            "type": "string",
+            "description": "Số điện thoại Việt Nam",
+            "example": "0123456789",
+            "minLength": 10,
+            "maxLength": 10
+          },
+          "password_hash": {
+            "type": "string",
+            "description": "Mật khẩu với các yêu cầu cụ thể",
+            "example": "StrongP@ssw0rd!"
+          },
+          "referral_code_of_referrer": {
+            "type": "string",
+            "description": "Mã giới thiệu từ người giới thiệu",
+            "example": "DEFAULT_1"
+          },
+          "user_class": {
+            "type": "string",
+            "description": "Gói dịch vụ người dùng chọn",
+            "example": "BASIC",
+            "enum": [
+              "NONE",
+              "BASIC",
+              "VIP"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "description": "User role",
+            "enum": [
+              "ADMIN",
+              "USER"
+            ],
+            "default": "USER"
+          }
+        },
+        "required": [
+          "fullname",
+          "phone_number",
+          "password_hash",
+          "referral_code_of_referrer",
+          "user_class"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "fullname": {
+            "type": "string",
+            "example": "Your changed name"
+          },
+          "phone_number": {
+            "type": "string",
+            "example": "0123456789"
+          },
+          "password_hash": {
+            "type": "string",
+            "example": "Your changed password"
+          }
+        }
+      },
+      "CreateOrderDto": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "number",
+            "description": "user_id",
+            "example": 1
+          },
+          "referral_code_of_referrer": {
+            "type": "string",
+            "description": "referral_code_of_referrer",
+            "example": "DEFAULT_1",
+            "nullable": true
+          },
+          "shipping_address_id": {
+            "type": "number",
+            "description": "address",
+            "example": "1"
+          }
+        },
+        "required": [
+          "user_id",
+          "shipping_address_id"
+        ]
+      },
+      "OrderStatus": {
+        "type": "string",
+        "description": "Status of the order",
+        "enum": [
+          "NOT_START_YET",
+          "ON_GOING",
+          "COMPLETED"
+        ]
+      },
+      "UpdateOrderStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "example": "NOT_START_YET",
+            "$ref": "#/components/schemas/OrderStatus"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "UpdateOrderDto": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "number",
+            "description": "user_id",
+            "example": 1
+          },
+          "shipping_address_id": {
+            "type": "number",
+            "description": "address",
+            "example": "123 ABC street"
+          },
+          "status": {
+            "type": "string",
+            "description": "status",
+            "default": "NOT_START_YET"
+          }
+        },
+        "required": [
+          "user_id",
+          "shipping_address_id",
+          "status"
+        ]
+      },
+      "CreateCartDto": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "number",
+            "description": "user_id",
+            "example": 1
+          },
+          "product_id": {
+            "type": "number",
+            "description": "productId",
+            "example": 1
+          },
+          "quantity": {
+            "type": "number",
+            "description": "quantity",
+            "example": 1
+          }
+        },
+        "required": [
+          "user_id",
+          "product_id",
+          "quantity"
+        ]
+      },
+      "UpdateCartDto": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "number",
+            "description": "user_id",
+            "example": 1
+          },
+          "product_id": {
+            "type": "number",
+            "description": "productId",
+            "example": 1
+          },
+          "quantity": {
+            "type": "number",
+            "description": "quantity",
+            "example": 1
+          }
+        },
+        "required": [
+          "user_id",
+          "product_id",
+          "quantity"
+        ]
+      },
+      "CreateProductDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "name",
+            "example": "Iphone 16"
+          },
+          "description": {
+            "type": "string",
+            "description": "description",
+            "example": "This is a phone"
+          },
+          "price": {
+            "type": "string",
+            "description": "price",
+            "example": "1000000"
+          },
+          "stock": {
+            "type": "number",
+            "description": "stock",
+            "example": 100
+          },
+          "category_id": {
+            "type": "number",
+            "description": "category_id",
+            "example": 1
+          },
+          "type": {
+            "type": "string",
+            "description": "type",
+            "example": "phone"
+          },
+          "attributes": {
+            "type": "object",
+            "description": "attributes",
+            "example": {
+              "color": "red",
+              "size": "large"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "price",
+          "stock",
+          "category_id",
+          "type",
+          "attributes"
+        ]
+      },
+      "UpdateProductDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "name",
+            "example": "Iphone 16"
+          },
+          "description": {
+            "type": "string",
+            "description": "description",
+            "example": "This is a phone"
+          },
+          "price": {
+            "type": "string",
+            "description": "price",
+            "example": "1000000"
+          },
+          "stock": {
+            "type": "number",
+            "description": "stock",
+            "example": 100
+          },
+          "category_id": {
+            "type": "number",
+            "description": "category_id",
+            "example": 1
+          },
+          "type": {
+            "type": "string",
+            "description": "type",
+            "example": "phone"
+          },
+          "attributes": {
+            "type": "object",
+            "description": "attributes",
+            "example": {
+              "color": "red",
+              "size": "large"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "price",
+          "stock",
+          "category_id",
+          "type",
+          "attributes"
+        ]
+      },
+      "CreateOrderProductDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number",
+            "description": "The id of the order",
+            "example": 1
+          },
+          "product_id": {
+            "type": "number",
+            "description": "The id of the product",
+            "example": 1
+          },
+          "quantity": {
+            "type": "number",
+            "description": "The quantity of the product",
+            "example": 1
+          },
+          "price": {
+            "type": "string",
+            "description": "The price of the product",
+            "example": "100000"
+          }
+        },
+        "required": [
+          "order_id",
+          "product_id",
+          "quantity",
+          "price"
+        ]
+      },
+      "UpdateOrderProductDto": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number",
+            "description": "The id of the order",
+            "example": 1
+          },
+          "product_id": {
+            "type": "number",
+            "description": "The id of the product",
+            "example": 1
+          },
+          "quantity": {
+            "type": "number",
+            "description": "The quantity of the product",
+            "example": 1
+          },
+          "price": {
+            "type": "string",
+            "description": "The price of the product",
+            "example": "100000"
+          }
+        },
+        "required": [
+          "order_id",
+          "product_id",
+          "quantity",
+          "price"
+        ]
+      },
+      "CreateUserStatusDto": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "number",
+            "description": "User ID",
+            "example": 1
+          },
+          "referral_code_of_referrer": {
+            "type": "string",
+            "description": "referral code of referrer",
+            "example": "DEFAULT_1"
+          },
+          "user_rank": {
+            "type": "string",
+            "description": "User rank",
+            "enum": [
+              "GUEST",
+              "NVKD",
+              "TPKD",
+              "GDKD",
+              "GDV",
+              "GDKV"
+            ],
+            "example": "GUEST"
+          },
+          "user_class": {
+            "type": "string",
+            "description": "User class",
+            "example": "BASIC",
+            "enum": [
+              "NONE",
+              "BASIC",
+              "VIP"
+            ]
+          }
+        },
+        "required": [
+          "user_id",
+          "referral_code_of_referrer",
+          "user_rank",
+          "user_class"
+        ]
+      },
+      "UpdateUserStatusDto": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "number",
+            "description": "User ID",
+            "example": 1
+          },
+          "referral_code_of_referrer": {
+            "type": "string",
+            "description": "referral code of referrer",
+            "example": "DEFAULT_1"
+          },
+          "user_rank": {
+            "type": "string",
+            "description": "User rank",
+            "enum": [
+              "GUEST",
+              "NVKD",
+              "TPKD",
+              "GDKD",
+              "GDV",
+              "GDKV"
+            ],
+            "example": "GUEST"
+          },
+          "user_class": {
+            "type": "string",
+            "description": "User class",
+            "example": "BASIC",
+            "enum": [
+              "NONE",
+              "BASIC",
+              "VIP"
+            ]
+          }
+        },
+        "required": [
+          "user_id",
+          "referral_code_of_referrer",
+          "user_rank",
+          "user_class"
+        ]
+      },
+      "CreateUserAddressDto": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "number",
+            "description": "user_id",
+            "example": 1
+          },
+          "receiver_name": {
+            "type": "string",
+            "description": "Full name of the user",
+            "example": "John Doe",
+            "minLength": 6,
+            "maxLength": 50
+          },
+          "phone_number": {
+            "type": "string",
+            "description": "phone_number",
+            "example": "0123456789"
+          },
+          "province": {
+            "type": "string",
+            "description": "province",
+            "example": "Hanoi"
+          },
+          "district": {
+            "type": "string",
+            "description": "district",
+            "example": "Cau Giay"
+          },
+          "ward": {
+            "type": "string",
+            "description": "ward",
+            "example": "Dich Vong Hau"
+          },
+          "street_address": {
+            "type": "string",
+            "description": "street_address",
+            "example": "123 ABC street"
+          },
+          "notes": {
+            "type": "string",
+            "description": "notes",
+            "example": "Near the park",
+            "nullable": true
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "is_default",
+            "example": false,
+            "nullable": true
+          }
+        },
+        "required": [
+          "user_id",
+          "receiver_name",
+          "phone_number",
+          "province",
+          "district",
+          "ward",
+          "street_address"
+        ]
+      },
+      "UpdateUserAddressDto": {
+        "type": "object",
+        "properties": {
+          "receiver_name": {
+            "type": "string",
+            "description": "Full name of the user",
+            "example": "John Doe",
+            "minLength": 6,
+            "maxLength": 50
+          },
+          "phone_number": {
+            "type": "string",
+            "description": "phone_number",
+            "example": "0123456789"
+          },
+          "province": {
+            "type": "string",
+            "description": "province",
+            "example": "Hanoi"
+          },
+          "district": {
+            "type": "string",
+            "description": "district",
+            "example": "Cau Giay"
+          },
+          "ward": {
+            "type": "string",
+            "description": "ward",
+            "example": "Dich Vong Hau"
+          },
+          "street_address": {
+            "type": "string",
+            "description": "street_address",
+            "example": "123 ABC street"
+          },
+          "notes": {
+            "type": "string",
+            "description": "notes",
+            "example": "Near the park",
+            "nullable": true
+          },
+          "is_default": {
+            "type": "boolean",
+            "description": "is_default",
+            "example": false,
+            "nullable": true
+          }
+        },
+        "required": [
+          "receiver_name",
+          "phone_number",
+          "province",
+          "district",
+          "ward",
+          "street_address"
+        ]
+      },
+      "CreateProductCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the product category",
+            "example": "Electronics"
+          },
+          "description": {
+            "type": "string",
+            "description": "The description of the product category",
+            "example": "This category contains all electronic devices"
+          },
+          "parent_id": {
+            "type": "number",
+            "description": "The ID of the parent category",
+            "example": 1
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateProductCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the product category",
+            "example": "Electronics"
+          },
+          "description": {
+            "type": "string",
+            "description": "The description of the product category",
+            "example": "This category contains all electronic devices"
+          },
+          "parent_id": {
+            "type": "number",
+            "description": "The ID of the parent category",
+            "example": 1
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreateStrapiDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateStrapiDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "phone_number": {
+            "type": "string",
+            "description": "phone number",
+            "example": "0123456789"
+          },
+          "password": {
+            "type": "string",
+            "description": "password",
+            "example": "StrongP@ssw0rd!"
+          }
+        },
+        "required": [
+          "phone_number",
+          "password"
+        ]
+      },
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "Refresh token",
+            "example": "eyJhbGci"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      }
+    }
+  }
+}

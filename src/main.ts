@@ -4,6 +4,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { json, urlencoded } from 'express';
+import { writeFileSync } from 'fs';
+import { join } from 'path';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
@@ -30,6 +32,13 @@ async function bootstrap() {
       persistAuthorization: true,
     }
   });
+
+  // Write the swagger.json file to the filesystem
+  writeFileSync(
+    join(process.cwd(), 'swagger.json'),
+    JSON.stringify(document, null, 2)
+  );
+  
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
   app.use(json({ limit: '50mb' }));
