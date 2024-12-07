@@ -64,32 +64,38 @@ export class UserStatusService {
     allUserStatus.forEach(async (status) => {
       status.total_sales = '0';
       status.group_sales = '0';
+      status.commission = (
+        Number(status.commission) + Number(status.group_commission)
+      ).toString();
+      status.group_commission = '0';
       await this.userStatusRepository.save(status);
     });
   }
 
-  /**
-   * ! CRON JOBS 2: Tính toán group_sales cuối tháng
-   * ! TRUONG HOANG: Sửa ở đây nhé (0 57 16 * * *) 0 là giây, 54 phút, 11 giờ (11h54))
-   */
-  @Cron('0 0 7 * * *', {
-    name: 'calculate-rank',
-    timeZone: 'Asia/Ho_Chi_Minh',
-  })
-  async handleCalculateGroupCommission() {
-    try {
-      if (this.isLastDayOfMonth()) {
-        this.logger.log('Cuối tháng rồi em ơi');
-        // ! call here
-        this.calculateGroupSalesCommission();
-      }
-    } catch (error) {
-      console.error('Error calculating override commission:', error);
-      throw new BadRequestException(
-        `Failed to calculate override commission: ${error.message}`,
-      );
-    }
-  }
+  // KHông cần nữa vì tính luôn khi mua hàng
+  // /**
+  //  * ! CRON JOBS 2: Tính toán group_sales cuối tháng
+  //  * ! TRUONG HOANG: Sửa ở đây nhé (0 57 16 * * *) 0 là giây, 54 phút, 11 giờ (11h54))
+  //  */
+  // @Cron('0 0 7 * * *', {
+  //   name: 'calculate-rank',
+  //   timeZone: 'Asia/Ho_Chi_Minh',
+  // })
+  // async handleCalculateGroupCommission() {
+  //   try {
+  //     if (this.isLastDayOfMonth()) {
+  //       this.logger.log('Cuối tháng rồi em ơi');
+  //       // ! call here
+  //       this.calculateGroupSalesCommission();
+  //     }
+  //   } catch (error) {
+  //     console.error('Error calculating override commission:', error);
+  //     throw new BadRequestException(
+  //       `Failed to calculate override commission: ${error.message}`,
+  //     );
+  //   }
+  // }
+
   /**
    * * Helper function to check if today is the last day of the month
    * @returns
@@ -201,7 +207,20 @@ export class UserStatusService {
     return 0;
   }
 
-  private async calculateGroupSalesCommission() {
+  private calulateGroupSalesCommission(userStatus: UserStatus): number {
+    const group_sales = Number(userStatus.group_sales);
+
+    const group_commission =
+      this.calculateGroupSalesCommissionPercentage(
+        userStatus.group_sales,
+        userStatus.user_class,
+      ) * group_sales;
+
+    console.log('group_commission', group_commission);
+    return group_commission;
+  }
+
+  private async calculateGroupSalesCommissionForAll() {
     const allUserStatus = await this.userStatusRepository.find();
     allUserStatus.forEach(async (status) => {
       const commissionPercentage = this.calculateGroupSalesCommissionPercentage(
@@ -293,6 +312,7 @@ export class UserStatusService {
         total_sales: '0', // checked
         group_sales: '0', // checked
         commission: '0', // checked
+        group_commission: '0', // checked
         user_type: user_type, // checked
         user_class: user_class, // checked
         referrer: userStatusWithReferralCode || null, // checked
@@ -365,6 +385,7 @@ export class UserStatusService {
         total_sales: userStatus.total_sales,
         group_sales: userStatus.group_sales,
         commission: userStatus.commission,
+        group_commission: userStatus.group_commission,
         last_rank_check: userStatus.last_rank_check,
         rank_achievement_date: userStatus.rank_achievement_date,
         user_rank: userStatus.user_rank,
@@ -670,6 +691,8 @@ export class UserStatusService {
         referrerStatus.group_sales = (
           Number(referrerStatus.group_sales) + orderAmount
         ).toString();
+        referrerStatus.group_commission =
+          this.calulateGroupSalesCommission(referrerStatus).toString();
         await this.userStatusRepository.save(referrerStatus);
       }
     } else {
@@ -695,6 +718,10 @@ export class UserStatusService {
         referrerOfReferrerStatus.group_sales = (
           Number(referrerOfReferrerStatus.group_sales) + orderAmount
         ).toString();
+        referrerOfReferrerStatus.group_commission =
+          this.calulateGroupSalesCommission(
+            referrerOfReferrerStatus,
+          ).toString();
         await this.userStatusRepository.save(referrerOfReferrerStatus);
       }
     } else {
@@ -724,6 +751,10 @@ export class UserStatusService {
         referrerOfReferrerOfReferrerStatus.group_sales = (
           Number(referrerOfReferrerOfReferrerStatus.group_sales) + orderAmount
         ).toString();
+        referrerOfReferrerOfReferrerStatus.group_commission =
+          this.calulateGroupSalesCommission(
+            referrerOfReferrerOfReferrerStatus,
+          ).toString();
         await this.userStatusRepository.save(
           referrerOfReferrerOfReferrerStatus,
         );
