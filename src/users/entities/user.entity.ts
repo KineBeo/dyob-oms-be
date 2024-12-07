@@ -15,14 +15,13 @@ import { UserAddress } from 'src/user-address/entities/user-address.entity';
 
 @Entity()
 export default class User {
-
   @PrimaryGeneratedColumn('increment')
   id: number;
 
   @Column({ nullable: false })
   fullname: string;
-  
-  @Index('phone_number_idx', {unique: true})
+
+  @Index('phone_number_idx', { unique: true })
   @Column({ nullable: false })
   phone_number: string;
 
@@ -32,9 +31,12 @@ export default class User {
   @Column({
     type: 'enum',
     enum: Role,
-    default: Role.USER
+    default: Role.USER,
   })
   role: Role;
+
+  @Column({ default: true })
+  isActive: boolean;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   public createdAt: Date;
@@ -56,9 +58,9 @@ export default class User {
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
 
-  @OneToOne(() => UserStatus, status => status.user)
+  @OneToOne(() => UserStatus, (status) => status.user)
   status: UserStatus;
 
-  @OneToMany(() => UserAddress, address => address.user)
+  @OneToMany(() => UserAddress, (address) => address.user)
   addresses: UserAddress[];
 }

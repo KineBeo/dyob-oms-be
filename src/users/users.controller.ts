@@ -1,8 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Request, ForbiddenException, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  Request,
+  ForbiddenException,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import User from './entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
@@ -16,15 +34,19 @@ export class UsersController {
 
   /**
    * ! Only admin should be able to access this endpoint
-   * @param createUserDto 
-   * @returns 
+   * @param createUserDto
+   * @returns
    */
   @Post()
   @UseGuards(JwtAuthGuard, AdminGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'ADMIN: Create a user' })
-  @ApiResponse({ status: 201, description: 'The user has been successfully created.', type: User })
+  @ApiResponse({
+    status: 201,
+    description: 'The user has been successfully created.',
+    type: User,
+  })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
@@ -32,7 +54,7 @@ export class UsersController {
   /**
    * ! Only admin should be able to access this endpoint
    * TODO: Add admin guard here
-   * @returns 
+   * @returns
    */
   @Get()
   @UseGuards(JwtAuthGuard, AdminGuard)
@@ -45,13 +67,13 @@ export class UsersController {
   }
 
   /**
-   * 
+   *
    * @param id: id of the user to be found (user only can access their own information)
    * @param req: request from the current user
-   * @returns 
+   * @returns
    */
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth') 
+  @ApiBearerAuth('JWT-auth')
   @Get('id/:id')
   @ApiOperation({ summary: 'Find a user by id' })
   findOne(@Param('id') id: number, @Request() req) {
@@ -62,26 +84,40 @@ export class UsersController {
   }
 
   /**
-   * 
-   * @param id 
-   * @param updateUserDto 
-   * @param req 
-   * @returns 
+   *
+   * @param id
+   * @param updateUserDto
+   * @param req
+   * @returns
    */
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('JWT-auth') 
+  @ApiBearerAuth('JWT-auth')
   @Patch('id/:id')
   @ApiOperation({ summary: 'Update a user by id' })
-  update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto, @Request() req) {
+  update(
+    @Param('id') id: number,
+    @Body() updateUserDto: UpdateUserDto,
+    @Request() req,
+  ) {
     if (Number(req.user.sub) !== Number(id)) {
       throw new ForbiddenException('You can only access your own information');
     }
     return this.usersService.update(+id, updateUserDto);
   }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @Patch('admin/id/:id')
+  @ApiOperation({ summary: 'ADMIN: Update a user role by id' })
+  updateRole(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+id, updateUserDto);
+  }
+
   /**
    * ! Only admin should be able to access this endpoint
-   * @param id 
-   * @returns 
+   * @param id
+   * @returns
    */
   @Delete('id/:id')
   @UseGuards(JwtAuthGuard, AdminGuard)
@@ -94,8 +130,8 @@ export class UsersController {
 
   // /**
   //  * TODO: Only admin should be able to access this endpoint
-  //  * @param email 
-  //  * @returns 
+  //  * @param email
+  //  * @returns
   //  */
   // @Get('email')
   // @UseGuards(JwtAuthGuard, AdminGuard)
@@ -111,10 +147,10 @@ export class UsersController {
 
   /**
    * TODO: Only admin should be able to access this endpoint
-   * @param phone_number 
-   * @returns 
+   * @param phone_number
+   * @returns
    */
-  @Get('phone')  
+  @Get('phone')
   @UseGuards(JwtAuthGuard, AdminGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')

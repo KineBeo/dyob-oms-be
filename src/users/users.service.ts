@@ -157,7 +157,9 @@ export class UsersService {
   //     );
   //   }
   // }
-  async findByPhoneNumberWithPassword(phone_number: string) : Promise<User | undefined> {
+  async findByPhoneNumberWithPassword(
+    phone_number: string,
+  ): Promise<User | undefined> {
     try {
       const user = await this.userRepository.findOne({
         where: { phone_number },

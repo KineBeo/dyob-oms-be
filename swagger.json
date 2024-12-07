@@ -167,6 +167,45 @@
         ]
       }
     },
+    "/users/admin/id/{id}": {
+      "patch": {
+        "operationId": "UsersController_updateRole",
+        "summary": "ADMIN: Update a user role by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
     "/users/phone": {
       "get": {
         "operationId": "UsersController_findByPhone",
