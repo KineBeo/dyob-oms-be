@@ -349,7 +349,7 @@ export class UserStatusService {
     try {
       const userStatus = await this.userStatusRepository.findOne({
         where: { id },
-        relations: ['referrer', 'referrals', 'referrals.user'],
+        relations: ['referrer', 'referrals', 'referrals.user', 'referrer.user'],
       });
 
       if (!userStatus) {
@@ -360,6 +360,7 @@ export class UserStatusService {
         userStatus.referrals.map(async (referral) => ({
           id: referral.id,
           personal_referral_code: referral.personal_referral_code,
+          referrer_name: referral.referrer?.user?.fullname || null,
           user_rank: referral.user_rank,
           total_sales: referral.total_sales,
           fullname: referral.user?.fullname || null,
