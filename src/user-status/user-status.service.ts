@@ -122,20 +122,20 @@ export class UserStatusService {
   ): number {
     const group_sales_percentage = {
       [UserClass.BASIC]: {
-        milestone_1: 5000000,
-        milestone_2: 50000000,
-        milestone_3: 500000000,
-        commission_percentage_milestone_1: 0.03,
-        commission_percentage_milestone_2: 0.06,
-        commission_percentage_milestone_3: 0.1,
+        milestone_1: 5000000, // 5 triệu -> 5 triệu chỉnh sửa 15h 8/12/2024
+        milestone_2: 50000000, // 50 triệu -> 50 triệu chỉnh sửa 15h 8/12/2024
+        milestone_3: 500000000, // 500 triệu -> 500 triệu chỉnh sửa 15h 8/12/2024
+        commission_percentage_milestone_1: 0.03, // 3% -> 3% chỉnh sửa 15h 8/12/2024
+        commission_percentage_milestone_2: 0.06, // 6% -> 6% chỉnh sửa 15h 8/12/2024
+        commission_percentage_milestone_3: 0.1, // 10% -> 10% chỉnh sửa 15h 8/12/2024
       },
       [UserClass.VIP]: {
-        milestone_1: 60000000,
-        milestone_2: 120000000,
-        milestone_3: 500000000,
-        commission_percentage_milestone_1: 0.05,
-        commission_percentage_milestone_2: 0.1,
-        commission_percentage_milestone_3: 0.15,
+        milestone_1: 30000000, // 60 triệu -> 30 triệu chỉnh sửa 15h 8/12/2024 
+        milestone_2: 200000000, // 120 triệu -> 200 triệu chỉnh sửa 15h 8/12/2024
+        milestone_3: 500000000, // 500 triệu -> 500 triệu chỉnh sửa 15h 8/12/2024
+        commission_percentage_milestone_1: 0.05, // 5% -> 5% chỉnh sửa 15h 8/12/2024
+        commission_percentage_milestone_2: 0.08, // 10% -> 8% chỉnh sửa 15h 8/12/2024
+        commission_percentage_milestone_3: 0.1, // 15% -> 10% chỉnh sửa 15h 8/12/2024
       },
     };
 
@@ -193,17 +193,7 @@ export class UserStatusService {
           .commission_percentage_milestone_1;
       }
     }
-
-    // const group_sales_milestone_1 = 5000000;
-    // const group_sales_milestone_2 = 50000000;
-    // const group_sales_milestone_3 = 500000000;
-    // if (group_sales_number >= group_sales_milestone_1) {
-    //   return 0.03;
-    // } else if (group_sales_number >= group_sales_milestone_2) {
-    //   return 0.06;
-    // } else if (group_sales_number >= group_sales_milestone_3) {
-    //   return 0.1;
-    // }
+    
     return 0;
   }
 
@@ -380,6 +370,7 @@ export class UserStatusService {
         id: userStatus.id,
         personal_referral_code: userStatus.personal_referral_code,
         user_type: userStatus.user_type,
+        user_class: userStatus.user_class,
         total_purchase: userStatus.total_purchase,
         total_orders: userStatus.total_orders,
         total_sales: userStatus.total_sales,
@@ -412,6 +403,7 @@ export class UserStatusService {
         where: { id },
         relations: [
           'referrals',
+          'referrals.referrer.user',
           'referrals.user',
           'referrals.referrals',
           'referrals.referrals.user',
@@ -434,9 +426,11 @@ export class UserStatusService {
           user_rank: referral.user_rank,
           total_purchase: referral.total_purchase,
           total_sales: referral.total_sales,
+          createdAt: referral.createdAt,
+          referrer_name: referral.referrer?.user?.fullname || null,
           referrals: referral.referrals
-            ? processReferralLevel(referral.referrals)
-            : [],
+        ? processReferralLevel(referral.referrals)
+        : [],
         }));
       };
 
@@ -637,8 +631,8 @@ export class UserStatusService {
     user_class: UserClass,
     upperLevel: number,
   ) {
-    const basicCommissionPercentage = [0.2, 0.06, 0.03];
-    const vipCommissionPercentage = [0.25, 0.09, 0.06];
+    const basicCommissionPercentage = [0.2, 0.06, 0.03]; // checked 15h 8/12/2024
+    const vipCommissionPercentage = [0.25, 0.09, 0.06]; // checked 15h 8/12/2024
 
     if (user_class === UserClass.BASIC) {
       return basicCommissionPercentage[upperLevel - 1];
