@@ -406,10 +406,13 @@ export class UserStatusService {
           'referrals.referrer.user',
           'referrals.user',
           'referrals.referrals',
+          'referrals.referrals.referrer.user',
           'referrals.referrals.user',
           'referrals.referrals.referrals',
+          'referrals.referrals.referrals.referrer.user',
           'referrals.referrals.referrals.user',
           'referrals.referrals.referrals.referrals',
+          'referrals.referrals.referrals.referrals.referrer.user', 
           'referrals.referrals.referrals.referrals.user',
         ],
       });
