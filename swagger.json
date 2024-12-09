@@ -1737,6 +1737,18 @@
           "password_hash": {
             "type": "string",
             "example": "Your changed password"
+          },
+          "cccd": {
+            "type": "string",
+            "example": "012345678912"
+          },
+          "bank_name": {
+            "type": "string",
+            "example": "VietComBank"
+          },
+          "bank_account_number": {
+            "type": "string",
+            "example": "088888888"
           }
         }
       },

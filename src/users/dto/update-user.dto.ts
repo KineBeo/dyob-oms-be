@@ -36,15 +36,6 @@ export class UpdateUserDto implements Partial<CreateUserDto> {
   })
   phone_number?: string;
 
-  // @ApiProperty({
-  //   example: 'yourchangedmail@gmail.com',
-  //   required: false,
-  // })
-  // @IsOptional()
-  // @IsString()
-  // @IsEmail()
-  // email?: string;
-
   @ApiProperty({
     example: 'Your changed password',
     required: false,
@@ -61,4 +52,35 @@ export class UpdateUserDto implements Partial<CreateUserDto> {
     },
   )
   password_hash?: string;
+
+  @ApiProperty({
+    example: '012345678912',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(12)
+  @MaxLength(12)
+  cccd?: string;
+
+  @ApiProperty({
+    example: 'VietComBank',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(200)
+  bank_name?: string;
+  
+
+  @ApiProperty({
+    example: '088888888',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(200)
+  bank_account_number?: string;
 }

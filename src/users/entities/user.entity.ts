@@ -29,6 +29,21 @@ export default class User {
   password_hash: string;
 
   @Column({
+    default: '0123456789',
+  })
+  cccd: string;
+
+  @Column({
+    default: 'VietComBank',
+  })
+  bank_name: string;
+
+  @Column({
+    default: '0123456789',
+  })
+  bank_account_number: string;
+
+  @Column({
     type: 'enum',
     enum: Role,
     default: Role.USER,
