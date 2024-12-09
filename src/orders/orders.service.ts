@@ -31,8 +31,7 @@ export class OrdersService {
     private userStatusService: UserStatusService,
     private eventEmitter: EventEmitter2,
     private userAddressService: UserAddressService,
-  ) {
-  }
+  ) {}
 
   async create(createOrderDto: CreateOrderDto): Promise<Order> {
     const { user_id, referral_code_of_referrer, shipping_address_id } =
@@ -95,6 +94,7 @@ export class OrdersService {
       }));
       await this.orderProductService.createMany(orderItems);
       await this.cartService.clearCart(user_id);
+      this.eventEmitter.emit('order.created', savedOrder);
       return this.findOne(savedOrder.id);
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -106,7 +106,10 @@ export class OrdersService {
     }
   }
 
-  async updateStatus(orderId: number, newStatus: OrderStatus): Promise<{ message: string }> {
+  async updateStatus(
+    orderId: number,
+    newStatus: OrderStatus,
+  ): Promise<{ message: string }> {
     console.log('orderId: ', orderId);
     try {
       const currentOrder = await this.findOne(orderId);
@@ -118,14 +121,20 @@ export class OrdersService {
           status: newStatus,
         });
 
-        if (newStatus === OrderStatus.COMPLETED && currentStatus !== OrderStatus.COMPLETED) {
+        if (
+          newStatus === OrderStatus.COMPLETED &&
+          currentStatus !== OrderStatus.COMPLETED
+        ) {
           this.eventEmitter.emit('order.completed', {
             userId: currentOrder.user.id,
             orderAmount: currentOrder.total_amount,
           });
         }
 
-        if (currentStatus === OrderStatus.COMPLETED && newStatus !== OrderStatus.COMPLETED) {
+        if (
+          currentStatus === OrderStatus.COMPLETED &&
+          newStatus !== OrderStatus.COMPLETED
+        ) {
           this.eventEmitter.emit('order.uncompleted', {
             userId: currentOrder.user.id,
             orderAmount: currentOrder.total_amount,
@@ -133,7 +142,9 @@ export class OrdersService {
         }
       }
 
-      return { message: `Order status updated from ${currentStatus} to ${newStatus} successfully` };
+      return {
+        message: `Order status updated from ${currentStatus} to ${newStatus} successfully`,
+      };
     } catch (error) {
       throw new BadRequestException(
         `Failed to admin's update order status: ${error.message}`,
@@ -237,8 +248,8 @@ export class OrdersService {
       const orders = await this.orderRepository.find({
         relations: [
           'orderProduct', // Lấy quan hệ với bảng trung gian OrderProduct,
-          'orderProduct.product'
-        ]
+          'orderProduct.product',
+        ],
       });
       return orders;
     } catch (error) {
