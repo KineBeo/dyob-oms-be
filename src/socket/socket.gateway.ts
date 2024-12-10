@@ -3,7 +3,7 @@ import { Server } from 'socket.io';
 
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:3000', // Chỉ cho phép frontend tại đây truy cập
+    origin: '*', // Chỉ cho phép frontend tại đây truy cập
     methods: ['GET', 'POST'], // Phương thức được phép
   },
 })
