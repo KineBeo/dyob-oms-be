@@ -19,6 +19,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { StrapiModule } from './strapi/strapi.module';
 import { UserAddressModule } from './user-address/user-address.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { CommissionHistoryModule } from './commission-history/commission-history.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     StrapiModule,
     AuthModule,
     UserAddressModule,
+    CommissionHistoryModule,
   ],
   controllers: [AppController],
   providers: [AppService, CartService, {

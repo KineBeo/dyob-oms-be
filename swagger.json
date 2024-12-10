@@ -1642,6 +1642,135 @@
           }
         ]
       }
+    },
+    "/commission-history": {
+      "post": {
+        "operationId": "CommissionHistoryController_create",
+        "summary": "ADMIN: Create a new commission history",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCommissionHistoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Create a new commission history operation completed successfully."
+          }
+        },
+        "tags": [
+          "Commission History"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "get": {
+        "operationId": "CommissionHistoryController_findAll",
+        "summary": "ADMIN: Get all commission histories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Get all commission histories operation completed successfully."
+          }
+        },
+        "tags": [
+          "Commission History"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/commission-history/{id}": {
+      "get": {
+        "operationId": "CommissionHistoryController_findOne",
+        "summary": "Get a commission history by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get a commission history by id operation completed successfully."
+          }
+        },
+        "tags": [
+          "Commission History"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "CommissionHistoryController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCommissionHistoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Commission History"
+        ]
+      },
+      "delete": {
+        "operationId": "CommissionHistoryController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Commission History"
+        ]
+      }
     }
   },
   "info": {
@@ -2307,12 +2436,12 @@
           "phone_number": {
             "type": "string",
             "description": "phone number",
-            "example": "0123456789"
+            "example": "0353227709"
           },
           "password": {
             "type": "string",
             "description": "password",
-            "example": "StrongP@ssw0rd!"
+            "example": "Admin123@!"
           }
         },
         "required": [
@@ -2332,6 +2461,73 @@
         "required": [
           "refreshToken"
         ]
+      },
+      "CreateCommissionHistoryDto": {
+        "type": "object",
+        "properties": {
+          "userStatusId": {
+            "type": "number",
+            "description": "ID of the user status",
+            "example": 1
+          },
+          "monthlyCommission": {
+            "type": "string",
+            "description": "Monthly commission amount",
+            "example": "1000000"
+          },
+          "groupCommission": {
+            "type": "string",
+            "description": "Group commission amount",
+            "example": "3000000"
+          },
+          "month": {
+            "type": "number",
+            "description": "Month of the commission",
+            "example": 1
+          },
+          "year": {
+            "type": "number",
+            "description": "Year of the commission",
+            "example": 2021
+          }
+        },
+        "required": [
+          "userStatusId",
+          "monthlyCommission",
+          "groupCommission",
+          "month",
+          "year"
+        ]
+      },
+      "UpdateCommissionHistoryDto": {
+        "type": "object",
+        "properties": {
+          "userStatusId": {
+            "type": "number",
+            "description": "ID of the user status",
+            "example": 1
+          },
+          "monthlyCommission": {
+            "type": "string",
+            "description": "Monthly commission amount",
+            "example": "1000000"
+          },
+          "groupCommission": {
+            "type": "string",
+            "description": "Group commission amount",
+            "example": "3000000"
+          },
+          "month": {
+            "type": "number",
+            "description": "Month of the commission",
+            "example": 1
+          },
+          "year": {
+            "type": "number",
+            "description": "Year of the commission",
+            "example": 2021
+          }
+        }
       }
     }
   }
