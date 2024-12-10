@@ -13,7 +13,7 @@ import { Repository } from 'typeorm';
 import { UserRank } from 'src/enum/rank';
 import User from 'src/users/entities/user.entity';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { UserType } from 'src/enum/user_type';
 import { UserClass } from 'src/enum/user-class';
 
@@ -54,7 +54,7 @@ export class UserStatusService {
    * ! CRON JOBS 1: RESET TOTAL_SALES, COMMISSION VỀ 0 HÀNG THÁNG (ĐẦU THÁNG)
    * * OK CHECKED
    */
-  @Cron('0 02 17 10 * *', {
+  @Cron('0 0 1 * *', {
     name: 'reset-total-sales-monthly',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
@@ -72,7 +72,7 @@ export class UserStatusService {
    * ! CRON JOBS 2: RESET GROUP_SALES, GROUP_COMMISSION VỀ 0 HÀNG QUÝ (ĐẦU QUÝ)
    * * OK CHECKED
    */
-  @Cron('04 17 10 12,4,7 *', {
+  @Cron('30 0 1 1,4,7,10 *', {
     name: 'reset-group-sales-quarterly',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
@@ -89,12 +89,8 @@ export class UserStatusService {
   /**
    * ! CRON JOBS 3: LƯU HOA HỒNG, THƯỞNG NHÓM CHO TẤT CẢ USER HÀNG THÁNG
    */
-  // @Cron('0 0 7 * * *', {
-  //   name: 'calculate-rank',
-  //   timeZone: 'Asia/Ho_Chi_Minh',
-  // })
 
-  @Cron('0 48 20 * * *', {
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
     name: 'store-commission-history-monthly',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
@@ -124,9 +120,7 @@ export class UserStatusService {
     tomorrow.setDate(tomorrow.getDate() + 1);
     console.log('Ngày mai', tomorrow);
 
-    // TODO: Sửa sau khi test xong cronjob
-    return true;
-    // return tomorrow.getMonth() !== today.getMonth();
+    return tomorrow.getMonth() !== today.getMonth();
   }
 
   /**
