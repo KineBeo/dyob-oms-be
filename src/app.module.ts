@@ -22,6 +22,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationsModule } from './notifications/notifications.module';
 import { SocketGateway } from './socket/socket.gateway';
 import { SocketModule } from './socket/socket.module';
+import { CommissionHistoryModule } from './commission-history/commission-history.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { SocketModule } from './socket/socket.module';
     UserAddressModule,
     NotificationsModule,
     SocketModule,
+    CommissionHistoryModule,
   ],
   controllers: [AppController],
   providers: [AppService, CartService, {

@@ -9,12 +9,11 @@ import { CreateUserStatusDto } from './dto/create-user-status.dto';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserStatus } from './entities/user-status.entity';
-import { IsNull, Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UserRank } from 'src/enum/rank';
 import User from 'src/users/entities/user.entity';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { group } from 'console';
+import { Cron } from '@nestjs/schedule';
 import { UserType } from 'src/enum/user_type';
 import { UserClass } from 'src/enum/user-class';
 
@@ -52,10 +51,11 @@ export class UserStatusService {
   }
 
   /**
-   * ! CRON JOBS 1: RESET TOTAL_SALES VỀ 0 HÀNG THÁNG (ĐẦU THÁNG)
-   * TODO: THÊM RESET GROUP_SALES
+   * ! CRON JOBS 1: RESET TOTAL_SALES, COMMISSION VỀ 0 HÀNG THÁNG (ĐẦU THÁNG)
+   * * OK CHECKED
    */
-  @Cron('0 30 7 1 * *', {
+  @Cron('0 02 17 10 * *', {
+    name: 'reset-total-sales-monthly',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
   async resetTotalSalesMonthly() {
@@ -63,38 +63,55 @@ export class UserStatusService {
     const allUserStatus = await this.userStatusRepository.find();
     allUserStatus.forEach(async (status) => {
       status.total_sales = '0';
+      status.commission = '0';
+      await this.userStatusRepository.save(status);
+    });
+  }
+
+  /**
+   * ! CRON JOBS 2: RESET GROUP_SALES, GROUP_COMMISSION VỀ 0 HÀNG QUÝ (ĐẦU QUÝ)
+   * * OK CHECKED
+   */
+  @Cron('04 17 10 12,4,7 *', {
+    name: 'reset-group-sales-quarterly',
+    timeZone: 'Asia/Ho_Chi_Minh',
+  })
+  async resetGroupSalesQuarterly() {
+    console.log('Resetting group sales for all users', new Date());
+    const allUserStatus = await this.userStatusRepository.find();
+    allUserStatus.forEach(async (status) => {
       status.group_sales = '0';
-      status.commission = (
-        Number(status.commission) + Number(status.group_commission)
-      ).toString();
       status.group_commission = '0';
       await this.userStatusRepository.save(status);
     });
   }
 
-  // KHông cần nữa vì tính luôn khi mua hàng
-  // /**
-  //  * ! CRON JOBS 2: Tính toán group_sales cuối tháng
-  //  * ! TRUONG HOANG: Sửa ở đây nhé (0 57 16 * * *) 0 là giây, 54 phút, 11 giờ (11h54))
-  //  */
+  /**
+   * ! CRON JOBS 3: LƯU HOA HỒNG, THƯỞNG NHÓM CHO TẤT CẢ USER HÀNG THÁNG
+   */
   // @Cron('0 0 7 * * *', {
   //   name: 'calculate-rank',
   //   timeZone: 'Asia/Ho_Chi_Minh',
   // })
-  // async handleCalculateGroupCommission() {
-  //   try {
-  //     if (this.isLastDayOfMonth()) {
-  //       this.logger.log('Cuối tháng rồi em ơi');
-  //       // ! call here
-  //       this.calculateGroupSalesCommission();
-  //     }
-  //   } catch (error) {
-  //     console.error('Error calculating override commission:', error);
-  //     throw new BadRequestException(
-  //       `Failed to calculate override commission: ${error.message}`,
-  //     );
-  //   }
-  // }
+
+  @Cron('0 48 20 * * *', {
+    name: 'store-commission-history-monthly',
+    timeZone: 'Asia/Ho_Chi_Minh',
+  })
+  async storeCommissionHistoryMonthly() {
+    try {
+      if (this.isLastDayOfMonth()) {
+        this.logger.log('Cuối tháng rồi em ơi');
+        // ! Emit event to store commission history
+        this.eventEmitter.emit('storeCommissionHistoryMonthly');
+      }
+    } catch (error) {
+      console.error('Error in store commission history cronjob ', error);
+      throw new BadRequestException(
+        `Failed to store commission history cronjob : ${error.message}`,
+      );
+    }
+  }
 
   /**
    * * Helper function to check if today is the last day of the month
@@ -107,8 +124,9 @@ export class UserStatusService {
     tomorrow.setDate(tomorrow.getDate() + 1);
     console.log('Ngày mai', tomorrow);
 
-    // return true;
-    return tomorrow.getMonth() !== today.getMonth();
+    // TODO: Sửa sau khi test xong cronjob
+    return true;
+    // return tomorrow.getMonth() !== today.getMonth();
   }
 
   /**
@@ -130,7 +148,7 @@ export class UserStatusService {
         commission_percentage_milestone_3: 0.1, // 10% -> 10% chỉnh sửa 15h 8/12/2024
       },
       [UserClass.VIP]: {
-        milestone_1: 30000000, // 60 triệu -> 30 triệu chỉnh sửa 15h 8/12/2024 
+        milestone_1: 30000000, // 60 triệu -> 30 triệu chỉnh sửa 15h 8/12/2024
         milestone_2: 200000000, // 120 triệu -> 200 triệu chỉnh sửa 15h 8/12/2024
         milestone_3: 500000000, // 500 triệu -> 500 triệu chỉnh sửa 15h 8/12/2024
         commission_percentage_milestone_1: 0.05, // 5% -> 5% chỉnh sửa 15h 8/12/2024
@@ -193,7 +211,7 @@ export class UserStatusService {
           .commission_percentage_milestone_1;
       }
     }
-    
+
     return 0;
   }
 
@@ -307,6 +325,7 @@ export class UserStatusService {
         user_class: user_class, // checked
         referrer: userStatusWithReferralCode || null, // checked
         user_rank: user_rank || UserRank.GUEST, // checked
+        createdAt: new Date(),
       });
 
       return this.userStatusRepository.save(newUserStatus);
@@ -413,7 +432,7 @@ export class UserStatusService {
           'referrals.referrals.referrals.referrer.user',
           'referrals.referrals.referrals.user',
           'referrals.referrals.referrals.referrals',
-          'referrals.referrals.referrals.referrals.referrer.user', 
+          'referrals.referrals.referrals.referrals.referrer.user',
           'referrals.referrals.referrals.referrals.user',
         ],
       });
@@ -433,8 +452,8 @@ export class UserStatusService {
           createdAt: referral.createdAt,
           referrer_name: referral.referrer?.user?.fullname || null,
           referrals: referral.referrals
-        ? processReferralLevel(referral.referrals)
-        : [],
+            ? processReferralLevel(referral.referrals)
+            : [],
         }));
       };
 
@@ -469,6 +488,7 @@ export class UserStatusService {
           'referrer',
           'referrer.referrer',
           'referrer.referrer.referrer',
+          'referrer.referrer.referrer.referrer',
           'referrals',
         ],
       });
@@ -564,51 +584,6 @@ export class UserStatusService {
     // console.log('Total sales:', userStatus.total_sales);
     // console.log('Referrals:', userStatus.referrals);
     // TODO: GUEST -> NVKD -> TPKD -> GDKD -> GDV -> GDKV
-    // if (
-    //   userStatus.user_rank === UserRank.GUEST &&
-    //   Number(userStatus.total_purchase) >= 3000000 &&
-    //   userStatus.referrals.length >= 1
-    // ) {
-    //   console.log('đã vào NVKD');
-    //   return UserRank.NVKD;
-    // }
-    // else if (
-    //   userStatus.user_rank === UserRank.NVKD &&
-    //   Number(userStatus.total_sales) >= 50000000 &&
-    //   userStatus.referrals.filter((ref) =>
-    //     this.isEqualOrHigherRank(ref.user_rank, UserRank.NVKD),
-    //   ).length >= 5
-    // ) {
-    //   console.log('đã vào TPKD');
-    //   return UserRank.TPKD;
-    // } else if (
-    //   userStatus.user_rank === UserRank.TPKD &&
-    //   Number(userStatus.total_sales) >= 150000000 &&
-    //   userStatus.referrals.filter((ref) =>
-    //     this.isEqualOrHigherRank(ref.user_rank, UserRank.TPKD),
-    //   ).length >= 3
-    // ) {
-    //   console.log('đã vào GDKD');
-    //   return UserRank.GDKD;
-    // } else if (
-    //   userStatus.user_rank === UserRank.GDKD &&
-    //   Number(userStatus.total_sales) >= 500000000 &&
-    //   userStatus.referrals.filter((ref) =>
-    //     this.isEqualOrHigherRank(ref.user_rank, UserRank.GDKD),
-    //   ).length >= 3
-    // ) {
-    //   console.log('đã vào GDV');
-    //   return UserRank.GDV;
-    // } else if (
-    //   userStatus.user_rank === UserRank.GDV &&
-    //   Number(userStatus.total_sales) >= 1000000000 &&
-    //   userStatus.referrals.filter((ref) =>
-    //     this.isEqualOrHigherRank(ref.user_rank, UserRank.GDV),
-    //   ).length >= 2
-    // ) {
-    //   console.log('đã vào GDKV');
-    //   return UserRank.GDKV;
-    // }
     if (
       userStatus.user_rank === UserRank.GUEST &&
       userStatus.user_class === UserClass.BASIC &&
@@ -664,6 +639,8 @@ export class UserStatusService {
     const referrerOfReferrer = userStatus.referrer?.referrer;
     const referrerOfReferrerOfReferrer =
       userStatus.referrer?.referrer?.referrer;
+    const referrerOfReferrerOfReferrerOfReferrer =
+      userStatus.referrer?.referrer?.referrer?.referrer;
     // console.log('referrer', referrer);
     // console.log('referrerOfReferrer', referrerOfReferrer);
     // console.log('referrerOfReferrerOfReferrer', referrerOfReferrerOfReferrer);
@@ -759,6 +736,32 @@ export class UserStatusService {
       } else {
         console.log('User has no referrer of referrer of referrer');
       }
+    }
+    if (
+      referrerOfReferrerOfReferrerOfReferrer &&
+      referrerOfReferrerOfReferrerOfReferrer.user_rank === UserRank.NVKD
+    ) {
+      const referrerOfReferrerOfReferrerOfReferrerStatus =
+        await this.userStatusRepository.findOne({
+          where: { user: { id: referrerOfReferrerOfReferrerOfReferrer.id } },
+          relations: ['referrals'],
+        });
+
+      if (referrerOfReferrerOfReferrerOfReferrerStatus) {
+        referrerOfReferrerOfReferrerOfReferrerStatus.group_sales = (
+          Number(referrerOfReferrerOfReferrerOfReferrerStatus.group_sales) +
+          orderAmount
+        ).toString();
+        referrerOfReferrerOfReferrerOfReferrerStatus.group_commission =
+          this.calulateGroupSalesCommission(
+            referrerOfReferrerOfReferrerOfReferrerStatus,
+          ).toString();
+        await this.userStatusRepository.save(
+          referrerOfReferrerOfReferrerOfReferrerStatus,
+        );
+      }
+    } else {
+      console.log('User has no referrer of referrer of referrer');
     }
     return { message: 'Commission calculated successfully' };
   }
