@@ -53,7 +53,7 @@ export class NotificationsService {
       }
 
       return this.notificationRepository.find({
-        relations: ['user'],
+        where: { user },
         order: { createdAt: 'DESC' },
       });
     } catch (error) {
