@@ -19,6 +19,9 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { StrapiModule } from './strapi/strapi.module';
 import { UserAddressModule } from './user-address/user-address.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { NotificationsModule } from './notifications/notifications.module';
+import { SocketGateway } from './socket/socket.gateway';
+import { SocketModule } from './socket/socket.module';
 import { CommissionHistoryModule } from './commission-history/commission-history.module';
 
 @Module({
@@ -50,13 +53,15 @@ import { CommissionHistoryModule } from './commission-history/commission-history
     StrapiModule,
     AuthModule,
     UserAddressModule,
+    NotificationsModule,
+    SocketModule,
     CommissionHistoryModule,
   ],
   controllers: [AppController],
   providers: [AppService, CartService, {
     provide: APP_GUARD,
     useClass: JwtAuthGuard,
-  }],
+  }, SocketGateway],
 })
 export class AppModule implements OnModuleInit {
   constructor(private readonly redisService: RedisService) {}
