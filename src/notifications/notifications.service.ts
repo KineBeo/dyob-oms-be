@@ -30,7 +30,7 @@ export class NotificationsService {
     for (const admin of admins) {
       try {
         const notification = this.notificationRepository.create({
-          message: `New order from ${order.user.fullname}`,
+          message: `Bạn có đơn hàng mới giá trị ${order.total_amount}đ`,
           user: admin,
         });
         this.notificationRepository.save(notification);
@@ -55,9 +55,21 @@ export class NotificationsService {
       return this.notificationRepository.find({
         where: { user },
         order: { createdAt: 'DESC' },
+        take: 100,
       });
     } catch (error) {
       throw new Error('Error fetching notifications');
+    }
+  }
+
+  async markAsRead(notification_id: number) {
+    try {
+      await this.notificationRepository.update(notification_id, {
+        is_read: true,
+      });
+      return 'Notification marked as read';
+    } catch (error) {
+      throw new Error('Error marking notification as read');
     }
   }
 }

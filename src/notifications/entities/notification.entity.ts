@@ -17,7 +17,7 @@ export class Notification {
   message: string;
 
   @Column({ default: false })
-  isRead: boolean;
+  is_read: boolean;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

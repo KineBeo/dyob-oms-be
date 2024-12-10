@@ -1663,6 +1663,35 @@
         ]
       }
     },
+    "/notifications/read/{notification_id}": {
+      "patch": {
+        "operationId": "NotificationsController_markAsRead",
+        "summary": "Mark notification as read",
+        "parameters": [
+          {
+            "name": "notification_id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
     "/commission-history": {
       "post": {
         "operationId": "CommissionHistoryController_create",

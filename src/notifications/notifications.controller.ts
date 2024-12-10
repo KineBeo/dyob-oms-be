@@ -26,4 +26,12 @@ export class NotificationsController {
     const user_id = req.user.sub;
     return this.notificationsService.findAllNotifications(+user_id);
   }
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Mark notification as read' })
+  @UseGuards(JwtAuthGuard)
+  @Patch('read/:notification_id')
+  async markAsRead(@Param('notification_id') notification_id: string) {
+    return this.notificationsService.markAsRead(+notification_id);
+  }
 }
