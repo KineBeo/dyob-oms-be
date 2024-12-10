@@ -1643,6 +1643,26 @@
         ]
       }
     },
+    "/notifications": {
+      "get": {
+        "operationId": "NotificationsController_findAllNotifications",
+        "summary": "Get all notifications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
     "/commission-history": {
       "post": {
         "operationId": "CommissionHistoryController_create",

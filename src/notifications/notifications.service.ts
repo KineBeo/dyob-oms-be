@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SocketGateway } from 'src/socket/socket.gateway';
@@ -40,5 +40,24 @@ export class NotificationsService {
     }
 
     this.socketGateway.server.emit('newOrder', order);
+  }
+
+  async findAllNotifications(user_id: number) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: user_id },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return this.notificationRepository.find({
+        relations: ['user'],
+        order: { createdAt: 'DESC' },
+      });
+    } catch (error) {
+      throw new Error('Error fetching notifications');
+    }
   }
 }
