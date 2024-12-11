@@ -33,7 +33,7 @@ export class CommissionHistoryService {
   async findAll() {
     try {
       return await this.commissionHistoryRepository.find({
-        relations: ['userStatus, userStatus.user'],
+        relations: ['userStatus', 'userStatus.user'],
       });
     } catch (error) {
       throw new BadRequestException(error.message);
