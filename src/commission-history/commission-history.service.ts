@@ -32,9 +32,18 @@ export class CommissionHistoryService {
 
   async findAll() {
     try {
-      return await this.commissionHistoryRepository.find({
+      const commissionHistories = await this.commissionHistoryRepository.find({
         relations: ['userStatus', 'userStatus.user'],
       });
+
+      // Remove password_hash from userStatus.user
+      commissionHistories.forEach(history => {
+        if (history.userStatus && history.userStatus.user) {
+          delete history.userStatus.user.password_hash;
+        }
+      });
+
+      return commissionHistories;
     } catch (error) {
       throw new BadRequestException(error.message);
     }
