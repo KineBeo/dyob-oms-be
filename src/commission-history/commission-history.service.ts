@@ -33,7 +33,7 @@ export class CommissionHistoryService {
   async findAll() {
     try {
       return await this.commissionHistoryRepository.find({
-        relations: ['userStatus'],
+        relations: ['userStatus, userStatus.user'],
       });
     } catch (error) {
       throw new BadRequestException(error.message);
@@ -48,7 +48,7 @@ export class CommissionHistoryService {
         userStatusId: status.id,
         monthlyCommission: status.commission,
         groupCommission: status.group_commission,
-        month: new Date().getMonth(),
+        month: new Date().getMonth() + 1,
         year: new Date().getFullYear(),
         // createdAt: new Date(),
       })
