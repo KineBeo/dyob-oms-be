@@ -90,7 +90,7 @@ export class UserStatusService {
    * ! CRON JOBS 3: LƯU HOA HỒNG, THƯỞNG NHÓM CHO TẤT CẢ USER HÀNG THÁNG
    */
 
-  @Cron('44 19 11 * *', {
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
     name: 'store-commission-history-monthly',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
@@ -120,8 +120,7 @@ export class UserStatusService {
     tomorrow.setDate(tomorrow.getDate() + 1);
     console.log('Ngày mai', tomorrow);
 
-    // return tomorrow.getMonth() !== today.getMonth();
-    return true;
+    return tomorrow.getMonth() !== today.getMonth();
   }
 
   /**
