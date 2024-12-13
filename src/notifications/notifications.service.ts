@@ -20,7 +20,7 @@ export class NotificationsService {
   ) {}
 
   @OnEvent('order.created')
-  async createOrderNotification(order: Order) {
+  async createOrderNotificationForAdmin(order: Order) {
     console.log('Order created event received');
 
     const admins = await this.userRepository.find({
@@ -40,6 +40,32 @@ export class NotificationsService {
     }
 
     this.socketGateway.server.emit('newOrder', order);
+  }
+
+  @OnEvent('order.completed')
+  async createOrderCompletedNotification(payload: {
+    userId: number;
+    orderAmount: string;
+  }) {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: payload.userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const notification = this.notificationRepository.create({
+        message: `Đơn hàng của bạn đã hoàn thành`,
+        user: user,
+      });
+      this.notificationRepository.save(notification);
+    } catch (error) {
+      throw new Error('Error creating notification');
+    }
+
+    this.socketGateway.server.emit('orderCompleted', payload);
   }
 
   async findAllNotifications(user_id: number) {
