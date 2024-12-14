@@ -2524,6 +2524,11 @@
             "description": "Monthly commission amount",
             "example": "1000000"
           },
+          "bonus": {
+            "type": "string",
+            "description": "Bonus amount",
+            "example": "500000"
+          },
           "month": {
             "type": "number",
             "description": "Month of the commission",
@@ -2538,6 +2543,7 @@
         "required": [
           "userStatusId",
           "monthlyCommission",
+          "bonus",
           "month",
           "year"
         ]
@@ -2554,6 +2560,11 @@
             "type": "string",
             "description": "Monthly commission amount",
             "example": "1000000"
+          },
+          "bonus": {
+            "type": "string",
+            "description": "Bonus amount",
+            "example": "500000"
           },
           "month": {
             "type": "number",

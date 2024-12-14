@@ -26,6 +26,7 @@ export class CommissionHistoryService {
       const commissionHistory = this.commissionHistoryRepository.create({
         userStatus: userStatus,
         monthly_commission: createCommissionHistoryDto.monthlyCommission,
+        bonus: createCommissionHistoryDto.bonus,
         // group_commission: createCommissionHistoryDto.groupCommission,
         month: createCommissionHistoryDto.month,
         year: createCommissionHistoryDto.year,
@@ -62,6 +63,7 @@ export class CommissionHistoryService {
       this.create({
         userStatusId: status.id,
         monthlyCommission: status.commission,
+        bonus: status.bonus,
         // groupCommission: status.group_commission,
         month: new Date().getMonth() + 1,
         year: new Date().getFullYear(),

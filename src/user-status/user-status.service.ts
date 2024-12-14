@@ -64,6 +64,7 @@ export class UserStatusService {
     allUserStatus.forEach(async (status) => {
       status.total_sales = '0';
       status.commission = '0';
+      status.bonus = '0';
       await this.userStatusRepository.save(status);
     });
   }
@@ -280,6 +281,7 @@ export class UserStatusService {
         total_purchase: '0', // checked
         total_orders: 0, // checked
         total_sales: '0', // checked
+        bonus: '0', // checked
         // group_sales: '0', // checked
         commission: '0', // checked
         // group_commission: '0', // checked
@@ -356,6 +358,7 @@ export class UserStatusService {
         total_purchase: userStatus.total_purchase,
         total_orders: userStatus.total_orders,
         total_sales: userStatus.total_sales,
+        bonus: userStatus.bonus,
         // group_sales: userStatus.group_sales,
         commission: userStatus.commission,
         // group_commission: userStatus.group_commission,
@@ -568,6 +571,21 @@ export class UserStatusService {
     return userStatus.user_rank;
   }
 
+  private calculateBonus(userStatus: UserStatus) {
+    // console.log('Calculating bonus for user:', userStatus);
+    const total_sales = Number(userStatus.total_sales);
+    const mind_stone = [5000000, 20000000, 50000000, 80000000, 100000000];
+    const bonus_percentage = [0.03, 0.04, 0.05, 0.6, 0.1];
+
+    for (let i = mind_stone.length; i >= 0; i--) {
+      if (total_sales >= mind_stone[i]) {
+        return total_sales * bonus_percentage[i];
+      }
+    }
+
+    return 0;
+  }
+
   private calculateCommissionPercentage(
     user_class: UserClass,
     upperLevel: number,
@@ -625,6 +643,8 @@ export class UserStatusService {
             this.calculateCommissionPercentage(referrerStatus.user_class, 1)
         ).toString();
 
+        referrerStatus.bonus = this.calculateBonus(referrerStatus).toString();
+
         // referrerStatus.group_sales = (
         //   Number(referrerStatus.group_sales) + orderAmount
         // ).toString();
@@ -650,6 +670,10 @@ export class UserStatusService {
               referrerOfReferrerStatus.user_class,
               2,
             )
+        ).toString();
+
+        referrerOfReferrerStatus.bonus = this.calculateBonus(
+          referrerOfReferrerStatus,
         ).toString();
 
         // referrerOfReferrerStatus.group_sales = (
@@ -683,6 +707,10 @@ export class UserStatusService {
               referrerOfReferrerOfReferrerStatus.user_class,
               3,
             )
+        ).toString();
+
+        referrerOfReferrerOfReferrerStatus.bonus = this.calculateBonus(
+          referrerOfReferrerOfReferrerStatus,
         ).toString();
 
         // referrerOfReferrerOfReferrerStatus.group_sales = (

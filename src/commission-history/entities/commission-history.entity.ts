@@ -23,6 +23,9 @@ export class CommissionHistory {
   @Column()
   monthly_commission: string; // 1 tháng
 
+  @Column()
+  bonus: string; // 1 tháng
+
   // @Column()
   // group_commission: string; // 3 tháng gần nhất
 

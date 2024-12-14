@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   Min,
   Max,
+  IsNumberString,
 } from 'class-validator';
 
 export class CreateCommissionHistoryDto {
@@ -15,9 +16,14 @@ export class CreateCommissionHistoryDto {
   userStatusId: number;
 
   @ApiProperty({ description: 'Monthly commission amount', example: '1000000' })
-  @IsString()
+  @IsNumberString()
   @IsNotEmpty()
   monthlyCommission: string;
+
+  @ApiProperty({ description: 'Bonus amount', example: '500000' })
+  @IsNumberString()
+  @IsNotEmpty()
+  bonus: string;
 
   // @ApiProperty({ description: 'Group commission amount', example: '3000000' })
   // @IsString()

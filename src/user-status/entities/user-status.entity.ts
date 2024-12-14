@@ -36,6 +36,9 @@ export class UserStatus {
   @Column({ default: '0' })
   total_sales: string;
 
+  @Column({ default: '0' })
+  bonus: string;
+
   // @Column({ default: '0' })
   // group_sales: string;
 
