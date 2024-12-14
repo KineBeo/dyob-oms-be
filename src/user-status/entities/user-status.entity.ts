@@ -36,11 +36,11 @@ export class UserStatus {
   @Column({ default: '0' })
   total_sales: string;
 
-  @Column({ default: '0' })
-  group_sales: string;
+  // @Column({ default: '0' })
+  // group_sales: string;
 
-  @Column({ default: '0' })
-  group_commission: string;
+  // @Column({ default: '0' })
+  // group_commission: string;
 
   @Column({ default: '0' })
   commission: string;

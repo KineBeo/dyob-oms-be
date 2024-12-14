@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsPositive, IsString, IsNotEmpty, Min, Max } from 'class-validator';
+import {
+  IsInt,
+  IsPositive,
+  IsString,
+  IsNotEmpty,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class CreateCommissionHistoryDto {
   @ApiProperty({ description: 'ID of the user status', example: 1 })
@@ -12,10 +19,10 @@ export class CreateCommissionHistoryDto {
   @IsNotEmpty()
   monthlyCommission: string;
 
-  @ApiProperty({ description: 'Group commission amount', example: '3000000' })
-  @IsString()
-  @IsNotEmpty()
-  groupCommission: string;
+  // @ApiProperty({ description: 'Group commission amount', example: '3000000' })
+  // @IsString()
+  // @IsNotEmpty()
+  // groupCommission: string;
 
   @ApiProperty({ description: 'Month of the commission', example: 1 })
   @IsInt()

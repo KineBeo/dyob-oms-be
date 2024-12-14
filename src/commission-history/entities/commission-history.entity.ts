@@ -1,5 +1,14 @@
-import { UserStatus } from "src/user-status/entities/user-status.entity";
-import { BeforeInsert, Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { UserStatus } from 'src/user-status/entities/user-status.entity';
+import {
+  BeforeInsert,
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class CommissionHistory {
@@ -12,10 +21,10 @@ export class CommissionHistory {
   userStatus: UserStatus;
 
   @Column()
-  monthly_commission: string; // 1 tháng 
+  monthly_commission: string; // 1 tháng
 
-  @Column()
-  group_commission: string; // 3 tháng gần nhất
+  // @Column()
+  // group_commission: string; // 3 tháng gần nhất
 
   @Column({ type: 'int', comment: 'Tháng ghi nhận (1-12)' })
   month: number;

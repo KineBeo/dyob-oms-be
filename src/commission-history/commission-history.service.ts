@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCommissionHistoryDto } from './dto/create-commission-history.dto';
 import { UpdateCommissionHistoryDto } from './dto/update-commission-history.dto';
 import { CommissionHistory } from './entities/commission-history.entity';
@@ -16,11 +20,13 @@ export class CommissionHistoryService {
   ) {}
   async create(createCommissionHistoryDto: CreateCommissionHistoryDto) {
     try {
-      const userStatus = await this.userStatusService.findOne(createCommissionHistoryDto.userStatusId);
+      const userStatus = await this.userStatusService.findOne(
+        createCommissionHistoryDto.userStatusId,
+      );
       const commissionHistory = this.commissionHistoryRepository.create({
         userStatus: userStatus,
         monthly_commission: createCommissionHistoryDto.monthlyCommission,
-        group_commission: createCommissionHistoryDto.groupCommission,
+        // group_commission: createCommissionHistoryDto.groupCommission,
         month: createCommissionHistoryDto.month,
         year: createCommissionHistoryDto.year,
       });
@@ -37,7 +43,7 @@ export class CommissionHistoryService {
       });
 
       // Remove password_hash from userStatus.user
-      commissionHistories.forEach(history => {
+      commissionHistories.forEach((history) => {
         if (history.userStatus && history.userStatus.user) {
           delete history.userStatus.user.password_hash;
         }
@@ -56,11 +62,11 @@ export class CommissionHistoryService {
       this.create({
         userStatusId: status.id,
         monthlyCommission: status.commission,
-        groupCommission: status.group_commission,
+        // groupCommission: status.group_commission,
         month: new Date().getMonth() + 1,
         year: new Date().getFullYear(),
         // createdAt: new Date(),
-      })
+      });
     });
   }
 
@@ -76,7 +82,9 @@ export class CommissionHistoryService {
       });
 
       if (!history) {
-        throw new NotFoundException(`Commission history with user status id ${id} not found`);
+        throw new NotFoundException(
+          `Commission history with user status id ${id} not found`,
+        );
       }
 
       return history;

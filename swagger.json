@@ -2524,11 +2524,6 @@
             "description": "Monthly commission amount",
             "example": "1000000"
           },
-          "groupCommission": {
-            "type": "string",
-            "description": "Group commission amount",
-            "example": "3000000"
-          },
           "month": {
             "type": "number",
             "description": "Month of the commission",
@@ -2543,7 +2538,6 @@
         "required": [
           "userStatusId",
           "monthlyCommission",
-          "groupCommission",
           "month",
           "year"
         ]
@@ -2560,11 +2554,6 @@
             "type": "string",
             "description": "Monthly commission amount",
             "example": "1000000"
-          },
-          "groupCommission": {
-            "type": "string",
-            "description": "Group commission amount",
-            "example": "3000000"
           },
           "month": {
             "type": "number",

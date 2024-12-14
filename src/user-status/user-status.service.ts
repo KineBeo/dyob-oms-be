@@ -68,23 +68,23 @@ export class UserStatusService {
     });
   }
 
-  /**
-   * ! CRON JOBS 2: RESET GROUP_SALES, GROUP_COMMISSION VỀ 0 HÀNG QUÝ (ĐẦU QUÝ)
-   * * OK CHECKED
-   */
-  @Cron('30 0 1 1,4,7,10 *', {
-    name: 'reset-group-sales-quarterly',
-    timeZone: 'Asia/Ho_Chi_Minh',
-  })
-  async resetGroupSalesQuarterly() {
-    console.log('Resetting group sales for all users', new Date());
-    const allUserStatus = await this.userStatusRepository.find();
-    allUserStatus.forEach(async (status) => {
-      status.group_sales = '0';
-      status.group_commission = '0';
-      await this.userStatusRepository.save(status);
-    });
-  }
+  // /**
+  //  * ! CRON JOBS 2: RESET GROUP_SALES, GROUP_COMMISSION VỀ 0 HÀNG QUÝ (ĐẦU QUÝ)
+  //  * * OK CHECKED
+  //  */
+  // @Cron('30 0 1 1,4,7,10 *', {
+  //   name: 'reset-group-sales-quarterly',
+  //   timeZone: 'Asia/Ho_Chi_Minh',
+  // })
+  // async resetGroupSalesQuarterly() {
+  //   console.log('Resetting group sales for all users', new Date());
+  //   const allUserStatus = await this.userStatusRepository.find();
+  //   allUserStatus.forEach(async (status) => {
+  //     status.group_sales = '0';
+  //     status.group_commission = '0';
+  //     await this.userStatusRepository.save(status);
+  //   });
+  // }
 
   /**
    * ! CRON JOBS 3: LƯU HOA HỒNG, THƯỞNG NHÓM CHO TẤT CẢ USER HÀNG THÁNG
@@ -209,50 +209,18 @@ export class UserStatusService {
     return 0;
   }
 
-  private calulateGroupSalesCommission(userStatus: UserStatus): number {
-    const group_sales = Number(userStatus.group_sales);
+  // private calulateGroupSalesCommission(userStatus: UserStatus): number {
+  //   const group_sales = Number(userStatus.group_sales);
 
-    const group_commission =
-      this.calculateGroupSalesCommissionPercentage(
-        userStatus.group_sales,
-        userStatus.user_class,
-      ) * group_sales;
+  //   const group_commission =
+  //     this.calculateGroupSalesCommissionPercentage(
+  //       userStatus.group_sales,
+  //       userStatus.user_class,
+  //     ) * group_sales;
 
-    console.log('group_commission', group_commission);
-    return group_commission;
-  }
-
-  private async calculateGroupSalesCommissionForAll() {
-    const allUserStatus = await this.userStatusRepository.find();
-    allUserStatus.forEach(async (status) => {
-      const commissionPercentage = this.calculateGroupSalesCommissionPercentage(
-        status.group_sales,
-        status.user_class,
-      );
-      console.log(
-        'commissionPercentage',
-        commissionPercentage,
-        'of user',
-        status.id,
-      );
-      status.commission = (
-        Number(status.commission) +
-        Number(status.group_sales) * commissionPercentage
-      ).toString();
-      await this.userStatusRepository.save(status);
-
-      console.log(
-        'UserStatus:',
-        status.id,
-        'User group_sales:',
-        status.group_sales,
-        'commission:',
-        status.commission,
-        'commissionPercentage:',
-        commissionPercentage,
-      );
-    });
-  }
+  //   console.log('group_commission', group_commission);
+  //   return group_commission;
+  // }
 
   private generateReferralCode(userId: number): string {
     const timestamp = Date.now().toString(36);
@@ -312,9 +280,9 @@ export class UserStatusService {
         total_purchase: '0', // checked
         total_orders: 0, // checked
         total_sales: '0', // checked
-        group_sales: '0', // checked
+        // group_sales: '0', // checked
         commission: '0', // checked
-        group_commission: '0', // checked
+        // group_commission: '0', // checked
         user_type: user_type, // checked
         user_class: user_class, // checked
         referrer: userStatusWithReferralCode || null, // checked
@@ -388,9 +356,9 @@ export class UserStatusService {
         total_purchase: userStatus.total_purchase,
         total_orders: userStatus.total_orders,
         total_sales: userStatus.total_sales,
-        group_sales: userStatus.group_sales,
+        // group_sales: userStatus.group_sales,
         commission: userStatus.commission,
-        group_commission: userStatus.group_commission,
+        // group_commission: userStatus.group_commission,
         last_rank_check: userStatus.last_rank_check,
         rank_achievement_date: userStatus.rank_achievement_date,
         user_rank: userStatus.user_rank,
@@ -657,11 +625,11 @@ export class UserStatusService {
             this.calculateCommissionPercentage(referrerStatus.user_class, 1)
         ).toString();
 
-        referrerStatus.group_sales = (
-          Number(referrerStatus.group_sales) + orderAmount
-        ).toString();
-        referrerStatus.group_commission =
-          this.calulateGroupSalesCommission(referrerStatus).toString();
+        // referrerStatus.group_sales = (
+        //   Number(referrerStatus.group_sales) + orderAmount
+        // ).toString();
+        // referrerStatus.group_commission =
+        //   this.calulateGroupSalesCommission(referrerStatus).toString();
         await this.userStatusRepository.save(referrerStatus);
       }
     } else {
@@ -684,13 +652,13 @@ export class UserStatusService {
             )
         ).toString();
 
-        referrerOfReferrerStatus.group_sales = (
-          Number(referrerOfReferrerStatus.group_sales) + orderAmount
-        ).toString();
-        referrerOfReferrerStatus.group_commission =
-          this.calulateGroupSalesCommission(
-            referrerOfReferrerStatus,
-          ).toString();
+        // referrerOfReferrerStatus.group_sales = (
+        //   Number(referrerOfReferrerStatus.group_sales) + orderAmount
+        // ).toString();
+        // referrerOfReferrerStatus.group_commission =
+        //   this.calulateGroupSalesCommission(
+        //     referrerOfReferrerStatus,
+        //   ).toString();
         await this.userStatusRepository.save(referrerOfReferrerStatus);
       }
     } else {
@@ -717,16 +685,16 @@ export class UserStatusService {
             )
         ).toString();
 
-        referrerOfReferrerOfReferrerStatus.group_sales = (
-          Number(referrerOfReferrerOfReferrerStatus.group_sales) + orderAmount
-        ).toString();
-        referrerOfReferrerOfReferrerStatus.group_commission =
-          this.calulateGroupSalesCommission(
-            referrerOfReferrerOfReferrerStatus,
-          ).toString();
-        await this.userStatusRepository.save(
-          referrerOfReferrerOfReferrerStatus,
-        );
+        // referrerOfReferrerOfReferrerStatus.group_sales = (
+        //   Number(referrerOfReferrerOfReferrerStatus.group_sales) + orderAmount
+        // ).toString();
+        // referrerOfReferrerOfReferrerStatus.group_commission =
+        //   this.calulateGroupSalesCommission(
+        //     referrerOfReferrerOfReferrerStatus,
+        //   ).toString();
+        // await this.userStatusRepository.save(
+        //   referrerOfReferrerOfReferrerStatus,
+        // );
       } else {
         console.log('User has no referrer of referrer of referrer');
       }
@@ -741,19 +709,19 @@ export class UserStatusService {
           relations: ['referrals'],
         });
 
-      if (referrerOfReferrerOfReferrerOfReferrerStatus) {
-        referrerOfReferrerOfReferrerOfReferrerStatus.group_sales = (
-          Number(referrerOfReferrerOfReferrerOfReferrerStatus.group_sales) +
-          orderAmount
-        ).toString();
-        referrerOfReferrerOfReferrerOfReferrerStatus.group_commission =
-          this.calulateGroupSalesCommission(
-            referrerOfReferrerOfReferrerOfReferrerStatus,
-          ).toString();
-        await this.userStatusRepository.save(
-          referrerOfReferrerOfReferrerOfReferrerStatus,
-        );
-      }
+      // if (referrerOfReferrerOfReferrerOfReferrerStatus) {
+      //   referrerOfReferrerOfReferrerOfReferrerStatus.group_sales = (
+      //     Number(referrerOfReferrerOfReferrerOfReferrerStatus.group_sales) +
+      //     orderAmount
+      //   ).toString();
+      //   referrerOfReferrerOfReferrerOfReferrerStatus.group_commission =
+      //     this.calulateGroupSalesCommission(
+      //       referrerOfReferrerOfReferrerOfReferrerStatus,
+      //     ).toString();
+      //   await this.userStatusRepository.save(
+      //     referrerOfReferrerOfReferrerOfReferrerStatus,
+      //   );
+      // }
     } else {
       console.log('User has no referrer of referrer of referrer');
     }

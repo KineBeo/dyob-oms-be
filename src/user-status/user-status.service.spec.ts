@@ -13,6 +13,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import User from 'src/users/entities/user.entity';
+import Order from 'src/orders/entities/order.entity';
 
 describe('UserStatusService', () => {
   let service: UserStatusService;
