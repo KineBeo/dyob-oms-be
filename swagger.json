@@ -1759,6 +1759,35 @@
         ]
       }
     },
+    "/notifications/{notification_number}": {
+      "delete": {
+        "operationId": "NotificationsController_deleteNotification",
+        "summary": "Delete notification",
+        "parameters": [
+          {
+            "name": "notification_number",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "notifications"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
     "/commission-history": {
       "post": {
         "operationId": "CommissionHistoryController_create",

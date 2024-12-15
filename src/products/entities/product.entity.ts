@@ -1,50 +1,62 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import ProductCategory from "../../product-category/entities/product-category.entity";
-import OrderProduct from "../../order_product/entities/order_product.entity";
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import ProductCategory from '../../product-category/entities/product-category.entity';
+import OrderProduct from '../../order_product/entities/order_product.entity';
 @Entity()
 export default class Product {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({type: 'text', nullable: false, unique: true})
-    name: string;
+  @Column({ type: 'text', nullable: false, unique: true })
+  documentId: string;
 
-    @Column({type: 'text', nullable: true})
-    description: string;
+  @Column({ type: 'text', nullable: false, unique: true })
+  name: string;
 
-    @Column({ type: 'text', default: '0', nullable: false })
-    price: string;
+  @Column({ type: 'text', nullable: true })
+  description: string;
 
-    @Column({ type: 'integer', default: 0, nullable: false })
-    stock: number;
+  @Column({ type: 'text', default: '0', nullable: false })
+  price: string;
 
-    @ManyToOne(() => ProductCategory, category => category.products)
-    @JoinColumn({ name: 'category_id' })
-    category: ProductCategory;
+  @Column({ type: 'integer', default: 0, nullable: false })
+  stock: number;
 
-    @Column({ type: 'text', nullable: true })
-    type: string;
+  @ManyToOne(() => ProductCategory, (category) => category.products)
+  @JoinColumn({ name: 'category_id' })
+  category: ProductCategory;
 
-    @Column({ type: 'jsonb', nullable: true })
-    attributes: object;
+  @Column({ type: 'text', nullable: true })
+  type: string;
 
-    @Column({ type: 'timestamp' })
-    public createdAt: Date;
+  @Column({ type: 'jsonb', nullable: true })
+  attributes: object;
 
-    @Column({ type: 'timestamp' })
-    public updatedAt: Date;
+  @Column({ type: 'timestamp' })
+  public createdAt: Date;
 
-    @BeforeInsert()
-    updateCreatedAt() {
-        this.createdAt = new Date(new Date().getTime());
-        this.updatedAt = new Date(new Date().getTime());
-    }
+  @Column({ type: 'timestamp' })
+  public updatedAt: Date;
 
-    @BeforeUpdate()
-    updateUpdatedAt() {
-        this.updatedAt = new Date(new Date().getTime());
-    }
+  @BeforeInsert()
+  updateCreatedAt() {
+    this.createdAt = new Date(new Date().getTime());
+    this.updatedAt = new Date(new Date().getTime());
+  }
 
-    @OneToMany(() => OrderProduct, orderProduct => orderProduct.product)
-    orderProduct: OrderProduct[];
+  @BeforeUpdate()
+  updateUpdatedAt() {
+    this.updatedAt = new Date(new Date().getTime());
+  }
+
+  @OneToMany(() => OrderProduct, (orderProduct) => orderProduct.product)
+  orderProduct: OrderProduct[];
 }

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SocketGateway } from 'src/socket/socket.gateway';
@@ -7,6 +12,7 @@ import User from 'src/users/entities/user.entity';
 import { Role } from 'src/enum/role';
 import { Notification } from './entities/notification.entity';
 import { OnEvent } from '@nestjs/event-emitter';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class NotificationsService {
@@ -84,7 +90,7 @@ export class NotificationsService {
         take: 100,
       });
     } catch (error) {
-      throw new Error('Error fetching notifications');
+      throw error('Error fetching notifications');
     }
   }
 
@@ -95,7 +101,76 @@ export class NotificationsService {
       });
       return 'Notification marked as read';
     } catch (error) {
-      throw new Error('Error marking notification as read');
+      throw error('Error marking notification as read');
+    }
+  }
+
+  async deleteNotifications(notification_id: number, user_id: number) {
+    const user = this.userRepository.findOne({
+      where: { id: user_id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const notification = await this.notificationRepository.findOne({
+      where: { id: notification_id },
+      relations: ['user'],
+    });
+
+    if (!notification) {
+      throw new NotFoundException('Notification not found');
+    }
+
+    if (notification.user.id !== user_id) {
+      throw new ForbiddenException(
+        'You are not allowed to delete this notification',
+      );
+    }
+
+    try {
+      await this.notificationRepository.delete(notification_id);
+      return 'Notification deleted';
+    } catch (error) {
+      throw error('Error deleting notification');
+    }
+  }
+
+  async deleteAllNotifications(user_id: number) {
+    const user = this.userRepository.findOne({
+      where: { id: user_id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    try {
+      await this.notificationRepository.delete({
+        user: { id: user_id },
+      });
+      return 'All notifications deleted';
+    } catch (error) {
+      throw error('Error deleting notifications');
+    }
+  }
+
+  //Viết hàm sử dụng cronjob để xóa tất cả thông báo sau 90 ngày
+  @Cron('0 0 * * *')
+  async deleteOldNotifications() {
+    const ninetyDaysAgo = new Date(
+      new Date().getTime() - 90 * 24 * 60 * 60 * 1000,
+    );
+
+    try {
+      await this.notificationRepository.delete({
+        createdAt: new Date(ninetyDaysAgo),
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error deleting old notifications',
+      );
     }
   }
 }

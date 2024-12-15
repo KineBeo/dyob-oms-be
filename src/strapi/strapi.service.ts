@@ -14,14 +14,14 @@ import { AxiosError } from 'axios';
 export class StrapiService {
   private readonly strapiUrl: string;
   private readonly strapiToken: string;
-  
+
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
     @InjectRepository(ProductCategory)
     private categoryRepository: Repository<ProductCategory>,
     private readonly httpService: HttpService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
   ) {
     this.strapiUrl = this.configService.get<string>('STRAPI_API_URL');
     this.strapiToken = this.configService.get<string>('STRAPI_API_TOKEN');
@@ -34,7 +34,7 @@ export class StrapiService {
           headers: {
             Authorization: `Bearer ${this.strapiToken}`,
           },
-        })
+        }),
       );
       return response.data;
     } catch (error) {
@@ -42,7 +42,7 @@ export class StrapiService {
         console.error('Strapi API Error:', {
           status: error.response?.status,
           data: error.response?.data,
-          url: error.config?.url
+          url: error.config?.url,
         });
       }
       throw error;
@@ -60,7 +60,10 @@ export class StrapiService {
         }>;
       }>('categories?fields=name');
 
-      console.log('Strapi Categories Response:', JSON.stringify(response, null, 2));
+      console.log(
+        'Strapi Categories Response:',
+        JSON.stringify(response, null, 2),
+      );
 
       if (!response?.data || !Array.isArray(response.data)) {
         throw new Error('Invalid response format from Strapi categories API');
@@ -73,16 +76,17 @@ export class StrapiService {
         }
 
         const existingCategory = await this.categoryRepository.findOne({
-          where: { name: category.name }
+          where: { documentId: category.documentId },
         });
 
         if (!existingCategory) {
           const newCategory = this.categoryRepository.create({
+            documentId: category.documentId,
             name: category.name,
           });
           await this.categoryRepository.save(newCategory);
           console.log('Created new category:', newCategory);
-        } 
+        }
       }
     } catch (error) {
       console.error('Error syncing categories:', error);
@@ -93,43 +97,52 @@ export class StrapiService {
   async syncProducts(): Promise<void> {
     try {
       const strapiProducts = await this.fetchFromStrapi<any>(
-        'products?fields=id,Name,Price,slug,Product_details, stock&populate[category][fields]=name'
+        'products?fields=id,Name,Price,slug,Product_details, stock&populate[category][fields]=name',
       );
-      console.log('Fetched products from Strapi:', JSON.stringify(strapiProducts, null, 2));
-  
+      console.log(
+        'Fetched products from Strapi:',
+        JSON.stringify(strapiProducts, null, 2),
+      );
+
       for (const product of strapiProducts.data) {
         try {
           const categoryName = product.category?.name;
-          console.log('Processing product:', product.Name, 'Category:', categoryName);
+          console.log(
+            'Processing product:',
+            product.Name,
+            'Category:',
+            categoryName,
+          );
           let category = null;
-          
+
           if (categoryName) {
             category = await this.categoryRepository.findOne({
-              where: { name: categoryName }
+              where: { documentId: category?.documentId },
             });
             console.log('Found category:', category);
           }
-  
+
           const existingProduct = await this.productRepository.findOne({
-            where: { name: product.Name },
-            relations: ['category'] // Add this to load the category relation
+            where: { documentId: product.documentId },
+            relations: ['category'], // Add this to load the category relation
           });
-  
+
           const productData = {
+            documentId: product.documentId,
             name: product.Name || 'Unknown',
             price: product.Price?.toString() || '0',
             description: product.Product_details?.toString() || 'nothing',
             category: category, // Set the entire category object instead of just the ID
             stock: product.stock || 0,
-            attributes: {}, 
+            attributes: {},
             type: 'nothing',
           };
-  
-          if (!productData.name) {
+
+          if (!productData) {
             console.warn('Skipping product due to missing name:', product);
             continue;
           }
-  
+
           if (!existingProduct) {
             console.log('Creating new product:', productData);
             const newProduct = this.productRepository.create(productData);
@@ -164,21 +177,20 @@ export class StrapiService {
   create(createStrapiDto: CreateStrapiDto) {
     return 'This action adds a new strapi';
   }
-  
+
   findAll() {
     return `This action returns all strapi`;
   }
-  
+
   findOne(id: number) {
     return `This action returns a #${id} strapi`;
   }
-  
+
   update(id: number, updateStrapiDto: UpdateStrapiDto) {
     return `This action updates a #${id} strapi`;
   }
-  
+
   remove(id: number) {
     return `This action removes a #${id} strapi`;
   }
 }
-

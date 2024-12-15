@@ -34,4 +34,20 @@ export class NotificationsController {
   async markAsRead(@Param('notification_id') notification_id: string) {
     return this.notificationsService.markAsRead(+notification_id);
   }
+
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Delete notification' })
+  @UseGuards(JwtAuthGuard)
+  @Delete(':notification_number')
+  async deleteNotification(
+    @Req() req,
+    @Param('notification_number') notification_number: string,
+  ) {
+    const user_id = req.user.sub;
+
+    return this.notificationsService.deleteNotifications(
+      +notification_number,
+      +user_id,
+    );
+  }
 }
