@@ -87,7 +87,6 @@ export class NotificationsService {
       return this.notificationRepository.find({
         where: { user },
         order: { createdAt: 'DESC' },
-        take: 100,
       });
     } catch (error) {
       throw error('Error fetching notifications');
