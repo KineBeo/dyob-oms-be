@@ -575,7 +575,7 @@ export class UserStatusService {
     // console.log('Calculating bonus for user:', userStatus);
     const total_sales = Number(userStatus.total_sales);
     const mind_stone = [5000000, 20000000, 50000000, 80000000, 100000000];
-    const bonus_percentage = [0.03, 0.04, 0.05, 0.6, 0.1];
+    const bonus_percentage = [0.03, 0.04, 0.05, 0.06, 0.1];
 
     for (let i = mind_stone.length; i >= 0; i--) {
       if (total_sales >= mind_stone[i]) {
