@@ -26,6 +26,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
 import { Role } from '../enum/role';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Controller('users')
 @ApiTags('users')
@@ -51,19 +52,24 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  /**
-   * ! Only admin should be able to access this endpoint
-   * TODO: Add admin guard here
-   * @returns
-   */
   @Get()
   @UseGuards(JwtAuthGuard, AdminGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'ADMIN: Get all users' })
-  @ApiResponse({ status: 200, description: 'Return all users.', type: User })
-  findAll() {
+  @ApiResponse({ status: 200, description: 'Return paginated users.' })
+  findAll(@Query() paginationDto: PaginationDto) {
     return this.usersService.findAll();
+  }
+
+  @Get('page')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'ADMIN: Get all users with pagination' })
+  @ApiResponse({ status: 200, description: 'Return paginated users.' })
+  findPageOfUser(@Query() paginationDto: PaginationDto) {
+    return this.usersService.findPageOfUser(paginationDto);
   }
 
   /**

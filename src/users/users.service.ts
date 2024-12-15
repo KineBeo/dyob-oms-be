@@ -11,6 +11,7 @@ import { DataSource, QueryFailedError, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import User from './entities/user.entity';
 import { CreateUserFullAttributesDto } from './dto/create-user-full-attributes.dto';
+import { PaginationDto } from './dto/pagination.dto';
 @Injectable()
 export class UsersService {
   constructor(
@@ -59,6 +60,57 @@ export class UsersService {
         updateUpdatedAt,
       }),
     );
+  }
+
+  async findPageOfUser(paginationDto: PaginationDto): Promise<{
+    data: Omit<User, 'password_hash'>[];
+    totalPages: number;
+    currentPage: number;
+  }> {
+    const { page = 1, pageSize = 100, search } = paginationDto;
+
+    // Create query builder
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+
+    // Apply search if provided
+    if (search) {
+      queryBuilder.andWhere(
+        'user.fullname LIKE :search OR user.phone_number LIKE :search',
+        {
+          search: `%${search}%`,
+        },
+      );
+    }
+
+    // Calculate total count for pagination
+    const totalCount = await queryBuilder.getCount();
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    // Apply pagination
+    const users = await queryBuilder
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getMany();
+
+    // Map users to remove sensitive information
+    const mappedUsers = users.map(
+      ({
+        password_hash,
+        updateCreatedAt,
+        updateUpdatedAt,
+        ...userWithoutPassword
+      }) => ({
+        ...userWithoutPassword,
+        updateCreatedAt,
+        updateUpdatedAt,
+      }),
+    );
+
+    return {
+      data: mappedUsers,
+      totalPages,
+      currentPage: page,
+    };
   }
 
   async findOne(id: number): Promise<Omit<User, 'password_hash'>> {
