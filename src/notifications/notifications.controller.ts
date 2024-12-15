@@ -38,15 +38,19 @@ export class NotificationsController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete notification' })
   @UseGuards(JwtAuthGuard)
-  @Delete(':notification_number')
+  @Delete(':notification_id')
   async deleteNotification(
     @Req() req,
-    @Param('notification_number') notification_number: string,
+    @Param('notification_id') notification_id: string,
   ) {
     const user_id = req.user.sub;
 
+    if (notification_id === 'all') {
+      return this.notificationsService.deleteAllNotifications(+user_id);
+    }
+
     return this.notificationsService.deleteNotifications(
-      +notification_number,
+      +notification_id,
       +user_id,
     );
   }

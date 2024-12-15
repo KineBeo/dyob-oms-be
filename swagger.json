@@ -1759,13 +1759,13 @@
         ]
       }
     },
-    "/notifications/{notification_number}": {
+    "/notifications/{notification_id}": {
       "delete": {
         "operationId": "NotificationsController_deleteNotification",
         "summary": "Delete notification",
         "parameters": [
           {
-            "name": "notification_number",
+            "name": "notification_id",
             "required": true,
             "in": "path",
             "schema": {
