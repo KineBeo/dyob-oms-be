@@ -54,7 +54,8 @@ export class UserStatusService {
    * ! CRON JOBS 1: RESET TOTAL_SALES, COMMISSION VỀ 0 HÀNG THÁNG (ĐẦU THÁNG)
    * * OK CHECKED
    */
-  @Cron('0 0 1 * *', {
+  @Cron('30 13 * * *', {
+    // @Cron('0 0 1 * *', {
     name: 'reset-total-sales-monthly',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
@@ -90,8 +91,8 @@ export class UserStatusService {
   /**
    * ! CRON JOBS 3: LƯU HOA HỒNG, THƯỞNG NHÓM CHO TẤT CẢ USER HÀNG THÁNG
    */
-
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+  @Cron('25 13 * * *', {
+    // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
     name: 'store-commission-history-monthly',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
