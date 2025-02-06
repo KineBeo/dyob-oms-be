@@ -19,6 +19,9 @@ export class UserTransaction {
   @Column({ type: 'enum', enum: TransactionType })
   type: TransactionType;
 
+  @Column()
+  note: string;
+
   @ManyToOne(() => User, (user) => user.transactions)
   user: User;
 
