@@ -23,6 +23,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { SocketGateway } from './socket/socket.gateway';
 import { SocketModule } from './socket/socket.module';
 import { CommissionHistoryModule } from './commission-history/commission-history.module';
+import { UserTransactionsModule } from './user-transactions/user-transactions.module';
 
 @Module({
   imports: [
@@ -56,12 +57,18 @@ import { CommissionHistoryModule } from './commission-history/commission-history
     NotificationsModule,
     SocketModule,
     CommissionHistoryModule,
+    UserTransactionsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, CartService, {
-    provide: APP_GUARD,
-    useClass: JwtAuthGuard,
-  }, SocketGateway],
+  providers: [
+    AppService,
+    CartService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    SocketGateway,
+  ],
 })
 export class AppModule implements OnModuleInit {
   constructor(private readonly redisService: RedisService) {}
