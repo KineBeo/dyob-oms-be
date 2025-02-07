@@ -498,8 +498,11 @@ export class UserStatusService {
           newRank: newRank,
         });
       }
+      console.log('Trước khi tính hoa hồng');
 
       await this.calculateCommission(userStatus, orderAmount);
+
+      console.log('Sau khi tính hoa hồng');
 
       await this.userStatusRepository.save(userStatus);
     } catch (error) {

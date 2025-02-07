@@ -20,7 +20,7 @@ export class UserTransaction {
   @Column({ type: 'enum', enum: TransactionType })
   type: TransactionType;
 
-  @Column()
+  @Column({ nullable: true })
   description: string;
 
   @ManyToOne(() => UserStatus, (userStatus) => userStatus.userTransactions)

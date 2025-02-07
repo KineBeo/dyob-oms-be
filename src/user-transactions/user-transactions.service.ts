@@ -107,7 +107,7 @@ export class UserTransactionsService {
       user_status_id: user_status.id,
       amount,
       transaction_type: TransactionType.COMMISSION,
-      description: note,
+      description: note == null ? '' : note,
     });
 
     return this.userStatusRepository.save(user_status);
@@ -121,6 +121,7 @@ export class UserTransactionsService {
    * @returns
    */
   async purchase(user_status: UserStatus, amount: string, note?: string) {
+    console.log('Đã vào hàm puschase');
     user_status.total_purchase = String(
       Number(user_status.total_purchase) + Number(amount),
     );
@@ -179,7 +180,7 @@ export class UserTransactionsService {
       user_status_id: current_user_status.id,
       amount,
       transaction_type: TransactionType.SALE,
-      description: note,
+      description: 'Bán được hàng',
     });
 
     return this.userStatusRepository.save(current_user_status);
