@@ -609,40 +609,42 @@ export class UserStatusService {
     userStatus: UserStatus,
     orderAmount: number,
   ): Promise<{ message: string }> {
-    // console.log('Calculating commission for user:', userStatus);
+    console.log('Calculating commission for user:', userStatus);
     const fullname = userStatus.user.fullname;
 
-    const referrer = userStatus.referrer;
-    const referrerOfReferrer = userStatus.referrer?.referrer;
-    const referrerOfReferrerOfReferrer =
-      userStatus.referrer?.referrer?.referrer;
+    const father = userStatus.referrer;
+    const grandpa = userStatus.referrer?.referrer;
+    const greatGrandpa = userStatus.referrer?.referrer?.referrer;
     const referrerOfReferrerOfReferrerOfReferrer =
       userStatus.referrer?.referrer?.referrer?.referrer;
-    // console.log('referrer', referrer);
-    // console.log('referrerOfReferrer', referrerOfReferrer);
-    // console.log('referrerOfReferrerOfReferrer', referrerOfReferrerOfReferrer);
+    console.log('Cha', father);
+    console.log('Ông', grandpa);
+    console.log('Cụ', greatGrandpa);
 
-    // TODO: Kiểm tra xem user có người giới thiệu không và cập nhật hoa hồng và doanh số cho người giới thiệu
-    if (referrer && referrer.user_rank === UserRank.NVKD) {
-      const referrerStatus = await this.userStatusRepository.findOne({
-        where: { user: { id: referrer.id } },
+    // * CHECK cha
+    if (father && father.user_rank === UserRank.NVKD) {
+      const fatherState = await this.userStatusRepository.findOne({
+        where: { user: { id: father.id } },
         relations: ['referrals', 'user'],
       });
 
-      if (referrerStatus) {
+      if (fatherState) {
         // referrerStatus.total_sales = (
         //   Number(referrerStatus.total_sales) + orderAmount
         // ).toString();
 
-        this.userTransactionService.sales(userStatus, orderAmount.toString());
+        // * Tính total_sale và thưởng
+        this.userTransactionService.sales(fatherState, orderAmount.toString());
 
+        // * Tính hoa hồng
         const commission = (
           Number(orderAmount) *
-          this.calculateCommissionPercentage(referrerStatus.user_class, 1)
+          this.calculateCommissionPercentage(fatherState.user_class, 1)
         ).toString();
 
+        // * Tạo transaction cho cha
         this.userTransactionService.commission(
-          referrerStatus,
+          fatherState,
           commission,
           'Hoa hồng nhận được từ người dùng ' + fullname,
         );
@@ -659,23 +661,22 @@ export class UserStatusService {
       console.log('User has no referrer');
     }
 
-    if (referrerOfReferrer && referrerOfReferrer.user_rank === UserRank.NVKD) {
-      const referrerOfReferrerStatus = await this.userStatusRepository.findOne({
-        where: { user: { id: referrerOfReferrer.id } },
+    // * CHECK ÔNG
+    if (grandpa && grandpa.user_rank === UserRank.NVKD) {
+      const grandpaState = await this.userStatusRepository.findOne({
+        where: { user: { id: grandpa.id } },
         relations: ['referrals', 'user'],
       });
 
-      if (referrerOfReferrerStatus) {
+      if (grandpaState) {
+        // * Tính hoa hồng cho ông
         const commission = (
           Number(orderAmount) *
-          this.calculateCommissionPercentage(
-            referrerOfReferrerStatus.user_class,
-            2,
-          )
+          this.calculateCommissionPercentage(grandpaState.user_class, 2)
         ).toString();
 
         this.userTransactionService.commission(
-          referrerOfReferrerStatus,
+          grandpaState,
           commission,
           'Hoa hồng nhận được từ người dùng ' + fullname,
         );
@@ -692,28 +693,23 @@ export class UserStatusService {
       console.log('User has no referrer of referrer');
     }
 
-    if (
-      referrerOfReferrerOfReferrer &&
-      referrerOfReferrerOfReferrer.user_rank === UserRank.NVKD
-    ) {
-      const referrerOfReferrerOfReferrerStatus =
-        await this.userStatusRepository.findOne({
-          where: { user: { id: referrerOfReferrerOfReferrer.id } },
-          relations: ['referrals', 'user'],
-        });
+    // * CHECK CỤ
+    if (greatGrandpa && greatGrandpa.user_rank === UserRank.NVKD) {
+      const greatGrandpaState = await this.userStatusRepository.findOne({
+        where: { user: { id: greatGrandpa.id } },
+        relations: ['referrals', 'user'],
+      });
 
-      if (referrerOfReferrerOfReferrerStatus) {
-        referrerOfReferrerOfReferrerStatus.commission = (
+      if (greatGrandpaState) {
+        // * Tính hoa hồng cho cụ
+        greatGrandpaState.commission = (
           Number(orderAmount) *
-          this.calculateCommissionPercentage(
-            referrerOfReferrerOfReferrerStatus.user_class,
-            3,
-          )
+          this.calculateCommissionPercentage(greatGrandpaState.user_class, 3)
         ).toString();
 
         this.userTransactionService.commission(
-          referrerOfReferrerOfReferrerStatus,
-          referrerOfReferrerOfReferrerStatus.commission,
+          greatGrandpaState,
+          greatGrandpaState.commission,
           'Hoa hồng nhận được từ người dùng ' + fullname,
         );
 

@@ -95,9 +95,13 @@ export class UserTransactionsService {
    * @returns
    */
   async commission(user_status: UserStatus, amount: string, note?: string) {
+    console.log('Cộng hoa hồng từ ', user_status.commission);
+
     user_status.commission = String(
       Number(user_status.commission) + Number(amount),
     );
+
+    console.log('Sau khi cộng hoa hồng ', user_status.commission);
 
     this.create({
       user_status_id: user_status.id,
@@ -130,7 +134,7 @@ export class UserTransactionsService {
       description: note,
     });
 
-    return this.userStatusRepository.save(user_status);
+    return this.userStatusRepository.save(user_status); // * CHECKED
   }
 
   /**
@@ -155,30 +159,30 @@ export class UserTransactionsService {
 
   /**
    * * Khi người dùng bán được hàng => cập nhật doanh thu và thưởng
-   * @param user_status
+   * @param current_user_status
    * @param amount
    * @param note
    * @returns
    */
-  async sales(user_status: UserStatus, amount: string, note?: string) {
-    user_status.total_sales = String(
-      Number(user_status.total_sales) + Number(amount),
+  async sales(current_user_status: UserStatus, amount: string, note?: string) {
+    current_user_status.total_sales = String(
+      Number(current_user_status.total_sales) + Number(amount),
     );
 
     this.bonus(
-      user_status,
-      this.calculateBonus(user_status).toString(),
+      current_user_status,
+      this.calculateBonus(current_user_status).toString(),
       'Thưởng nhận được từ doanh thu',
     );
 
     this.create({
-      user_status_id: user_status.id,
+      user_status_id: current_user_status.id,
       amount,
       transaction_type: TransactionType.SALE,
       description: note,
     });
 
-    return this.userStatusRepository.save(user_status);
+    return this.userStatusRepository.save(current_user_status);
   }
 
   /**
