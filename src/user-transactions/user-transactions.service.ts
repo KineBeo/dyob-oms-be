@@ -1,29 +1,38 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserTransactionDto } from './dto/create-user-transaction.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserTransaction } from './entities/user-transaction.entity';
 import { UsersService } from 'src/users/users.service';
+import { UserStatus } from 'src/user-status/entities/user-status.entity';
+import { TransactionType } from 'src/enum/transactionType';
+import { CreateUserTransactionDto } from './dto/create-user-transaction.dto';
 
 @Injectable()
 export class UserTransactionsService {
   constructor(
     @InjectRepository(UserTransaction)
     private userTransactionRepository: Repository<UserTransaction>,
-    private readonly usersService: UsersService,
+    @InjectRepository(UserStatus)
+    private userStatusRepository: Repository<UserStatus>,
   ) {}
 
-  async create(createUserTransactionDto: CreateUserTransactionDto) {
+  async create(CreateUserTransactionDto: CreateUserTransactionDto) {
     try {
-      const user_id = createUserTransactionDto.userId;
-      const user = await this.usersService.findOne(user_id);
-
-      const transaction = this.userTransactionRepository.create({
-        ...createUserTransactionDto,
-        user,
+      const user_status = await this.userStatusRepository.findOne({
+        where: { id: CreateUserTransactionDto.user_status_id },
       });
 
-      return this.userTransactionRepository.save(transaction);
+      if (!user_status) {
+        throw new NotFoundException('User status not found');
+      }
+
+      const transaction = this.userTransactionRepository.create({
+        amount: CreateUserTransactionDto.amount,
+        type: CreateUserTransactionDto.transaction_type,
+        description: CreateUserTransactionDto.description,
+        userStatus: user_status,
+      });
+      await this.userTransactionRepository.save(transaction);
     } catch (error) {
       console.error('Error creating user transaction', error);
       throw error;
@@ -48,12 +57,92 @@ export class UserTransactionsService {
   findByUserId(userId: number) {
     try {
       const transactions = this.userTransactionRepository.find({
-        where: { user: { id: userId } },
+        where: { userStatus: { user: { id: userId } } },
       });
       return transactions;
     } catch (error) {
       console.error('Error finding user transactions', error);
       throw error;
     }
+  }
+
+  async bonus(user_status: UserStatus, amount: string, note?: string) {
+    user_status.bonus = String(Number(user_status.bonus) + Number(amount));
+
+    this.create({
+      user_status_id: user_status.id,
+      amount,
+      transaction_type: TransactionType.BONUS,
+      description: note,
+    });
+    return this.userStatusRepository.save(user_status);
+  }
+
+  async commission(user_status: UserStatus, amount: string, note?: string) {
+    user_status.commission = String(
+      Number(user_status.commission) + Number(amount),
+    );
+
+    this.create({
+      user_status_id: user_status.id,
+      amount,
+      transaction_type: TransactionType.COMMISSION,
+      description: note,
+    });
+
+    return this.userStatusRepository.save(user_status);
+  }
+
+  async purchase(user_status: UserStatus, amount: string, note?: string) {
+    user_status.total_purchase = String(
+      Number(user_status.total_purchase) + Number(amount),
+    );
+
+    this.create({
+      user_status_id: user_status.id,
+      amount,
+      transaction_type: TransactionType.PURCHASE,
+      description: note,
+    });
+
+    return this.userStatusRepository.save(user_status);
+  }
+
+  async sale(user_status: UserStatus, amount: string, note?: string) {
+    user_status.total_sales = String(
+      Number(user_status.total_sales) + Number(amount),
+    );
+
+    this.create({
+      user_status_id: user_status.id,
+      amount,
+      transaction_type: TransactionType.SALE,
+      description: note,
+    });
+
+    return this.userStatusRepository.save(user_status);
+  }
+
+  async reset(user_status: UserStatus, time?: Date) {
+    user_status.bonus = '0';
+    user_status.commission = '0';
+
+    const currentMonth = time.getMonth();
+
+    this.create({
+      user_status_id: user_status.id,
+      amount: '-' + user_status.bonus,
+      transaction_type: TransactionType.RESET,
+      description: 'Thanh toán tiền thưởng tháng ' + currentMonth,
+    });
+
+    this.create({
+      user_status_id: user_status.id,
+      amount: '-' + user_status.commission,
+      transaction_type: TransactionType.RESET,
+      description: 'Thanh toán tiền hoa hồng tháng ' + currentMonth,
+    });
+
+    return this.userStatusRepository.save(user_status);
   }
 }

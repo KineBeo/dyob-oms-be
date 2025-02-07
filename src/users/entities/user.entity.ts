@@ -12,7 +12,6 @@ import {
 } from 'typeorm';
 import { Role } from '../../enum/role';
 import { UserAddress } from 'src/user-address/entities/user-address.entity';
-import { UserTransaction } from 'src/user-transactions/entities/user-transaction.entity';
 
 @Entity()
 export default class User {
@@ -79,7 +78,4 @@ export default class User {
 
   @OneToMany(() => UserAddress, (address) => address.user)
   addresses: UserAddress[];
-
-  @OneToMany(() => UserTransaction, (transaction) => transaction.user)
-  transactions: UserTransaction[];
 }

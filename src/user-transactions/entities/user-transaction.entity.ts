@@ -1,4 +1,5 @@
 import { TransactionType } from 'src/enum/transactionType';
+import { UserStatus } from 'src/user-status/entities/user-status.entity';
 import User from 'src/users/entities/user.entity';
 import {
   BeforeInsert,
@@ -20,10 +21,10 @@ export class UserTransaction {
   type: TransactionType;
 
   @Column()
-  note: string;
+  description: string;
 
-  @ManyToOne(() => User, (user) => user.transactions)
-  user: User;
+  @ManyToOne(() => UserStatus, (userStatus) => userStatus.userTransactions)
+  userStatus: UserStatus;
 
   @Column()
   createdAt: Date;

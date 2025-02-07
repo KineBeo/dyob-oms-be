@@ -9,7 +9,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserTransactionsService } from './user-transactions.service';
-import { CreateUserTransactionDto } from './dto/create-user-transaction.dto';
 import { AdminGuard } from 'src/auth/guards/admin.guard';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { Role } from 'src/enum/role';

@@ -1,17 +1,34 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsNumberString } from 'class-validator';
+import { IsNumber, Min, IsString } from 'class-validator';
 import { TransactionType } from 'src/enum/transactionType';
 
 export class CreateUserTransactionDto {
-  @ApiProperty()
-  @IsNumberString()
+  @ApiProperty({
+    description: 'Transaction type',
+    example: 'PURCHASE',
+  })
+  @IsString()
+  transaction_type: TransactionType;
+
+  @ApiProperty({
+    description: 'Amount',
+    example: '1000',
+  })
+  @IsString()
   amount: string;
 
-  @ApiProperty()
-  @IsEnum(TransactionType)
-  type: TransactionType;
+  @ApiProperty({
+    description: 'Description',
+    example: 'Purchase of product A',
+  })
+  @IsString()
+  description: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'Transaction ID',
+    example: '123456',
+  })
   @IsNumber()
-  userId: number;
+  @Min(1)
+  user_status_id: number;
 }

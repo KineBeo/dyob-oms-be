@@ -14,6 +14,7 @@ import {
 } from 'typeorm';
 import { UserType } from 'src/enum/user_type';
 import { UserClass } from 'src/enum/user-class';
+import { UserTransaction } from 'src/user-transactions/entities/user-transaction.entity';
 
 @Entity()
 export class UserStatus {
@@ -107,4 +108,10 @@ export class UserStatus {
 
   @OneToMany(() => Order, (order) => order.userStatus)
   orders: Order[];
+
+  @OneToMany(
+    () => UserTransaction,
+    (userTransaction) => userTransaction.userStatus,
+  )
+  userTransactions: UserTransaction[];
 }

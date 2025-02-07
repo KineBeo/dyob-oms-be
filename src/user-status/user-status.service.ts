@@ -16,6 +16,7 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UserType } from 'src/enum/user_type';
 import { UserClass } from 'src/enum/user-class';
+import { UserTransactionsService } from 'src/user-transactions/user-transactions.service';
 
 @Injectable()
 export class UserStatusService {
@@ -25,6 +26,7 @@ export class UserStatusService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private eventEmitter: EventEmitter2,
+    private readonly userTransactionService: UserTransactionsService,
   ) {}
 
   private readonly logger = new Logger(UserStatusService.name);
@@ -62,12 +64,7 @@ export class UserStatusService {
   async resetTotalSalesMonthly() {
     console.log('Resetting total sales for all users', new Date());
     const allUserStatus = await this.userStatusRepository.find();
-    allUserStatus.forEach(async (status) => {
-      status.total_sales = '0';
-      status.commission = '0';
-      status.bonus = '0';
-      await this.userStatusRepository.save(status);
-    });
+    allUserStatus.forEach(async (status) => {});
   }
 
   // /**
