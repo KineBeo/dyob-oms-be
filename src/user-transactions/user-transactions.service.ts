@@ -88,7 +88,7 @@ export class UserTransactionsService {
   }
 
   /**
-   * ! Giao dịch hoa hồng
+   * * Giao dịch hoa hồng
    * @param user_status
    * @param amount
    * @param note
@@ -110,7 +110,7 @@ export class UserTransactionsService {
   }
 
   /**
-   * Giao dịch mua hàng
+   * * Giao dịch mua hàng
    * @param user_status
    * @param amount
    * @param note
@@ -182,7 +182,7 @@ export class UserTransactionsService {
   }
 
   /**
-   * ! Reset tiền hàng tháng
+   * * Reset tiền hàng tháng
    * @param user_status
    * @param time
    * @returns

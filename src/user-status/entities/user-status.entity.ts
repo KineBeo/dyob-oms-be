@@ -99,6 +99,8 @@ export class UserStatus {
   updateCreatedAt() {
     this.createdAt = new Date();
     this.updatedAt = new Date();
+    this.last_rank_check = new Date();
+    this.rank_achievement_date = new Date();
   }
 
   @BeforeUpdate()
