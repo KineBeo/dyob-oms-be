@@ -705,14 +705,14 @@ export class UserStatusService {
 
       if (greatGrandpaState) {
         // * Tính hoa hồng cho cụ
-        greatGrandpaState.commission = (
+        const commission = (
           Number(orderAmount) *
           this.calculateCommissionPercentage(greatGrandpaState.user_class, 3)
         ).toString();
 
         this.userTransactionService.commission(
           greatGrandpaState,
-          greatGrandpaState.commission,
+          commission,
           'Hoa hồng nhận được từ người dùng ' + fullname,
         );
 
