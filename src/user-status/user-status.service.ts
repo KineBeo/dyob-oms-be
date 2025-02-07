@@ -589,7 +589,7 @@ export class UserStatusService {
     upperLevel: number,
   ) {
     const basicCommissionPercentage = [0.2, 0.06, 0.03]; // checked 15h 8/12/2024
-    const vipCommissionPercentage = [0.25, 0.09, 0.06]; // checked 15h 8/12/2024
+    const vipCommissionPercentage = [0.25, 0.09, 0.05]; // checked 22h 7/2/2025
 
     if (user_class === UserClass.BASIC) {
       return basicCommissionPercentage[upperLevel - 1];
