@@ -1170,12 +1170,16 @@
           "200": {
             "description": ""
           }
-        }
+        },
+        "tags": [
+          "User Transactions"
+        ]
       }
     },
     "/user-transactions/{id}": {
       "get": {
         "operationId": "UserTransactionsController_findOne",
+        "summary": "Get user transaction by id",
         "parameters": [
           {
             "name": "id",
@@ -1190,7 +1194,34 @@
           "200": {
             "description": ""
           }
-        }
+        },
+        "tags": [
+          "User Transactions"
+        ]
+      }
+    },
+    "/user-transactions/user": {
+      "get": {
+        "operationId": "UserTransactionsController_findByUserId",
+        "summary": "Get user transactions by user id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "User Transactions"
+        ]
       }
     },
     "/user-address": {
@@ -2656,6 +2687,11 @@
             "description": "Bonus amount",
             "example": "500000"
           },
+          "total_sales": {
+            "type": "string",
+            "description": "Total sales amount",
+            "example": "2000000"
+          },
           "month": {
             "type": "number",
             "description": "Month of the commission",
@@ -2671,6 +2707,7 @@
           "userStatusId",
           "monthlyCommission",
           "bonus",
+          "total_sales",
           "month",
           "year"
         ]
@@ -2692,6 +2729,11 @@
             "type": "string",
             "description": "Bonus amount",
             "example": "500000"
+          },
+          "total_sales": {
+            "type": "string",
+            "description": "Total sales amount",
+            "example": "2000000"
           },
           "month": {
             "type": "number",

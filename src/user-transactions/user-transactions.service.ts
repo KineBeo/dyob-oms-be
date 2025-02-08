@@ -43,11 +43,22 @@ export class UserTransactionsService {
     return this.userTransactionRepository.find();
   }
 
-  findOne(id: number) {
+  async findOne(id: number, userId: number) {
     try {
-      const transaction = this.userTransactionRepository.findOne({
+      const transaction = await this.userTransactionRepository.findOne({
         where: { id },
+        relations: ['userStatus.user'],
       });
+
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found');
+      }
+
+      if (transaction.userStatus.user.id !== userId) {
+        throw new NotFoundException('Transaction not found');
+      }
+
+      return transaction;
     } catch (error) {
       console.error('Error finding user transaction', error);
       throw error;

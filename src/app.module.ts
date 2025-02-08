@@ -24,6 +24,7 @@ import { SocketGateway } from './socket/socket.gateway';
 import { SocketModule } from './socket/socket.module';
 import { CommissionHistoryModule } from './commission-history/commission-history.module';
 import { UserTransactionsModule } from './user-transactions/user-transactions.module';
+import { AnalysisModule } from './analysis/analysis.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { UserTransactionsModule } from './user-transactions/user-transactions.mo
     SocketModule,
     CommissionHistoryModule,
     UserTransactionsModule,
+    AnalysisModule,
   ],
   controllers: [AppController],
   providers: [
