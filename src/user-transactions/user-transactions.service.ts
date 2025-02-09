@@ -204,25 +204,34 @@ export class UserTransactionsService {
    * @returns
    */
   async reset(user_status: UserStatus, time?: Date) {
-    user_status.bonus = '0';
-    user_status.commission = '0';
+    const currentMonth = time.getMonth() + 1;
 
-    const currentMonth = time.getMonth();
+    const lastMonth = currentMonth == 1 ? 12 : currentMonth - 1;
 
     this.create({
       user_status_id: user_status.id,
       amount: '-' + user_status.bonus,
       transaction_type: TransactionType.RESET,
-      description: 'Thanh toán tiền thưởng tháng ' + currentMonth,
+      description: 'Thanh toán tiền thưởng tháng ' + lastMonth,
     });
 
     this.create({
       user_status_id: user_status.id,
       amount: '-' + user_status.commission,
       transaction_type: TransactionType.RESET,
-      description: 'Thanh toán tiền hoa hồng tháng ' + currentMonth,
+      description: 'Thanh toán tiền hoa hồng tháng ' + lastMonth,
     });
 
+    this.create({
+      user_status_id: user_status.id,
+      amount: '-' + user_status.total_sales,
+      transaction_type: TransactionType.RESET,
+      description: 'Làm mới tổng doanh thu cho tháng  ' + currentMonth,
+    });
+
+    user_status.bonus = '0';
+    user_status.commission = '0';
+    user_status.total_sales = '0';
     return this.userStatusRepository.save(user_status);
   }
 }
