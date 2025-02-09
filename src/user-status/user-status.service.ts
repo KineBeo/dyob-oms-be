@@ -56,8 +56,8 @@ export class UserStatusService {
    * ! CRON JOBS 1: RESET TOTAL_SALES, COMMISSION VỀ 0 HÀNG THÁNG (ĐẦU THÁNG)
    * * OK CHECKED
    */
-  @Cron('45 20 * * *', {
-    // @Cron('0 0 1 * *', {
+  // @Cron('45 20 * * *', {
+  @Cron('0 0 1 * *', {
     name: 'reset-total-sales-monthly',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
@@ -92,8 +92,8 @@ export class UserStatusService {
   /**
    * ! CRON JOBS 3: LƯU HOA HỒNG, THƯỞNG NHÓM CHO TẤT CẢ USER HÀNG THÁNG
    */
-  @Cron('40 20 * * *', {
-    // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+  // @Cron('40 20 * * *', {
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
     name: 'store-commission-history-monthly',
     timeZone: 'Asia/Ho_Chi_Minh',
   })
@@ -123,7 +123,7 @@ export class UserStatusService {
     tomorrow.setDate(tomorrow.getDate() + 1);
     console.log('Ngày mai', tomorrow);
 
-    return true;
+    // return true;
     return tomorrow.getMonth() !== today.getMonth();
   }
 
@@ -498,11 +498,11 @@ export class UserStatusService {
           newRank: newRank,
         });
       }
-      console.log('Trước khi tính hoa hồng');
+      // console.log('Trước khi tính hoa hồng');
 
       await this.calculateCommission(userStatus, orderAmount);
 
-      console.log('Sau khi tính hoa hồng');
+      // console.log('Sau khi tính hoa hồng');
 
       await this.userStatusRepository.save(userStatus);
     } catch (error) {
@@ -612,7 +612,7 @@ export class UserStatusService {
     userStatus: UserStatus,
     orderAmount: number,
   ): Promise<{ message: string }> {
-    console.log('Calculating commission for user:', userStatus);
+    // console.log('Calculating commission for user:', userStatus);
     const fullname = userStatus.user.fullname;
 
     const father = userStatus.referrer;
@@ -620,9 +620,9 @@ export class UserStatusService {
     const greatGrandpa = userStatus.referrer?.referrer?.referrer;
     const referrerOfReferrerOfReferrerOfReferrer =
       userStatus.referrer?.referrer?.referrer?.referrer;
-    console.log('Cha', father);
-    console.log('Ông', grandpa);
-    console.log('Cụ', greatGrandpa);
+    // console.log('Cha', father);
+    // console.log('Ông', grandpa);
+    // console.log('Cụ', greatGrandpa);
 
     // * CHECK cha
     if (father && father.user_rank === UserRank.NVKD) {

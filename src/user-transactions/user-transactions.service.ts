@@ -106,13 +106,13 @@ export class UserTransactionsService {
    * @returns
    */
   async commission(user_status: UserStatus, amount: string, note?: string) {
-    console.log('Cộng hoa hồng từ ', user_status.commission);
+    // console.log('Cộng hoa hồng từ ', user_status.commission);
 
     user_status.commission = String(
       Number(user_status.commission) + Number(amount),
     );
 
-    console.log('Sau khi cộng hoa hồng ', user_status.commission);
+    // console.log('Sau khi cộng hoa hồng ', user_status.commission);
 
     this.create({
       user_status_id: user_status.id,
@@ -132,7 +132,7 @@ export class UserTransactionsService {
    * @returns
    */
   async purchase(user_status: UserStatus, amount: string, note?: string) {
-    console.log('Đã vào hàm puschase');
+    // console.log('Đã vào hàm puschase');
     user_status.total_purchase = String(
       Number(user_status.total_purchase) + Number(amount),
     );
