@@ -58,6 +58,8 @@ export class UserTransactionsService {
         throw new NotFoundException('Transaction not found');
       }
 
+      transaction.userStatus = undefined;
+
       return transaction;
     } catch (error) {
       console.error('Error finding user transaction', error);
@@ -65,11 +67,16 @@ export class UserTransactionsService {
     }
   }
 
-  findByUserId(userId: number) {
+  async findAllUserTransactions(userId: number) {
     try {
-      const transactions = this.userTransactionRepository.find({
+      const transactions = await this.userTransactionRepository.find({
         where: { userStatus: { user: { id: userId } } },
       });
+
+      transactions.forEach((transaction) => {
+        transaction.createdAt = new Date(transaction.createdAt.toUTCString());
+      });
+
       return transactions;
     } catch (error) {
       console.error('Error finding user transactions', error);

@@ -1165,6 +1165,7 @@
     "/user-transactions": {
       "get": {
         "operationId": "UserTransactionsController_findAll",
+        "summary": "Get all user transactions",
         "parameters": [],
         "responses": {
           "200": {
@@ -1173,6 +1174,11 @@
         },
         "tags": [
           "User Transactions"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
         ]
       }
     },
@@ -1197,23 +1203,19 @@
         },
         "tags": [
           "User Transactions"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
         ]
       }
     },
-    "/user-transactions/user": {
+    "/user-transactions/user/me": {
       "get": {
-        "operationId": "UserTransactionsController_findByUserId",
-        "summary": "Get user transactions by user id",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "operationId": "UserTransactionsController_findAllUserTransactions",
+        "summary": "Get all user transactions",
+        "parameters": [],
         "responses": {
           "200": {
             "description": ""
@@ -1221,6 +1223,11 @@
         },
         "tags": [
           "User Transactions"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
         ]
       }
     },
@@ -1976,6 +1983,42 @@
         },
         "tags": [
           "Commission History"
+        ]
+      }
+    },
+    "/analysis": {
+      "get": {
+        "operationId": "AnalysisController_getAnalysisForUser",
+        "parameters": [
+          {
+            "name": "month",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "year",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Analysis"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
         ]
       }
     }
