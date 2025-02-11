@@ -60,7 +60,7 @@ export class AnalysisService {
       .andWhere('EXTRACT(MONTH FROM transaction.createdAt) = :month', { month })
       .andWhere('EXTRACT(YEAR FROM transaction.createdAt) = :year', { year })
       .groupBy("to_char(transaction.createdAt, 'YYYY-MM-DD')")
-      .orderBy('date', 'ASC')
+      .orderBy('date', 'DESC')
       .getRawMany();
 
     return {
@@ -111,7 +111,7 @@ export class AnalysisService {
       .where('transaction.createdAt >= :startDate', { startDate })
       .andWhere('transaction.createdAt <= :endDate', { endDate })
       .groupBy("to_char(transaction.createdAt, 'YYYY-MM-DD')")
-      .orderBy('date', 'ASC')
+      .orderBy('date', 'DESC')
       .getRawMany();
 
     const total = userTransactions.reduce(
