@@ -1932,57 +1932,42 @@
             "JWT-auth": []
           }
         ]
-      },
-      "patch": {
-        "operationId": "CommissionHistoryController_update",
+      }
+    },
+    "/commission-history/monthly/{month}/{year}": {
+      "get": {
+        "operationId": "CommissionHistoryController_findAllByMonthAndYear",
+        "summary": "ADMIN: Get all commission histories for a specific month and year",
         "parameters": [
           {
-            "name": "id",
+            "name": "month",
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateCommissionHistoryDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Commission History"
-        ]
-      },
-      "delete": {
-        "operationId": "CommissionHistoryController_remove",
-        "parameters": [
+          },
           {
-            "name": "id",
+            "name": "year",
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Get all commission histories for a specific month and year operation completed successfully."
           }
         },
         "tags": [
           "Commission History"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
         ]
       }
     },
@@ -2794,41 +2779,6 @@
           "month",
           "year"
         ]
-      },
-      "UpdateCommissionHistoryDto": {
-        "type": "object",
-        "properties": {
-          "userStatusId": {
-            "type": "number",
-            "description": "ID of the user status",
-            "example": 1
-          },
-          "monthlyCommission": {
-            "type": "string",
-            "description": "Monthly commission amount",
-            "example": "1000000"
-          },
-          "bonus": {
-            "type": "string",
-            "description": "Bonus amount",
-            "example": "500000"
-          },
-          "total_sales": {
-            "type": "string",
-            "description": "Total sales amount",
-            "example": "2000000"
-          },
-          "month": {
-            "type": "number",
-            "description": "Month of the commission",
-            "example": 1
-          },
-          "year": {
-            "type": "number",
-            "description": "Year of the commission",
-            "example": 2021
-          }
-        }
       }
     }
   }
