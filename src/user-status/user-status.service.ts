@@ -481,7 +481,7 @@ export class UserStatusService {
       this.userTransactionService.purchase(
         userStatus,
         orderAmount.toString(),
-        'Mua hàng',
+        'Bạn đã mua đơn hàng ',
       );
 
       // TODO: Cập nhật rank cho user hiện tại
@@ -637,7 +637,11 @@ export class UserStatusService {
         // ).toString();
 
         // * Tính total_sale và thưởng
-        this.userTransactionService.sales(fatherState, orderAmount.toString());
+        this.userTransactionService.sales(
+          fatherState,
+          orderAmount.toString(),
+          `Đơn hàng từ người dùng ${fullname}`,
+        );
 
         // * Tính hoa hồng
         const commission = (

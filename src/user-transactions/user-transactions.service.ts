@@ -198,7 +198,7 @@ export class UserTransactionsService {
       user_status_id: current_user_status.id,
       amount,
       transaction_type: TransactionType.SALE,
-      description: 'Bán được hàng',
+      description: note == null ? '' : note,
     });
 
     return this.userStatusRepository.save(current_user_status);
