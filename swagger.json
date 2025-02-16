@@ -1162,6 +1162,75 @@
         ]
       }
     },
+    "/user-transactions": {
+      "get": {
+        "operationId": "UserTransactionsController_findAll",
+        "summary": "Get all user transactions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "User Transactions"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/user-transactions/{id}": {
+      "get": {
+        "operationId": "UserTransactionsController_findOne",
+        "summary": "Get user transaction by id",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "User Transactions"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/user-transactions/user/me": {
+      "get": {
+        "operationId": "UserTransactionsController_findAllUserTransactions",
+        "summary": "Get all user transactions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "User Transactions"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
     "/user-address": {
       "post": {
         "operationId": "UserAddressController_create",
@@ -1863,46 +1932,102 @@
             "JWT-auth": []
           }
         ]
-      },
-      "patch": {
-        "operationId": "CommissionHistoryController_update",
+      }
+    },
+    "/commission-history/monthly/{month}/{year}": {
+      "get": {
+        "operationId": "CommissionHistoryController_findAllByMonthAndYear",
+        "summary": "ADMIN: Get all commission histories for a specific month and year",
         "parameters": [
           {
-            "name": "id",
+            "name": "month",
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
+            }
+          },
+          {
+            "name": "year",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateCommissionHistoryDto"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Get all commission histories for a specific month and year operation completed successfully."
           }
         },
         "tags": [
           "Commission History"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
         ]
-      },
-      "delete": {
-        "operationId": "CommissionHistoryController_remove",
+      }
+    },
+    "/analysis/user": {
+      "get": {
+        "operationId": "AnalysisController_getAnalysisForUser",
         "parameters": [
           {
-            "name": "id",
+            "name": "month",
             "required": true,
-            "in": "path",
+            "in": "query",
             "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "year",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Analysis"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
+    "/analysis": {
+      "get": {
+        "operationId": "AnalysisController_getAnalysis",
+        "parameters": [
+          {
+            "name": "start",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2021-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "end",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "example": "2021-01-31",
               "type": "string"
             }
           }
@@ -1913,7 +2038,12 @@
           }
         },
         "tags": [
-          "Commission History"
+          "Analysis"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
         ]
       }
     }
@@ -2625,6 +2755,11 @@
             "description": "Bonus amount",
             "example": "500000"
           },
+          "total_sales": {
+            "type": "string",
+            "description": "Total sales amount",
+            "example": "2000000"
+          },
           "month": {
             "type": "number",
             "description": "Month of the commission",
@@ -2640,39 +2775,10 @@
           "userStatusId",
           "monthlyCommission",
           "bonus",
+          "total_sales",
           "month",
           "year"
         ]
-      },
-      "UpdateCommissionHistoryDto": {
-        "type": "object",
-        "properties": {
-          "userStatusId": {
-            "type": "number",
-            "description": "ID of the user status",
-            "example": 1
-          },
-          "monthlyCommission": {
-            "type": "string",
-            "description": "Monthly commission amount",
-            "example": "1000000"
-          },
-          "bonus": {
-            "type": "string",
-            "description": "Bonus amount",
-            "example": "500000"
-          },
-          "month": {
-            "type": "number",
-            "description": "Month of the commission",
-            "example": 1
-          },
-          "year": {
-            "type": "number",
-            "description": "Year of the commission",
-            "example": 2021
-          }
-        }
       }
     }
   }

@@ -1,15 +1,28 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { CommissionHistoryService } from './commission-history.service';
 import { CreateCommissionHistoryDto } from './dto/create-commission-history.dto';
 import { UpdateCommissionHistoryDto } from './dto/update-commission-history.dto';
 import { AdminEndpoint } from 'src/auth/decorator/admin.decorator';
 import { ProtectedEndpoint } from 'src/auth/decorator/authorization.decorator';
 import { ApiTags } from '@nestjs/swagger';
+import { AdminGuard } from 'src/auth/guards/admin.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('commission-history')
 @ApiTags('Commission History')
 export class CommissionHistoryController {
-  constructor(private readonly commissionHistoryService: CommissionHistoryService) {}
+  constructor(
+    private readonly commissionHistoryService: CommissionHistoryService,
+  ) {}
 
   @Post()
   @AdminEndpoint('Create a new commission history')
@@ -29,13 +42,16 @@ export class CommissionHistoryController {
     return this.commissionHistoryService.findOneByUserStatusId(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCommissionHistoryDto: UpdateCommissionHistoryDto) {
-    return this.commissionHistoryService.update(+id, updateCommissionHistoryDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.commissionHistoryService.remove(+id);
+  @Get('monthly/:month/:year')
+  @UseGuards(AdminGuard, JwtAuthGuard)
+  @AdminEndpoint('Get all commission histories for a specific month and year')
+  findAllByMonthAndYear(
+    @Param('month') month: number,
+    @Param('year') year: number,
+  ) {
+    return this.commissionHistoryService.findCommissionHistoryOfMonths(
+      month,
+      year,
+    );
   }
 }

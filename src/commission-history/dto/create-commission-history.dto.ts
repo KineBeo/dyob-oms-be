@@ -25,6 +25,11 @@ export class CreateCommissionHistoryDto {
   @IsNotEmpty()
   bonus: string;
 
+  @ApiProperty({ description: 'Total sales amount', example: '2000000' })
+  @IsNumberString()
+  @IsNotEmpty()
+  total_sales: string;
+
   // @ApiProperty({ description: 'Group commission amount', example: '3000000' })
   // @IsString()
   // @IsNotEmpty()

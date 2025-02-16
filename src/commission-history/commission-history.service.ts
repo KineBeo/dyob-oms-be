@@ -27,6 +27,7 @@ export class CommissionHistoryService {
         userStatus: userStatus,
         monthly_commission: createCommissionHistoryDto.monthlyCommission,
         bonus: createCommissionHistoryDto.bonus,
+        total_sale: createCommissionHistoryDto.total_sales,
         // group_commission: createCommissionHistoryDto.groupCommission,
         month: createCommissionHistoryDto.month,
         year: createCommissionHistoryDto.year,
@@ -64,6 +65,7 @@ export class CommissionHistoryService {
         userStatusId: status.id,
         monthlyCommission: status.commission,
         bonus: status.bonus,
+        total_sales: status.total_sales,
         // groupCommission: status.group_commission,
         month: new Date().getMonth() + 1,
         year: new Date().getFullYear(),
@@ -74,6 +76,21 @@ export class CommissionHistoryService {
 
   findOne(id: number) {
     return `This action returns a #${id} commissionHistory`;
+  }
+
+  async findCommissionHistoryOfMonths(month: number, year: number) {
+    const commissionHistory = await this.commissionHistoryRepository.find({
+      where: { month, year },
+      relations: ['userStatus', 'userStatus.user'],
+    });
+
+    commissionHistory.forEach((history) => {
+      if (history.userStatus && history.userStatus.user) {
+        delete history.userStatus.user.password_hash;
+      }
+    });
+
+    return commissionHistory;
   }
 
   async findOneByUserStatusId(id: number) {
@@ -93,13 +110,5 @@ export class CommissionHistoryService {
     } catch (error) {
       throw new BadRequestException(error.message);
     }
-  }
-
-  update(id: number, updateCommissionHistoryDto: UpdateCommissionHistoryDto) {
-    return `This action updates a #${id} commissionHistory`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} commissionHistory`;
   }
 }
