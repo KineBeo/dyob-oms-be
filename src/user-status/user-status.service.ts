@@ -16,6 +16,7 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { UserType } from 'src/enum/user_type';
 import { UserClass } from 'src/enum/user-class';
+import { UserTransactionsService } from 'src/user-transactions/user-transactions.service';
 
 @Injectable()
 export class UserStatusService {
@@ -25,6 +26,7 @@ export class UserStatusService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private eventEmitter: EventEmitter2,
+    private readonly userTransactionService: UserTransactionsService,
   ) {}
 
   private readonly logger = new Logger(UserStatusService.name);
@@ -54,7 +56,7 @@ export class UserStatusService {
    * ! CRON JOBS 1: RESET TOTAL_SALES, COMMISSION VỀ 0 HÀNG THÁNG (ĐẦU THÁNG)
    * * OK CHECKED
    */
-  // @Cron('30 13 * * *', {
+  // @Cron('45 20 * * *', {
   @Cron('0 0 1 * *', {
     name: 'reset-total-sales-monthly',
     timeZone: 'Asia/Ho_Chi_Minh',
@@ -62,11 +64,10 @@ export class UserStatusService {
   async resetTotalSalesMonthly() {
     console.log('Resetting total sales for all users', new Date());
     const allUserStatus = await this.userStatusRepository.find();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
     allUserStatus.forEach(async (status) => {
-      status.total_sales = '0';
-      status.commission = '0';
-      status.bonus = '0';
-      await this.userStatusRepository.save(status);
+      this.userTransactionService.reset(status, yesterday);
     });
   }
 
@@ -91,7 +92,7 @@ export class UserStatusService {
   /**
    * ! CRON JOBS 3: LƯU HOA HỒNG, THƯỞNG NHÓM CHO TẤT CẢ USER HÀNG THÁNG
    */
-  // @Cron('25 13 * * *', {
+  // @Cron('40 20 * * *', {
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
     name: 'store-commission-history-monthly',
     timeZone: 'Asia/Ho_Chi_Minh',
@@ -457,6 +458,7 @@ export class UserStatusService {
           'referrer.referrer.referrer',
           'referrer.referrer.referrer.referrer',
           'referrals',
+          'user',
         ],
       });
 
@@ -473,8 +475,14 @@ export class UserStatusService {
       const currentTotal = Number(userStatus.total_purchase);
       const orderAmount = Number(payload.orderAmount);
 
-      userStatus.total_purchase = (currentTotal + orderAmount).toString();
-      userStatus.total_orders += 1;
+      // userStatus.total_purchase = (currentTotal + orderAmount).toString();
+      // userStatus.total_orders += 1;
+
+      this.userTransactionService.purchase(
+        userStatus,
+        orderAmount.toString(),
+        'Bạn đã mua đơn hàng ',
+      );
 
       // TODO: Cập nhật rank cho user hiện tại
       const newRank = this.calculateUserRank(userStatus);
@@ -490,8 +498,11 @@ export class UserStatusService {
           newRank: newRank,
         });
       }
+      // console.log('Trước khi tính hoa hồng');
 
       await this.calculateCommission(userStatus, orderAmount);
+
+      // console.log('Sau khi tính hoa hồng');
 
       await this.userStatusRepository.save(userStatus);
     } catch (error) {
@@ -573,27 +584,12 @@ export class UserStatusService {
     return userStatus.user_rank;
   }
 
-  private calculateBonus(userStatus: UserStatus) {
-    // console.log('Calculating bonus for user:', userStatus);
-    const total_sales = Number(userStatus.total_sales);
-    const mind_stone = [5000000, 20000000, 50000000, 80000000, 100000000];
-    const bonus_percentage = [0.03, 0.04, 0.05, 0.06, 0.1];
-
-    for (let i = mind_stone.length; i >= 0; i--) {
-      if (total_sales >= mind_stone[i]) {
-        return total_sales * bonus_percentage[i];
-      }
-    }
-
-    return 0;
-  }
-
   private calculateCommissionPercentage(
     user_class: UserClass,
     upperLevel: number,
   ) {
     const basicCommissionPercentage = [0.2, 0.06, 0.03]; // checked 15h 8/12/2024
-    const vipCommissionPercentage = [0.25, 0.09, 0.06]; // checked 15h 8/12/2024
+    const vipCommissionPercentage = [0.25, 0.09, 0.05]; // checked 22h 7/2/2025
 
     if (user_class === UserClass.BASIC) {
       return basicCommissionPercentage[upperLevel - 1];
@@ -617,66 +613,80 @@ export class UserStatusService {
     orderAmount: number,
   ): Promise<{ message: string }> {
     // console.log('Calculating commission for user:', userStatus);
-    const referrer = userStatus.referrer;
-    const referrerOfReferrer = userStatus.referrer?.referrer;
-    const referrerOfReferrerOfReferrer =
-      userStatus.referrer?.referrer?.referrer;
+    const fullname = userStatus.user.fullname;
+
+    const father = userStatus.referrer;
+    const grandpa = userStatus.referrer?.referrer;
+    const greatGrandpa = userStatus.referrer?.referrer?.referrer;
     const referrerOfReferrerOfReferrerOfReferrer =
       userStatus.referrer?.referrer?.referrer?.referrer;
-    // console.log('referrer', referrer);
-    // console.log('referrerOfReferrer', referrerOfReferrer);
-    // console.log('referrerOfReferrerOfReferrer', referrerOfReferrerOfReferrer);
+    // console.log('Cha', father);
+    // console.log('Ông', grandpa);
+    // console.log('Cụ', greatGrandpa);
 
-    // TODO: Kiểm tra xem user có người giới thiệu không và cập nhật hoa hồng và doanh số cho người giới thiệu
-    if (referrer && referrer.user_rank === UserRank.NVKD) {
-      const referrerStatus = await this.userStatusRepository.findOne({
-        where: { user: { id: referrer.id } },
-        relations: ['referrals'],
+    // * CHECK cha
+    if (father && father.user_rank === UserRank.NVKD) {
+      const fatherState = await this.userStatusRepository.findOne({
+        where: { user: { id: father.id } },
+        relations: ['referrals', 'user'],
       });
 
-      if (referrerStatus) {
-        referrerStatus.total_sales = (
-          Number(referrerStatus.total_sales) + orderAmount
-        ).toString();
+      if (fatherState) {
+        // referrerStatus.total_sales = (
+        //   Number(referrerStatus.total_sales) + orderAmount
+        // ).toString();
 
-        referrerStatus.commission = (
-          Number(referrerStatus.commission) +
+        // * Tính total_sale và thưởng
+        this.userTransactionService.sales(
+          fatherState,
+          orderAmount.toString(),
+          `Đơn hàng từ người dùng ${fullname}`,
+        );
+
+        // * Tính hoa hồng
+        const commission = (
           Number(orderAmount) *
-            this.calculateCommissionPercentage(referrerStatus.user_class, 1)
+          this.calculateCommissionPercentage(fatherState.user_class, 1)
         ).toString();
 
-        referrerStatus.bonus = this.calculateBonus(referrerStatus).toString();
+        // * Tạo transaction cho cha
+        this.userTransactionService.commission(
+          fatherState,
+          commission,
+          'Hoa hồng nhận được từ người dùng ' + fullname,
+        );
+
+        // referrerStatus.bonus = this.calculateBonus(referrerStatus).toString();
 
         // referrerStatus.group_sales = (
         //   Number(referrerStatus.group_sales) + orderAmount
         // ).toString();
         // referrerStatus.group_commission =
         //   this.calulateGroupSalesCommission(referrerStatus).toString();
-        await this.userStatusRepository.save(referrerStatus);
       }
     } else {
       console.log('User has no referrer');
     }
 
-    if (referrerOfReferrer && referrerOfReferrer.user_rank === UserRank.NVKD) {
-      const referrerOfReferrerStatus = await this.userStatusRepository.findOne({
-        where: { user: { id: referrerOfReferrer.id } },
-        relations: ['referrals'],
+    // * CHECK ÔNG
+    if (grandpa && grandpa.user_rank === UserRank.NVKD) {
+      const grandpaState = await this.userStatusRepository.findOne({
+        where: { user: { id: grandpa.id } },
+        relations: ['referrals', 'user'],
       });
 
-      if (referrerOfReferrerStatus) {
-        referrerOfReferrerStatus.commission = (
-          Number(referrerOfReferrerStatus.commission) +
+      if (grandpaState) {
+        // * Tính hoa hồng cho ông
+        const commission = (
           Number(orderAmount) *
-            this.calculateCommissionPercentage(
-              referrerOfReferrerStatus.user_class,
-              2,
-            )
+          this.calculateCommissionPercentage(grandpaState.user_class, 2)
         ).toString();
 
-        referrerOfReferrerStatus.bonus = this.calculateBonus(
-          referrerOfReferrerStatus,
-        ).toString();
+        this.userTransactionService.commission(
+          grandpaState,
+          commission,
+          'Hoa hồng nhận được từ người dùng ' + fullname,
+        );
 
         // referrerOfReferrerStatus.group_sales = (
         //   Number(referrerOfReferrerStatus.group_sales) + orderAmount
@@ -685,35 +695,30 @@ export class UserStatusService {
         //   this.calulateGroupSalesCommission(
         //     referrerOfReferrerStatus,
         //   ).toString();
-        await this.userStatusRepository.save(referrerOfReferrerStatus);
       }
     } else {
       console.log('User has no referrer of referrer');
     }
 
-    if (
-      referrerOfReferrerOfReferrer &&
-      referrerOfReferrerOfReferrer.user_rank === UserRank.NVKD
-    ) {
-      const referrerOfReferrerOfReferrerStatus =
-        await this.userStatusRepository.findOne({
-          where: { user: { id: referrerOfReferrerOfReferrer.id } },
-          relations: ['referrals'],
-        });
+    // * CHECK CỤ
+    if (greatGrandpa && greatGrandpa.user_rank === UserRank.NVKD) {
+      const greatGrandpaState = await this.userStatusRepository.findOne({
+        where: { user: { id: greatGrandpa.id } },
+        relations: ['referrals', 'user'],
+      });
 
-      if (referrerOfReferrerOfReferrerStatus) {
-        referrerOfReferrerOfReferrerStatus.commission = (
-          Number(referrerOfReferrerOfReferrerStatus.commission) +
+      if (greatGrandpaState) {
+        // * Tính hoa hồng cho cụ
+        const commission = (
           Number(orderAmount) *
-            this.calculateCommissionPercentage(
-              referrerOfReferrerOfReferrerStatus.user_class,
-              3,
-            )
+          this.calculateCommissionPercentage(greatGrandpaState.user_class, 3)
         ).toString();
 
-        referrerOfReferrerOfReferrerStatus.bonus = this.calculateBonus(
-          referrerOfReferrerOfReferrerStatus,
-        ).toString();
+        this.userTransactionService.commission(
+          greatGrandpaState,
+          commission,
+          'Hoa hồng nhận được từ người dùng ' + fullname,
+        );
 
         // referrerOfReferrerOfReferrerStatus.group_sales = (
         //   Number(referrerOfReferrerOfReferrerStatus.group_sales) + orderAmount

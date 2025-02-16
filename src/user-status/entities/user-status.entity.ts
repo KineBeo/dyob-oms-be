@@ -6,14 +6,15 @@ import {
   OneToOne,
   JoinColumn,
   Column,
-  CreateDateColumn,
-  UpdateDateColumn,
   Entity,
   ManyToOne,
   OneToMany,
+  BeforeInsert,
+  BeforeUpdate,
 } from 'typeorm';
 import { UserType } from 'src/enum/user_type';
 import { UserClass } from 'src/enum/user-class';
+import { UserTransaction } from 'src/user-transactions/entities/user-transaction.entity';
 
 @Entity()
 export class UserStatus {
@@ -75,10 +76,10 @@ export class UserStatus {
   @OneToMany(() => UserStatus, (userStatus) => userStatus.referrer)
   referrals: UserStatus[];
 
-  @UpdateDateColumn()
+  @Column()
   last_rank_check: Date;
 
-  @UpdateDateColumn()
+  @Column()
   rank_achievement_date: Date;
 
   @Column({
@@ -88,12 +89,31 @@ export class UserStatus {
   })
   user_rank: UserRank;
 
-  @CreateDateColumn()
+  @Column()
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @Column()
   updatedAt: Date;
+
+  @BeforeInsert()
+  updateCreatedAt() {
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
+    this.last_rank_check = new Date();
+    this.rank_achievement_date = new Date();
+  }
+
+  @BeforeUpdate()
+  updateUpdatedAt() {
+    this.updatedAt = new Date();
+  }
 
   @OneToMany(() => Order, (order) => order.userStatus)
   orders: Order[];
+
+  @OneToMany(
+    () => UserTransaction,
+    (userTransaction) => userTransaction.userStatus,
+  )
+  userTransactions: UserTransaction[];
 }
