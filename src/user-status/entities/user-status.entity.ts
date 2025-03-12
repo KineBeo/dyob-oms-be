@@ -1,4 +1,3 @@
-import Order from 'src/orders/entities/order.entity';
 import { UserRank } from '../../enum/rank';
 import User from '../../users/entities/user.entity';
 import {
@@ -12,9 +11,10 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm';
-import { UserType } from 'src/enum/user_type';
-import { UserClass } from 'src/enum/user-class';
-import { UserTransaction } from 'src/user-transactions/entities/user-transaction.entity';
+import { UserType } from '../../enum/user_type';
+import { UserClass } from '../../enum/user-class';
+import { UserTransaction } from '../../user-transactions/entities/user-transaction.entity';
+import Order from '../../orders/entities/order.entity';
 
 @Entity()
 export class UserStatus {

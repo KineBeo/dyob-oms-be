@@ -1,5 +1,4 @@
-import { UserStatus } from "src/user-status/entities/user-status.entity";
-import User from "src/users/entities/user.entity";
+import User from "../../users/entities/user.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()

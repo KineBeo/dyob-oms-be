@@ -1,4 +1,4 @@
-import { UserStatus } from 'src/user-status/entities/user-status.entity';
+import { UserStatus } from '../../user-status/entities/user-status.entity';
 import {
   BeforeInsert,
   Column,

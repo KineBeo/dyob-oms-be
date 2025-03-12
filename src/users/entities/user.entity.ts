@@ -1,5 +1,5 @@
 import { UserStatus } from '../../user-status/entities/user-status.entity';
-import Order from '../../orders/entities/order.entity';
+import Order from './../../orders/entities/order.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -11,7 +11,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Role } from '../../enum/role';
-import { UserAddress } from 'src/user-address/entities/user-address.entity';
+import { UserAddress } from '../../user-address/entities/user-address.entity';
 
 @Entity()
 export default class User {

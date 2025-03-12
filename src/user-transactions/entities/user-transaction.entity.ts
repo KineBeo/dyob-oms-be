@@ -1,6 +1,5 @@
-import { TransactionType } from 'src/enum/transactionType';
-import { UserStatus } from 'src/user-status/entities/user-status.entity';
-import User from 'src/users/entities/user.entity';
+import { TransactionType } from '../../enum/transactionType';
+import { UserStatus } from '../../user-status/entities/user-status.entity';
 import {
   BeforeInsert,
   Column,

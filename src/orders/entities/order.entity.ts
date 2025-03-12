@@ -3,8 +3,8 @@ import User from '../../users/entities/user.entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { OrderStatus } from '../../enum/order-status';
 import OrderProduct from "../../order_product/entities/order_product.entity";
-import { UserStatus } from 'src/user-status/entities/user-status.entity';
-import { UserAddress } from 'src/user-address/entities/user-address.entity';
+import { UserStatus } from '../../user-status/entities/user-status.entity';
+import { UserAddress } from '../../user-address/entities/user-address.entity';
 
 @Entity()
 export default class Order {
