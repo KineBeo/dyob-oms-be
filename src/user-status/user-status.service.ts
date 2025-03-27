@@ -380,7 +380,7 @@ export class UserStatusService {
         'Something went wrong from find one user status service',
       );
     }
-  }
+	}
 
   async findReferralLevels(id: number) {
     try {
