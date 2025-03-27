@@ -7,6 +7,11 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 import { Public } from './decorator/public.decorator';
+import { Role } from '@/enum/role';
+import User from '@/users/entities/user.entity';
+import { Roles } from './decorator/roles.decorator';
+import { CreateMultipleUsersDto } from './dto/create-multiple-users.dto';
+import { AdminGuard } from './guards/admin.guard';
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
@@ -70,5 +75,19 @@ export class AuthController {
   })
   getProfile(@Req() req: Request) {
     return req.user;
-  }
+	}
+
+	@Post('create-multiple-users')
+	@UseGuards(JwtAuthGuard, AdminGuard)
+	@Roles(Role.ADMIN)
+	@ApiBearerAuth('JWT-auth')
+	@ApiOperation({ summary: 'ADMIN: Create multiple users' })
+	@ApiResponse({
+		status: 201,
+		description: 'Users has been successfully created.',
+		type: User,
+	})
+	createMultipleUsers(@Body() createMultipleUsersDto: CreateMultipleUsersDto) {
+		return this.authService.createMultipleUsers(createMultipleUsersDto);
+	}
 }

@@ -33,7 +33,7 @@ class CreateSingleUserDto {
 
 	@ApiProperty({
 		description: 'Số điện thoại Việt Nam',
-		example: '0123456789',
+		example: '0353368921',
 		minLength: 10,
 		maxLength: 10,
 	})
@@ -66,7 +66,7 @@ class CreateSingleUserDto {
 	referral_code_of_referrer?: string;
 
 
-	@ApiProperty({ description: 'Số điện thoại của người giới thiệu', example: '0123456789', required: false })
+	@ApiProperty({ description: 'Số điện thoại của người giới thiệu', example: '0353368921', required: false })
 	@IsOptional()
 	@IsNumberString({}, { message: 'Số điện thoại chỉ được chứa các chữ số' })
 	@Length(10, 10, { message: 'Số điện thoại phải có đúng 10 chữ số' })

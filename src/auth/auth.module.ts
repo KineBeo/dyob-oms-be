@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UserStatusModule } from 'src/user-status/user-status.module';
+import User from '@/users/entities/user.entity';
 @Module({
   imports: [
     UsersModule,
@@ -23,7 +24,7 @@ import { UserStatusModule } from 'src/user-status/user-status.module';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([RefreshToken]),
+    TypeOrmModule.forFeature([RefreshToken, User]),
     UsersModule,
     UserStatusModule,
   ],

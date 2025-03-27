@@ -7,8 +7,7 @@ import { UserStatusModule } from '@/user-status/user-status.module';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([User]),
-		forwardRef(() => UserStatusModule)
+		TypeOrmModule.forFeature([User])
 	],
 	controllers: [UsersController],
 	providers: [UsersService],

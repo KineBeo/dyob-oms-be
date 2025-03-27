@@ -27,7 +27,7 @@ import { AdminGuard } from '../auth/guards/admin.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
 import { Role } from '../enum/role';
 import { PaginationDto } from './dto/pagination.dto';
-import { CreateMultipleUsersDto } from './dto/create-multiple-users.dto';
+import { CreateMultipleUsersDto } from '../auth/dto/create-multiple-users.dto';
 
 @Controller('users')
 @ApiTags('users')
@@ -167,24 +167,5 @@ export class UsersController {
 	@ApiResponse({ status: 404, description: 'User not found.' })
 	findByPhone(@Query('phone_number') phone_number: string) {
 		return this.usersService.findByPhoneNumber(phone_number);
-	}
-
-	/**
-   * ! Only admin should be able to access this endpoint
-   * @param createUserDto
-   * @returns
-   */
-	@Post('create-multiple-users')
-	@UseGuards(JwtAuthGuard, AdminGuard)
-	@Roles(Role.ADMIN)
-	@ApiBearerAuth('JWT-auth')
-	@ApiOperation({ summary: 'ADMIN: Create multiple users' })
-	@ApiResponse({
-		status: 201,
-		description: 'Users has been successfully created.',
-		type: User,
-	})
-	createMultipleUsers(@Body() createMultipleUsersDto: CreateMultipleUsersDto) {
-		return this.usersService.createMultipleUsers(createMultipleUsersDto);
 	}
 }

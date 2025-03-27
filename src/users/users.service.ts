@@ -1,31 +1,22 @@
 import {
 	BadRequestException,
 	ConflictException,
-	forwardRef,
-	Inject,
 	Injectable,
 	NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, QueryFailedError, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import User from './entities/user.entity';
-import { CreateUserFullAttributesDto } from './dto/create-user-full-attributes.dto';
 import { PaginationDto } from './dto/pagination.dto';
-import { UserStatusService } from '@/user-status/user-status.service';
-import { CreateMultipleUsersDto } from './dto/create-multiple-users.dto';
-import { UserRank } from '@/enum/rank';
-import { UserClass } from '@/enum/user-class';
 @Injectable()
 export class UsersService {
 	constructor(
 		@InjectRepository(User)
 		private userRepository: Repository<User>,
 		private dataSource: DataSource,
-		@Inject(forwardRef(() => UserStatusService))
-		private userStatusService: UserStatusService,
 	) { }
 
 	async create(createUserDto: CreateUserDto): Promise<User> {
@@ -261,77 +252,6 @@ export class UsersService {
 				'Something went wrong from find by phone number service',
 			);
 		}
-	}
-
-	async createMultipleUsers(createMultipleUsersDto: CreateMultipleUsersDto) {
-		const createdUsers = [];
-		const errors = [];
-
-		for (const userDto of createMultipleUsersDto.users) {
-			try {
-
-				const { phone_number, password_hash, parent_phone_number, referral_code_of_referrer, ...rest } = userDto;
-
-				const existingUser = await this.userRepository.findOne({ where: { phone_number } });
-				if (existingUser) {
-					throw new ConflictException(`Phone number ${phone_number} is already in use`);
-				}
-
-				if (parent_phone_number) {
-					const parentUser = await this.userRepository.findOne({ where: { phone_number: parent_phone_number } });
-					if (!parentUser) {
-						throw new ConflictException(`Parent phone number ${parent_phone_number} does not exist`);
-					}
-				}
-
-				const hashedPassword = await bcrypt.hash(password_hash, 10);
-
-				const newUser = this.userRepository.create({
-					...rest,
-					phone_number,
-					password_hash: hashedPassword,
-				});
-
-				let referralCode = referral_code_of_referrer || null;
-
-				if (!referralCode && parent_phone_number) {
-					const parentUser = await this.userRepository.findOne({ where: { phone_number: parent_phone_number } });
-					if (!parentUser) {
-						throw new ConflictException(`Parent phone number ${parent_phone_number} does not exist`);
-					}
-
-					// Get parent's personal_referral_code
-					const parentUserStatus = await this.userStatusService.findOne(parentUser.id);
-					if (parentUserStatus) {
-						referralCode = parentUserStatus.personal_referral_code;
-					}
-				}
-
-				// Create associated profiles
-				await this.userStatusService.create({
-					user_id: newUser.id,
-					referral_code_of_referrer: referralCode,
-					user_rank: UserRank.GUEST,
-					user_class: UserClass.BASIC,
-				});
-
-				createdUsers.push(newUser);
-			} catch (error) {
-				errors.push({ user: userDto, error: error.message });
-			}
-		}
-
-		if (errors.length > 0) {
-			throw new BadRequestException(
-				{
-					message: 'Failed to create some users',
-					success: createdUsers,
-					failed: errors,
-				}
-			);
-		}
-
-		return { success: createdUsers, failed: [] };
 	}
 
 	// TODO: service for seed users
