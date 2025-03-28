@@ -16,6 +16,9 @@ import { UserStatusService } from '../user-status/user-status.service';
 import { UserRank } from 'src/enum/rank';
 import * as jwt from 'jsonwebtoken';
 import { UserClass } from 'src/enum/user-class';
+import { CreateMultipleUsersDto } from './dto/create-multiple-users.dto';
+import { create } from 'domain';
+import User from '@/users/entities/user.entity';
 @Injectable()
 export class AuthService {
   constructor(
@@ -24,7 +27,9 @@ export class AuthService {
     private jwtService: JwtService,
     @InjectRepository(RefreshToken)
     private refreshTokenRepository: Repository<RefreshToken>,
-    private dataSource: DataSource,
+	  private dataSource: DataSource,
+	  @InjectRepository(User)
+	private userRepository: Repository<User>,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
@@ -168,5 +173,89 @@ export class AuthService {
   async logout(userId: number) {
     await this.refreshTokenRepository.delete({ userId });
     return { message: 'Logged out successfully' };
-  }
+	}
+	
+	async createMultipleUsers(createMultipleUsersDto: CreateMultipleUsersDto) {
+		const errors = [];
+		const newPhoneNumbers = new Set();
+
+		// check if users are valid
+		for (const userDto of createMultipleUsersDto.users) {
+			const { phone_number, parent_phone_number, referral_code_of_referrer } = userDto;
+
+			// Check if phone number is existed
+			const existingUser = await this.userRepository.findOne({
+				where: { phone_number },
+			});
+
+			if (existingUser || newPhoneNumbers.has(phone_number)) {
+				errors.push({ user: userDto, error: `Phone number ${phone_number} is already in use,` });
+				continue;
+			}
+
+			if (referral_code_of_referrer) {
+				// * Check if referrer existed
+				const userStatusWithReferralCode =
+					await this.userStatusService.findUserStatusByReferralCode(referral_code_of_referrer);
+
+				if (!userStatusWithReferralCode) {
+					errors.push({ user: userDto, error: `Invalid refferal code ${referral_code_of_referrer}` });
+					continue;
+				}
+			}
+
+			if (parent_phone_number && !newPhoneNumbers.has(parent_phone_number)) {
+				const parentUser = await this.userRepository.findOne({
+					where: { phone_number: parent_phone_number },
+				});
+				if (!parentUser) {
+					errors.push({ user: userDto, error: `Parent phone number ${ parent_phone_number } does not exist`});
+				continue;
+			}
+		}
+			newPhoneNumbers.add(phone_number);
+		}
+
+		if (errors.length > 0) {
+			throw new BadRequestException({
+				message: 'Validation failed, no users created',
+				failed: errors,
+			});
+		}
+
+		// create users if no errors
+		const createdUsers = [];
+		for (const userDto of createMultipleUsersDto.users) {
+			const { phone_number, password_hash, parent_phone_number, referral_code_of_referrer, ...rest } = userDto;
+			const hashedPassword = await bcrypt.hash(password_hash, 10);
+
+			const newUser = await this.usersService.create({
+				...rest,
+				phone_number,
+				password_hash: hashedPassword,
+			});
+
+			let referralCode = referral_code_of_referrer || null;
+
+			if (!referralCode && parent_phone_number) {
+				const parentUser = await this.usersService.findByPhoneNumber(parent_phone_number);
+				const parentUserStatus = await this.userStatusService.findReferrerByUserId(parentUser.id);
+				if (parentUserStatus) {
+					referralCode = parentUserStatus.personal_referral_code;
+				}
+			}
+
+			await this.userStatusService.create({
+				user_id: newUser.id,
+				referral_code_of_referrer: referralCode,
+				user_rank: UserRank.GUEST,
+				user_class: UserClass.BASIC,
+			});
+
+			createdUsers.push(newUser);
+		}
+
+		return createdUsers;
+	}
+
 }

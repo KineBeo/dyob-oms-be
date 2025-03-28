@@ -1779,6 +1779,43 @@
         ]
       }
     },
+    "/auth/create-multiple-users": {
+      "post": {
+        "operationId": "AuthController_createMultipleUsers",
+        "summary": "ADMIN: Create multiple users",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMultipleUsersDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Users has been successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ]
+      }
+    },
     "/notifications": {
       "get": {
         "operationId": "NotificationsController_findAllNotifications",
@@ -2735,6 +2772,79 @@
         },
         "required": [
           "refreshToken"
+        ]
+      },
+      "CreateSingleUserDto": {
+        "type": "object",
+        "properties": {
+          "fullname": {
+            "type": "string",
+            "description": "Họ và tên của người dùng",
+            "example": "Nguyễn Văn A",
+            "minLength": 6,
+            "maxLength": 50
+          },
+          "phone_number": {
+            "type": "string",
+            "description": "Số điện thoại Việt Nam",
+            "example": "0353368921",
+            "minLength": 10,
+            "maxLength": 10
+          },
+          "password_hash": {
+            "type": "string",
+            "description": "Mật khẩu với các yêu cầu cụ thể",
+            "example": "StrongP@ssw0rd!"
+          },
+          "referral_code_of_referrer": {
+            "type": "string",
+            "description": "Mã giới thiệu",
+            "example": "DEFAULT_1"
+          },
+          "parent_phone_number": {
+            "type": "string",
+            "description": "Số điện thoại của người giới thiệu",
+            "example": "0353368921"
+          },
+          "user_class": {
+            "type": "string",
+            "description": "Gói dịch vụ người dùng chọn",
+            "enum": [
+              "NONE",
+              "BASIC",
+              "VIP"
+            ],
+            "default": "BASIC"
+          },
+          "role": {
+            "type": "string",
+            "description": "User role",
+            "enum": [
+              "ADMIN",
+              "USER"
+            ],
+            "default": "USER"
+          }
+        },
+        "required": [
+          "fullname",
+          "phone_number",
+          "password_hash"
+        ]
+      },
+      "CreateMultipleUsersDto": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "description": "Danh sách người dùng",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateSingleUserDto"
+            }
+          }
+        },
+        "required": [
+          "users"
         ]
       },
       "CreateCommissionHistoryDto": {

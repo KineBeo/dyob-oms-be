@@ -380,7 +380,7 @@ export class UserStatusService {
         'Something went wrong from find one user status service',
       );
     }
-  }
+	}
 
   async findReferralLevels(id: number) {
     try {
@@ -432,7 +432,23 @@ export class UserStatusService {
         'Something went wrong from find referral levels service',
       );
     }
-  }
+	}
+	
+	async findReferrerByUserId(userId: number) {
+	const userStatus = await this.userStatusRepository.findOne({
+		where: { user: { id: userId } },
+		relations: ['referrer', 'referrals', 'referrals.user', 'referrer.user'],
+	});
+
+	if (!userStatus) {
+		throw new NotFoundException(`User status not found with userId ${userId}`);
+	}
+
+		return {
+			id: userStatus.id,
+			personal_referral_code: userStatus.personal_referral_code
+		};
+}
 
   update(id: number, updateUserStatusDto: UpdateUserStatusDto) {
     return `This action updates a #${id} userStatus`;

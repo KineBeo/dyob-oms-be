@@ -8,13 +8,13 @@ import { UserStatusModule } from 'src/user-status/user-status.module';
 import { UserStatus } from 'src/user-status/entities/user-status.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([UserTransaction, UserStatus]),
-    UsersModule,
-    UserStatus,
-  ],
-  controllers: [UserTransactionsController],
-  providers: [UserTransactionsService],
-  exports: [UserTransactionsService],
+	imports: [
+		TypeOrmModule.forFeature([UserTransaction, UserStatus]),
+		UsersModule,
+		UserStatus,
+	],
+	controllers: [UserTransactionsController],
+	providers: [UserTransactionsService],
+	exports: [UserTransactionsService],
 })
 export class UserTransactionsModule {}
