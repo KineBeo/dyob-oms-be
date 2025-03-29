@@ -249,7 +249,7 @@ export class AuthService {
 				user_id: newUser.id,
 				referral_code_of_referrer: referralCode,
 				user_rank: UserRank.GUEST,
-				user_class: UserClass.BASIC,
+				user_class: userDto.user_class || UserClass.BASIC,
 			});
 
 			createdUsers.push(newUser);
